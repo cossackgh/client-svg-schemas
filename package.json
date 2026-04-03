@@ -1,0 +1,60 @@
+{
+  "name": "svgic",
+  "version": "0.0.1",
+  "description": "Interactive SVG schema client — embed, bind data, and handle events on SVG layers",
+  "type": "module",
+  "main": "./dist/svgic.umd.cjs",
+  "module": "./dist/svgic.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/svgic.js",
+      "require": "./dist/svgic.umd.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./vue": {
+      "import": "./dist/vue.js",
+      "types": "./dist/adapters/vue/index.d.ts"
+    },
+    "./react": {
+      "import": "./dist/react.js",
+      "types": "./dist/adapters/react/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite serve playground --config vite.playground.config.ts",
+    "build": "vite build",
+    "test": "vitest",
+    "typecheck": "vue-tsc --noEmit"
+  },
+  "keywords": [
+    "svg",
+    "interactive",
+    "schema",
+    "map",
+    "viewer",
+    "layers"
+  ],
+  "author": "",
+  "license": "MIT",
+  "peerDependencies": {
+    "react": ">=17.0.0",
+    "vue": ">=3.0.0"
+  },
+  "peerDependenciesOptional": {
+    "react": true,
+    "vue": true
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "typescript": "^5.4.0",
+    "vite": "^5.0.0",
+    "vite-plugin-dts": "^3.9.0",
+    "vitest": "^1.6.0",
+    "vue": "^3.4.0",
+    "vue-tsc": "^2.0.0"
+  }
+}

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+  <!-- Декоративный слой -->
+  <g id="background">
+    <rect width="800" height="600" fill="#f5f5f5"/>
+    <rect x="10" y="10" width="780" height="580" fill="none" stroke="#ccc" stroke-width="2" rx="4"/>
+  </g>
+
+  <!-- Интерактивный слой -->
+  <g id="rooms">
+    <rect id="room-101" x="50" y="50" width="200" height="150" fill="#e3f2fd" stroke="#90caf9" stroke-width="2" rx="4"/>
+    <text x="150" y="130" text-anchor="middle" fill="#555" font-size="14">101</text>
+
+    <rect id="room-102" x="300" y="50" width="200" height="150" fill="#e8f5e9" stroke="#a5d6a7" stroke-width="2" rx="4"/>
+    <text x="400" y="130" text-anchor="middle" fill="#555" font-size="14">102</text>
+  </g>
+</svg>
