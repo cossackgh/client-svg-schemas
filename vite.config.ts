@@ -1,9 +1,12 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import { resolve } from 'path'
 import dts from 'vite-plugin-dts'
 
 // Конфиг сборки библиотеки
 export default defineConfig({
+  test: {
+    environment: 'jsdom',
+  },
   plugins: [
     dts({
       include: ['src'],

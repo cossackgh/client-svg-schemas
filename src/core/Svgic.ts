@@ -1,9 +1,11 @@
 import type { SvgicOptions, SvgicPlugin } from '../types'
+import { loadSvg } from './loader'
 
 export class Svgic {
   private container: Element
   private options: SvgicOptions
   private plugins: SvgicPlugin[] = []
+  private svgEl: SVGSVGElement | null = null
 
   constructor(selector: string | Element, options: SvgicOptions) {
     const container = typeof selector === 'string'
@@ -36,11 +38,15 @@ export class Svgic {
 
   destroy(): void {
     this.container.innerHTML = ''
+    this.svgEl = null
+    this.plugins.forEach(p => p.onDestroy?.(this))
     this.plugins = []
   }
 
   private async init(): Promise<void> {
-    // TODO: загрузить SVG, парсить слои, привязать данные
+    this.svgEl = await loadSvg(this.options.src)
+    this.container.appendChild(this.svgEl)
+    // TODO: парсить слои, привязать данные
     this.plugins.forEach(p => p.onInit?.(this))
   }
 }
