@@ -1,11 +1,17 @@
-import type { SvgicOptions, SvgicPlugin } from '../types'
+import type { SvgicOptions, SvgicPlugin, SvgicItem } from '../types'
 import { loadSvg } from './loader'
+import { parseLayers, type ParsedLayer } from './layerParser'
+import { mapData, type BoundElement } from './dataMapper'
+import { EventManager, type SvgicEventType, type SvgicEventHandler } from './eventManager'
 
 export class Svgic {
   private container: Element
   private options: SvgicOptions
   private plugins: SvgicPlugin[] = []
   private svgEl: SVGSVGElement | null = null
+  private layers: Map<string, ParsedLayer> = new Map()
+  private boundElements: Map<string, BoundElement> = new Map()
+  private eventManager: EventManager
 
   constructor(selector: string | Element, options: SvgicOptions) {
     const container = typeof selector === 'string'
@@ -19,6 +25,12 @@ export class Svgic {
     this.container = container
     this.options = options
 
+    this.eventManager = new EventManager(
+      () => this.layers,
+      () => this.boundElements,
+      () => this.plugins,
+    )
+
     if (options.plugins) {
       options.plugins.forEach(p => this.use(p))
     }
@@ -31,12 +43,18 @@ export class Svgic {
     return this
   }
 
-  on(_event: string, _handler: (...args: unknown[]) => void): this {
-    // TODO: реализовать event emitter
+  setData(data: SvgicItem[]): void {
+    if (!this.svgEl) return
+    this.boundElements = mapData(this.svgEl, data)
+  }
+
+  on(event: SvgicEventType, handler: SvgicEventHandler): this {
+    this.eventManager.on(event, handler)
     return this
   }
 
   destroy(): void {
+    this.eventManager.destroy()
     this.container.innerHTML = ''
     this.svgEl = null
     this.plugins.forEach(p => p.onDestroy?.(this))
@@ -46,7 +64,11 @@ export class Svgic {
   private async init(): Promise<void> {
     this.svgEl = await loadSvg(this.options.src)
     this.container.appendChild(this.svgEl)
-    // TODO: парсить слои, привязать данные
+    this.layers = parseLayers(this.svgEl, this.options.layers)
+    if (this.options.data) {
+      this.boundElements = mapData(this.svgEl, this.options.data)
+    }
+    this.eventManager.attach()
     this.plugins.forEach(p => p.onInit?.(this))
   }
 }
