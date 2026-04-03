@@ -1,10 +1,12 @@
-import type { SvgicOptions, SvgicPlugin, SvgicItem } from '../types'
+import type { SvgicOptions, SvgicPlugin, SvgicItem, ISvgic } from '../types'
 import { loadSvg } from './loader'
 import { parseLayers, type ParsedLayer } from './layerParser'
 import { mapData, type BoundElement } from './dataMapper'
 import { EventManager, type SvgicEventType, type SvgicEventHandler } from './eventManager'
 
-export class Svgic {
+export class Svgic implements ISvgic {
+  readonly ready: Promise<void>
+
   private container: Element
   private options: SvgicOptions
   private plugins: SvgicPlugin[] = []
@@ -35,11 +37,15 @@ export class Svgic {
       options.plugins.forEach(p => this.use(p))
     }
 
-    this.init()
+    this.ready = this.init()
   }
 
   use(plugin: SvgicPlugin): this {
     this.plugins.push(plugin)
+    // Если SVG уже загружен — сразу вызываем onInit для позднего плагина
+    if (this.svgEl) {
+      plugin.onInit?.(this)
+    }
     return this
   }
 

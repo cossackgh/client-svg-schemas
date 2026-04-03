@@ -15,11 +15,19 @@ export interface SvgicLayer {
   role: SvgicLayerRole
 }
 
+// Публичный интерфейс клиента — используется в плагинах, чтобы избежать кругового импорта
+export interface ISvgic {
+  readonly ready: Promise<void>
+  use(plugin: SvgicPlugin): ISvgic
+  setData(data: SvgicItem[]): void
+  destroy(): void
+}
+
 // Хуки плагина
 export interface SvgicPlugin {
   name: string
-  onInit?: (client: import('./core/Svgic').Svgic) => void
-  onDestroy?: (client: import('./core/Svgic').Svgic) => void
+  onInit?: (client: ISvgic) => void
+  onDestroy?: (client: ISvgic) => void
   onElementHover?: (element: SVGElement, item: SvgicItem | null) => void | false
   onElementLeave?: (element: SVGElement, item: SvgicItem | null) => void | false
   onElementClick?: (element: SVGElement, item: SvgicItem | null) => void | false
