@@ -3,36 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>svgic — playground</title>
+  <title>svgic — Popup</title>
+  <link rel="stylesheet" href="./shared.css" />
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #1a1a2e;
-      color: #e0e0e0;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    header {
-      padding: 0.75rem 1.5rem;
-      border-bottom: 1px solid #2a2a4a;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-    header h1 { font-size: 1rem; font-weight: 600; color: #fff; }
-    header span { font-size: 0.75rem; color: #666; background: #2a2a4a; padding: 2px 8px; border-radius: 99px; }
-
-    .popup-switcher {
+    .header-controls {
       margin-left: auto;
       display: flex;
       align-items: center;
       gap: 0.4rem;
     }
-    .popup-switcher-label {
+    .controls-label {
       font-size: 0.72rem;
       color: #555;
       font-family: 'Cascadia Code', 'Fira Code', monospace;
@@ -48,135 +28,19 @@
       cursor: pointer;
       transition: all 0.15s;
     }
-    .mode-btn:hover { border-color: #555; color: #aaa; }
+    .mode-btn:hover  { border-color: #555; color: #aaa; }
     .mode-btn.active { border-color: #4c8aff; color: #4c8aff; background: rgba(76, 138, 255, 0.08); }
-
-    .layout {
-      flex: 1;
-      display: grid;
-      grid-template-columns: 1fr 280px;
-      overflow: hidden;
-    }
-
-    /* ---- SVG area ---- */
-    #schema-container {
-      padding: 1.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-    #schema-container svg {
-      width: 100%;
-      max-width: 820px;
-      height: auto;
-      border-radius: 8px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
-    }
-
-    /* Hover / active состояния через CSS-классы на SVG-элементах */
-    .room-hover { filter: brightness(0.88); cursor: pointer; }
-    .room-active { filter: brightness(0.80) drop-shadow(0 0 8px rgba(100,150,255,0.5)); cursor: pointer; }
-    #rooms g { cursor: pointer; }
-
-    /* ---- Sidebar ---- */
-    .sidebar {
-      border-left: 1px solid #2a2a4a;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .info-panel {
-      padding: 1rem;
-      flex: 1;
-      overflow-y: auto;
-    }
-    .info-panel h2 {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #555;
-      margin-bottom: 0.75rem;
-    }
-
-    .info-empty {
-      color: #444;
-      font-size: 0.85rem;
-      margin-top: 0.5rem;
-    }
-
-    .info-card { display: none; }
-    .info-card.visible { display: block; }
-
-    .info-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #fff;
-      margin-bottom: 0.25rem;
-    }
-    .info-desc {
-      font-size: 0.85rem;
-      color: #888;
-      margin-bottom: 1rem;
-      line-height: 1.4;
-    }
-
-    .info-fields { display: flex; flex-direction: column; gap: 0.5rem; }
-    .info-field {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.8rem;
-    }
-    .info-field-label { color: #555; }
-    .info-field-value { color: #ccc; font-weight: 500; }
-
-    .status-badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 99px;
-      font-size: 0.72rem;
-      font-weight: 600;
-    }
-    .status-free    { background: #1b4d2e; color: #69db7c; }
-    .status-busy    { background: #4a1e1e; color: #ff8787; }
-    .status-restricted { background: #3d2a0a; color: #ffa94d; }
-
-    /* ---- Event log ---- */
-    .event-log {
-      border-top: 1px solid #2a2a4a;
-      padding: 0.75rem;
-      height: 160px;
-      overflow-y: auto;
-    }
-    .event-log h2 {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #555;
-      margin-bottom: 0.4rem;
-      flex-shrink: 0;
-    }
-    .log-entry {
-      font-size: 0.72rem;
-      font-family: 'Cascadia Code', 'Fira Code', monospace;
-      color: #555;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      margin-bottom: 3px;
-    }
-    .log-entry.click { color: #74c0fc; }
-    .log-entry.hover { color: #69db7c; }
-    .log-entry.leave { color: #ff8787; }
   </style>
 </head>
 <body>
   <header>
     <h1>svgic</h1>
-    <span>playground</span>
-    <div class="popup-switcher">
-      <span class="popup-switcher-label">popup:</span>
+    <nav class="page-nav">
+      <a href="/"             class="nav-link active">Popup</a>
+      <a href="/styling.html" class="nav-link">Styling</a>
+    </nav>
+    <div class="header-controls">
+      <span class="controls-label">popup:</span>
       <button class="mode-btn active" data-mode="element">element</button>
       <button class="mode-btn" data-mode="cursor">cursor</button>
       <button class="mode-btn" data-mode="target">target</button>
@@ -193,7 +57,7 @@
         <p class="info-empty" id="info-hint">Кликните на комнату</p>
         <div class="info-card" id="info-card">
           <div class="info-title" id="info-title"></div>
-          <div class="info-desc" id="info-desc"></div>
+          <div class="info-desc"  id="info-desc"></div>
           <div class="info-fields">
             <div class="info-field">
               <span class="info-field-label">Номер</span>

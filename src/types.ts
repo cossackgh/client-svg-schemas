@@ -20,6 +20,8 @@ export interface ISvgic {
   readonly ready: Promise<void>
   use(plugin: SvgicPlugin): ISvgic
   setData(data: SvgicItem[]): void
+  setHighlight(state: string, ids: string[]): void
+  clearHighlight(state?: string): void
   destroy(): void
 }
 
@@ -86,6 +88,28 @@ export interface PopupConfig extends PopupPlacementElement {
 // popup: PopupPlacement & { render? } — кастомная конфигурация
 export type PopupOption = boolean | (PopupPlacement & { render?: (item: SvgicItem) => HTMLElement | string; trigger?: PopupTrigger })
 
+// --- Style ---
+
+export interface SvgicStyleProperties {
+  fill?: string
+  stroke?: string
+  strokeWidth?: number | string
+  opacity?: number | string
+  cursor?: string
+  transition?: string
+  filter?: string
+  [key: string]: unknown
+}
+
+export interface SvgicStyleConfig {
+  default?: SvgicStyleProperties
+  hover?: SvgicStyleProperties
+  // hover поверх highlighted-элемента — применяется вместо hover
+  highlightedHover?: SvgicStyleProperties
+  // именованные состояния для setHighlight()
+  states?: Record<string, SvgicStyleProperties>
+}
+
 // Опции инициализации
 export interface SvgicOptions {
   src: string                              // URL или SVG-строка
@@ -93,4 +117,5 @@ export interface SvgicOptions {
   layers?: Record<string, SvgicLayer>
   plugins?: SvgicPlugin[]
   popup?: PopupOption
+  style?: SvgicStyleConfig
 }

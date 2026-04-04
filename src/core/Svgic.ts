@@ -4,6 +4,7 @@ import { parseLayers, type ParsedLayer } from './layerParser'
 import { mapData, type BoundElement } from './dataMapper'
 import { EventManager, type SvgicEventType, type SvgicEventHandler } from './eventManager'
 import { PopupManager } from '../ui/PopupManager'
+import { StyleManager } from '../ui/StyleManager'
 
 export class Svgic implements ISvgic {
   readonly ready: Promise<void>
@@ -16,6 +17,7 @@ export class Svgic implements ISvgic {
   private boundElements: Map<string, BoundElement> = new Map()
   private eventManager: EventManager
   private popupManager: PopupManager | null = null
+  private styleManager: StyleManager | null = null
 
   constructor(selector: string | Element, options: SvgicOptions) {
     const container = typeof selector === 'string'
@@ -56,6 +58,14 @@ export class Svgic implements ISvgic {
     this.boundElements = mapData(this.svgEl, data)
   }
 
+  setHighlight(state: string, ids: string[]): void {
+    this.styleManager?.setHighlight(state, ids)
+  }
+
+  clearHighlight(state?: string): void {
+    this.styleManager?.clearHighlight(state)
+  }
+
   on(event: SvgicEventType, handler: SvgicEventHandler): this {
     this.eventManager.on(event, handler)
     return this
@@ -65,6 +75,8 @@ export class Svgic implements ISvgic {
     this.eventManager.destroy()
     this.popupManager?.destroy()
     this.popupManager = null
+    this.styleManager?.destroy()
+    this.styleManager = null
     this.container.innerHTML = ''
     this.svgEl = null
     this.plugins.forEach(p => p.onDestroy?.(this))
@@ -85,6 +97,19 @@ export class Svgic implements ISvgic {
       this.eventManager.setPopupCallbacks(
         (el, item, event) => this.popupManager!.show(el, item, event),
         () => this.popupManager!.hide(),
+      )
+    }
+
+    if (this.options.style) {
+      this.styleManager = new StyleManager(
+        this.options.style,
+        () => this.layers,
+        () => this.boundElements,
+      )
+      this.styleManager.init()
+      this.eventManager.setStyleCallbacks(
+        id => this.styleManager!.applyHover(id),
+        () => this.styleManager!.removeHover(),
       )
     }
 
