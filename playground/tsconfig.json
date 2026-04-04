@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "paths": {
+      "svgic": ["../src/index.ts"],
+      "svgic/vue": ["../src/adapters/vue/index.ts"]
+    }
+  },
+  "include": ["./**/*", "../src/**/*"],
+  "exclude": ["node_modules"]
+}

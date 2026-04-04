@@ -123,12 +123,10 @@ const HL_ACTIONS: Record<string, { state: string; ids: string[] }[]> = {
   'restricted': [{ state: 'restricted', ids: byStatus('restricted') }],
   'all-free':   [
     { state: 'free',       ids: byStatus('free') },
-    { state: 'busy',       ids: byStatus('busy') },
     { state: 'restricted', ids: byStatus('restricted') },
   ],
   'all-busy':   [
     { state: 'busy',       ids: byStatus('busy') },
-    { state: 'free',       ids: byStatus('free') },
     { state: 'restricted', ids: byStatus('restricted') },
   ],
 }
