@@ -1,2 +1,3 @@
-// TODO: React адаптер — компонент и hook
-export {}
+export { SvgicReact } from './SvgicComponent'
+export type { SvgicProps } from './SvgicComponent'
+export { useSvgic } from './useSvgic'
