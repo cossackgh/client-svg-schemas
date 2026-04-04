@@ -75,6 +75,7 @@ new Svgic(selector, {
   layers?: Record<string, SvgicLayer>,  // описание слоёв
   data?:   SvgicItem[],                 // данные для привязки
   plugins?: SvgicPlugin[],              // плагины
+  popup?:   PopupOption,                // попап при наведении (см. раздел ниже)
 })
 ```
 
@@ -130,6 +131,100 @@ client.destroy()
 | `click` | клик по пустому месту | `''` | `null` |
 | `hover` | курсор вошёл в элемент | id элемента | данные или `null` |
 | `leave` | курсор вышел из элемента | id элемента | данные или `null` |
+
+---
+
+## Попап при наведении
+
+Библиотека умеет показывать попап с данными элемента при наведении — без дополнительного кода.
+
+### Быстрое включение
+
+```ts
+new Svgic('#container', {
+  src: '/map.svg',
+  data: items,
+  popup: true, // показывает title, привязан к элементу сверху
+})
+```
+
+### Режимы позиционирования
+
+#### `element` — привязан к SVG-элементу
+
+```ts
+popup: {
+  placement: 'element',
+  anchor: 'top-center', // 'center' | 'top' | 'top-center' | 'top-left' | 'top-right'
+                        // 'bottom' | 'bottom-center' | 'left' | 'right'
+  offset: { x: 0, y: -8 },
+  flip: true,           // авто-переворот если выходит за край экрана (default: true)
+}
+```
+
+#### `cursor` — следует за курсором
+
+```ts
+popup: {
+  placement: 'cursor',
+  offset: { x: 16, y: 16 }, // отступ от курсора (default)
+}
+```
+
+#### `target` — рендерит в указанный DOM-узел
+
+Подходит для мобильных интерфейсов: информация отображается в фиксированной панели, а не поверх схемы.
+
+```ts
+popup: {
+  placement: 'target',
+  target: '#info-panel',  // CSS-селектор или HTMLElement
+}
+```
+
+### Кастомный контент
+
+По умолчанию попап показывает только `title`. Для кастомного содержимого передайте `render`:
+
+```ts
+popup: {
+  placement: 'cursor',
+  render(item) {
+    const el = document.createElement('div')
+    el.innerHTML = `
+      <strong>${item.title}</strong>
+      <p>${item.description ?? ''}</p>
+    `
+    return el
+  },
+}
+```
+
+`render` принимает `SvgicItem` и возвращает `HTMLElement` или HTML-строку.
+
+### Полная замена через плагин
+
+Если нужен полный контроль над попапом (своя анимация, портал, React/Vue компонент) — используйте плагин и верните `false` из `onElementHover`, чтобы отменить встроенный:
+
+```ts
+client.use({
+  name: 'my-popup',
+  onElementHover(element, item) {
+    MyPopup.show(item, element.getBoundingClientRect())
+    return false // отменяет дефолтный попап
+  },
+  onElementLeave(element) {
+    MyPopup.hide()
+    return false
+  },
+})
+```
+
+### Отключить попап
+
+```ts
+popup: false // или просто не указывать
+```
 
 ---
 
