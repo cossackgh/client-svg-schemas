@@ -63,7 +63,11 @@ export class EventManager {
 
   private handleClick(e: Event, layerEl: SVGGElement): void {
     const id = this.findBoundId(e.target, layerEl)
-    if (id === null) return
+
+    if (id === null) {
+      this.emit('click', '', null)
+      return
+    }
 
     const bound = this.getBoundElements().get(id)
     const item = bound?.item ?? null
