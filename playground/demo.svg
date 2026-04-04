@@ -1,16 +1,36 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
-  <!-- Декоративный слой -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 520">
+  <!-- Декоративный слой: стены и коридор -->
   <g id="background">
-    <rect width="800" height="600" fill="#f5f5f5"/>
-    <rect x="10" y="10" width="780" height="580" fill="none" stroke="#ccc" stroke-width="2" rx="4"/>
+    <rect x="10" y="10" width="800" height="500" fill="#f8f9fa" stroke="#adb5bd" stroke-width="3" rx="6"/>
+    <rect x="10" y="210" width="800" height="100" fill="#e9ecef"/>
+    <text x="410" y="265" text-anchor="middle" fill="#868e96" font-size="13" font-family="sans-serif" letter-spacing="2">КОРИДОР</text>
   </g>
 
-  <!-- Интерактивный слой -->
+  <!-- Интерактивный слой: комнаты -->
   <g id="rooms">
-    <rect id="room-101" x="50" y="50" width="200" height="150" fill="#e3f2fd" stroke="#90caf9" stroke-width="2" rx="4"/>
-    <text x="150" y="130" text-anchor="middle" fill="#555" font-size="14">101</text>
-
-    <rect id="room-102" x="300" y="50" width="200" height="150" fill="#e8f5e9" stroke="#a5d6a7" stroke-width="2" rx="4"/>
-    <text x="400" y="130" text-anchor="middle" fill="#555" font-size="14">102</text>
+    <g id="room-101">
+      <rect x="30" y="30" width="240" height="160" fill="#e3f2fd" stroke="#90caf9" stroke-width="2" rx="4"/>
+      <text x="150" y="118" text-anchor="middle" fill="#546e7a" font-size="28" font-weight="bold" font-family="sans-serif">101</text>
+    </g>
+    <g id="room-102">
+      <rect x="290" y="30" width="240" height="160" fill="#e8f5e9" stroke="#a5d6a7" stroke-width="2" rx="4"/>
+      <text x="410" y="118" text-anchor="middle" fill="#546e7a" font-size="28" font-weight="bold" font-family="sans-serif">102</text>
+    </g>
+    <g id="room-103">
+      <rect x="550" y="30" width="240" height="160" fill="#fff3e0" stroke="#ffcc80" stroke-width="2" rx="4"/>
+      <text x="670" y="118" text-anchor="middle" fill="#546e7a" font-size="28" font-weight="bold" font-family="sans-serif">103</text>
+    </g>
+    <g id="room-201">
+      <rect x="30" y="330" width="240" height="160" fill="#fce4ec" stroke="#f48fb1" stroke-width="2" rx="4"/>
+      <text x="150" y="418" text-anchor="middle" fill="#546e7a" font-size="28" font-weight="bold" font-family="sans-serif">201</text>
+    </g>
+    <g id="room-202">
+      <rect x="290" y="330" width="240" height="160" fill="#f3e5f5" stroke="#ce93d8" stroke-width="2" rx="4"/>
+      <text x="410" y="418" text-anchor="middle" fill="#546e7a" font-size="28" font-weight="bold" font-family="sans-serif">202</text>
+    </g>
+    <g id="room-203">
+      <rect x="550" y="330" width="240" height="160" fill="#e0f7fa" stroke="#80deea" stroke-width="2" rx="4"/>
+      <text x="670" y="418" text-anchor="middle" fill="#546e7a" font-size="28" font-weight="bold" font-family="sans-serif">203</text>
+    </g>
   </g>
 </svg>
