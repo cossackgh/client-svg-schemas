@@ -18,10 +18,9 @@ export class PopupManager {
 
   // Вызывается при hover / click на элемент
   show(targetEl: SVGElement, item: SvgicItem, event: MouseEvent): void {
-    if (!item.title) return
-
     this.currentTarget = targetEl
     this.ensurePopup(item)
+    if (!this.popupEl) return
 
     const { placement } = this.config
 
@@ -30,7 +29,7 @@ export class PopupManager {
       return
     }
 
-    document.body.appendChild(this.popupEl!)
+    document.body.appendChild(this.popupEl)
     this.updatePosition(targetEl, event)
 
     if (placement === 'cursor') {
@@ -66,12 +65,19 @@ export class PopupManager {
   }
 
   private ensurePopup(item: SvgicItem): void {
+    const hasCustomRender = !!(this.config as { render?: unknown }).render
     const renderFn = (this.config as { render?: (i: SvgicItem) => HTMLElement | string }).render
       ?? renderDefaultPopup
 
+    // Дефолтный попап показываем только если есть title
+    if (!hasCustomRender && !item.title) {
+      this.popupEl = null
+      return
+    }
+
     const content = renderFn(item)
     const el = typeof content === 'string'
-      ? (() => { const d = document.createElement('div'); d.innerHTML = content; return d })()
+      ? htmlStringToElement(content)
       : content
 
     this.popupEl = el
@@ -126,4 +132,10 @@ export class PopupManager {
       ? document.querySelector<HTMLElement>(cfg.target)
       : cfg.target
   }
+}
+
+function htmlStringToElement(html: string): HTMLElement {
+  const d = document.createElement('div')
+  d.innerHTML = html
+  return d
 }
