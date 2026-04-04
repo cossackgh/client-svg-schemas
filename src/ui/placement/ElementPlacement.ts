@@ -31,11 +31,10 @@ export function getElementPosition(
   }
 
   // Вертикаль
-  if (anchor === 'center') {
-    y = rect.top + rect.height / 2 - popupRect.height / 2 + oy
-  } else if (anchor.startsWith('bottom')) {
+  if (anchor.startsWith('bottom')) {
     y = rect.bottom + oy
-  } else if (anchor === 'left' || anchor === 'right') {
+  } else if (anchor === 'center' || anchor === 'left' || anchor === 'right') {
+    // вертикальное центрирование: center, left, right
     y = rect.top + rect.height / 2 - popupRect.height / 2 + oy
   } else {
     // top-*
