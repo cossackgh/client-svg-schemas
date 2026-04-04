@@ -76,6 +76,7 @@ new Svgic(selector, {
   data?:   SvgicItem[],                 // данные для привязки
   plugins?: SvgicPlugin[],              // плагины
   popup?:   PopupOption,                // попап при наведении (см. раздел ниже)
+  style?:   SvgicStyleConfig,           // стилизация элементов (см. раздел ниже)
 })
 ```
 
@@ -118,6 +119,11 @@ client.on('leave', (id, item) => { ... })
 
 // Подключить плагин
 client.use(myPlugin)
+
+// Подсветить группу элементов именованным состоянием (требует style.states)
+client.setHighlight('free', ['room-101', 'room-102'])
+client.clearHighlight('free')   // сбросить конкретное состояние
+client.clearHighlight()         // сбросить все состояния
 
 // Уничтожить (снять слушатели, очистить контейнер)
 client.destroy()
@@ -225,6 +231,84 @@ client.use({
 ```ts
 popup: false // или просто не указывать
 ```
+
+---
+
+## Стилизация элементов
+
+Библиотека умеет управлять внешним видом интерактивных элементов через конфиг — без ручной работы с CSS.
+
+Стили применяются к прямым дочерним фигурам (`<path>`, `<rect>` и т.д.) через CSS-классы на родительском `<g>`.  
+Вложенные `<g>` внутри элемента не затрагиваются.
+
+### Базовый пример
+
+```ts
+new Svgic('#container', {
+  src: '/map.svg',
+  layers: { rooms: { role: 'interactive' } },
+  data: items,
+  style: {
+    default: { fill: '#2d2d52', cursor: 'pointer', transition: 'fill 0.2s' },
+    hover:   { fill: '#4a4a80' },
+  },
+})
+```
+
+### Полный конфиг
+
+```ts
+style: {
+  // Стиль по умолчанию для всех интерактивных элементов
+  default: {
+    fill:       '#e0e0e0',
+    cursor:     'pointer',
+    transition: 'fill 0.2s ease, opacity 0.2s ease',
+  },
+
+  // Hover (без подсветки)
+  hover: {
+    fill: '#4a90d9',
+  },
+
+  // Hover поверх подсвеченного элемента — вместо обычного hover
+  highlightedHover: {
+    opacity: 0.75,
+  },
+
+  // Именованные состояния для setHighlight()
+  states: {
+    free:       { fill: '#1a4731', stroke: '#2d9e5a', strokeWidth: 1.5 },
+    busy:       { fill: '#4a1e1e', stroke: '#e03030', strokeWidth: 1.5 },
+    restricted: { fill: '#3d2a0a', stroke: '#d97706', strokeWidth: 1.5 },
+  },
+}
+```
+
+### Подсветка группы элементов
+
+```ts
+// Подсветить все свободные комнаты
+client.setHighlight('free', ['room-101', 'room-103', 'room-202'])
+
+// Можно применять несколько состояний одновременно
+client.setHighlight('busy', ['room-102', 'room-201'])
+
+// Сбросить конкретное состояние
+client.clearHighlight('free')
+
+// Сбросить всё
+client.clearHighlight()
+```
+
+### Приоритет состояний
+
+| Классы на элементе | Результат |
+|---|---|
+| _(ничего)_ | `default` стиль |
+| `svgic-hover` | `hover` стиль |
+| `svgic-state-free` | `free` стиль |
+| `svgic-hover` + `svgic-state-free` | `highlightedHover` поверх `free` |
 
 ---
 
