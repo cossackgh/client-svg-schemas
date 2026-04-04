@@ -1,9 +1,12 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import { resolve } from 'path'
 import dts from 'vite-plugin-dts'
 
 // Конфиг сборки библиотеки
 export default defineConfig({
+  test: {
+    environment: 'jsdom',
+  },
   plugins: [
     dts({
       include: ['src'],
@@ -17,7 +20,7 @@ export default defineConfig({
         vue: resolve(__dirname, 'src/adapters/vue/index.ts'),
         react: resolve(__dirname, 'src/adapters/react/index.ts'),
       },
-      formats: ['es', 'umd'],
+      formats: ['es', 'cjs'],
       name: 'Svgic',
     },
     rollupOptions: {

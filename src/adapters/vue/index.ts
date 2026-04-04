@@ -1,2 +1,2 @@
-// TODO: Vue адаптер — компонент и composable
-export {}
+export { SvgicVue } from './SvgicComponent'
+export { useSvgic } from './useSvgic'
