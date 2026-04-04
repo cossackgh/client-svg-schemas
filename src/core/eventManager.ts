@@ -19,6 +19,8 @@ export class EventManager {
   }
   private currentHoveredId: string | null = null
   private attached: AttachedListener[] = []
+  private popupShow: ((el: SVGElement, item: SvgicItem, event: MouseEvent) => void) | null = null
+  private popupHide: (() => void) | null = null
 
   constructor(
     private readonly getLayers: () => Map<string, ParsedLayer>,
@@ -28,6 +30,14 @@ export class EventManager {
 
   on(event: SvgicEventType, handler: SvgicEventHandler): void {
     this.handlers[event].push(handler)
+  }
+
+  setPopupCallbacks(
+    onShow: (el: SVGElement, item: SvgicItem, event: MouseEvent) => void,
+    onHide: () => void,
+  ): void {
+    this.popupShow = onShow
+    this.popupHide = onHide
   }
 
   attach(): void {
@@ -102,6 +112,7 @@ export class EventManager {
       p => p.onElementHover?.(element, item) === false,
     )
     if (!cancelled) {
+      this.popupShow?.(element, item ?? { id }, e as MouseEvent)
       this.emit('hover', id, item)
     }
   }
@@ -130,6 +141,7 @@ export class EventManager {
       if (cancelled) return
     }
 
+    this.popupHide?.()
     this.emit('leave', id, item)
   }
 

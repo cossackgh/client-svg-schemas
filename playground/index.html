@@ -26,6 +26,31 @@
     header h1 { font-size: 1rem; font-weight: 600; color: #fff; }
     header span { font-size: 0.75rem; color: #666; background: #2a2a4a; padding: 2px 8px; border-radius: 99px; }
 
+    .popup-switcher {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .popup-switcher-label {
+      font-size: 0.72rem;
+      color: #555;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+    }
+    .mode-btn {
+      font-size: 0.72rem;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      padding: 3px 10px;
+      border-radius: 99px;
+      border: 1px solid #333;
+      background: transparent;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .mode-btn:hover { border-color: #555; color: #aaa; }
+    .mode-btn.active { border-color: #4c8aff; color: #4c8aff; background: rgba(76, 138, 255, 0.08); }
+
     .layout {
       flex: 1;
       display: grid;
@@ -150,14 +175,21 @@
   <header>
     <h1>svgic</h1>
     <span>playground</span>
+    <div class="popup-switcher">
+      <span class="popup-switcher-label">popup:</span>
+      <button class="mode-btn active" data-mode="element">element</button>
+      <button class="mode-btn" data-mode="cursor">cursor</button>
+      <button class="mode-btn" data-mode="target">target</button>
+      <button class="mode-btn" data-mode="off">off</button>
+    </div>
   </header>
 
   <div class="layout">
     <div id="schema-container"></div>
 
     <aside class="sidebar">
-      <div class="info-panel">
-        <h2>Информация</h2>
+      <div class="info-panel" id="info-panel">
+        <h2>Информация <span id="info-panel-mode" style="font-weight:400;text-transform:none;letter-spacing:0;color:#4c8aff;font-size:0.65rem;"></span></h2>
         <p class="info-empty" id="info-hint">Кликните на комнату</p>
         <div class="info-card" id="info-card">
           <div class="info-title" id="info-title"></div>

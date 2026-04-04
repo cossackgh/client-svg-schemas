@@ -3,6 +3,7 @@ import { loadSvg } from './loader'
 import { parseLayers, type ParsedLayer } from './layerParser'
 import { mapData, type BoundElement } from './dataMapper'
 import { EventManager, type SvgicEventType, type SvgicEventHandler } from './eventManager'
+import { PopupManager } from '../ui/PopupManager'
 
 export class Svgic implements ISvgic {
   readonly ready: Promise<void>
@@ -14,6 +15,7 @@ export class Svgic implements ISvgic {
   private layers: Map<string, ParsedLayer> = new Map()
   private boundElements: Map<string, BoundElement> = new Map()
   private eventManager: EventManager
+  private popupManager: PopupManager | null = null
 
   constructor(selector: string | Element, options: SvgicOptions) {
     const container = typeof selector === 'string'
@@ -61,6 +63,8 @@ export class Svgic implements ISvgic {
 
   destroy(): void {
     this.eventManager.destroy()
+    this.popupManager?.destroy()
+    this.popupManager = null
     this.container.innerHTML = ''
     this.svgEl = null
     this.plugins.forEach(p => p.onDestroy?.(this))
@@ -75,6 +79,15 @@ export class Svgic implements ISvgic {
       this.boundElements = mapData(this.svgEl, this.options.data)
     }
     this.eventManager.attach()
+
+    if (this.options.popup) {
+      this.popupManager = new PopupManager(this.options.popup)
+      this.eventManager.setPopupCallbacks(
+        (el, item, event) => this.popupManager!.show(el, item, event),
+        () => this.popupManager!.hide(),
+      )
+    }
+
     this.plugins.forEach(p => p.onInit?.(this))
   }
 }
