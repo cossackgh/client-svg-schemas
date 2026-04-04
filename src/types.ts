@@ -15,10 +15,14 @@ export interface SvgicLayer {
   role: SvgicLayerRole
 }
 
+export type SvgicEventType = 'click' | 'hover' | 'leave'
+export type SvgicEventHandler = (id: string, item: SvgicItem | null) => void
+
 // Публичный интерфейс клиента — используется в плагинах, чтобы избежать кругового импорта
 export interface ISvgic {
   readonly ready: Promise<void>
   use(plugin: SvgicPlugin): ISvgic
+  on(event: SvgicEventType, handler: SvgicEventHandler): ISvgic
   setData(data: SvgicItem[]): void
   setHighlight(state: string, ids: string[]): void
   clearHighlight(state?: string): void

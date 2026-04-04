@@ -1,8 +1,8 @@
-import type { SvgicOptions, SvgicPlugin, SvgicItem, ISvgic } from '../types'
+import type { SvgicOptions, SvgicPlugin, SvgicItem, ISvgic, SvgicEventType, SvgicEventHandler } from '../types'
 import { loadSvg } from './loader'
 import { parseLayers, type ParsedLayer } from './layerParser'
 import { mapData, type BoundElement } from './dataMapper'
-import { EventManager, type SvgicEventType, type SvgicEventHandler } from './eventManager'
+import { EventManager } from './eventManager'
 import { PopupManager } from '../ui/PopupManager'
 import { StyleManager } from '../ui/StyleManager'
 

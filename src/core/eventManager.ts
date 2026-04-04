@@ -1,9 +1,8 @@
-import type { SvgicItem, SvgicPlugin } from '../types'
+import type { SvgicItem, SvgicPlugin, SvgicEventType, SvgicEventHandler } from '../types'
 import type { ParsedLayer } from './layerParser'
 import type { BoundElement } from './dataMapper'
 
-export type SvgicEventType = 'click' | 'hover' | 'leave'
-export type SvgicEventHandler = (id: string, item: SvgicItem | null) => void
+export type { SvgicEventType, SvgicEventHandler }
 
 interface AttachedListener {
   el: Element
