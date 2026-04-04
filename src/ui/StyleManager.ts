@@ -85,12 +85,9 @@ export class StyleManager {
     this.hoveredId = null
     this.highlightStates.clear()
 
-    for (const [, layer] of this.getLayers()) {
-      if (layer.role !== 'interactive') continue
-      for (const child of layer.element.children) {
-        const toRemove = [...child.classList].filter(c => c.startsWith('svgic-'))
-        toRemove.forEach(c => child.classList.remove(c))
-      }
+    for (const [, { element }] of this.getBoundElements()) {
+      const toRemove = [...element.classList].filter(c => c.startsWith('svgic-'))
+      toRemove.forEach(c => element.classList.remove(c))
     }
   }
 
