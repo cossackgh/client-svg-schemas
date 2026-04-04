@@ -84,9 +84,10 @@ interface SvgicItem {
 ### API — императивное
 ```ts
 const client = new Svgic('#container', options)
-client.highlight('room-101')
 client.setData(newData)
 client.on('click', (id, data) => { ... })
+client.setHighlight('free', ['room-101'])
+client.clearHighlight('free')
 client.destroy()
 ```
 

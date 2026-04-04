@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>svgic — Styling</title>
+  <link rel="stylesheet" href="./shared.css" />
+  <style>
+    /* ---- Highlight panel ---- */
+    .highlight-panel {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #2a2a4a;
+      flex-shrink: 0;
+    }
+    .highlight-panel h2 {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #555;
+      margin-bottom: 0.5rem;
+    }
+    .highlight-groups {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .highlight-group {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .highlight-group-label {
+      font-size: 0.68rem;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      color: #444;
+      width: 72px;
+      flex-shrink: 0;
+    }
+    .hl-btn {
+      font-size: 0.72rem;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      padding: 3px 9px;
+      border-radius: 99px;
+      border: 1px solid #333;
+      background: transparent;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .hl-btn:hover { border-color: #555; color: #aaa; }
+
+    .hl-btn[data-hl="free"].active       { border-color: #2d9e5a; color: #2d9e5a; background: rgba(45,158,90,0.1); }
+    .hl-btn[data-hl="busy"].active       { border-color: #e03030; color: #e03030; background: rgba(224,48,48,0.1); }
+    .hl-btn[data-hl="restricted"].active { border-color: #d97706; color: #d97706; background: rgba(217,119,6,0.1); }
+    .hl-btn[data-hl="all-free"].active   { border-color: #2d9e5a; color: #2d9e5a; background: rgba(45,158,90,0.1); }
+    .hl-btn[data-hl="all-busy"].active   { border-color: #e03030; color: #e03030; background: rgba(224,48,48,0.1); }
+
+    .hl-btn-clear {
+      font-size: 0.72rem;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      padding: 3px 9px;
+      border-radius: 99px;
+      border: 1px solid #333;
+      background: transparent;
+      color: #555;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-top: 0.25rem;
+    }
+    .hl-btn-clear:hover { border-color: #555; color: #888; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>svgic</h1>
+    <nav class="page-nav">
+      <a href="/"             class="nav-link">Popup</a>
+      <a href="/styling.html" class="nav-link active">Styling</a>
+    </nav>
+  </header>
+
+  <div class="layout">
+    <div id="schema-container"></div>
+
+    <aside class="sidebar">
+      <div class="highlight-panel">
+        <h2>Подсветка</h2>
+        <div class="highlight-groups">
+
+          <div class="highlight-group">
+            <span class="highlight-group-label">по статусу</span>
+            <button class="hl-btn" data-hl="free">Свободные</button>
+            <button class="hl-btn" data-hl="busy">Занятые</button>
+            <button class="hl-btn" data-hl="restricted">Ограничен</button>
+          </div>
+
+          <div class="highlight-group">
+            <span class="highlight-group-label">все сразу</span>
+            <button class="hl-btn" data-hl="all-free">Свободные</button>
+            <button class="hl-btn" data-hl="all-busy">Занятые</button>
+          </div>
+
+        </div>
+        <button class="hl-btn-clear" id="btn-clear">Сбросить всё</button>
+      </div>
+
+      <div class="info-panel" id="info-panel">
+        <h2>Информация</h2>
+        <p class="info-empty" id="info-hint">Кликните на комнату</p>
+        <div class="info-card" id="info-card">
+          <div class="info-title" id="info-title"></div>
+          <div class="info-desc"  id="info-desc"></div>
+          <div class="info-fields">
+            <div class="info-field">
+              <span class="info-field-label">Номер</span>
+              <span class="info-field-value" id="info-id"></span>
+            </div>
+            <div class="info-field">
+              <span class="info-field-label">Статус</span>
+              <span class="info-field-value" id="info-status"></span>
+            </div>
+            <div class="info-field">
+              <span class="info-field-label">Вместимость</span>
+              <span class="info-field-value" id="info-capacity"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="event-log" id="event-log">
+        <h2>События</h2>
+      </div>
+    </aside>
+  </div>
+
+  <script type="module" src="./styling.ts"></script>
+</body>
+</html>

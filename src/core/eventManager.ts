@@ -1,9 +1,8 @@
-import type { SvgicItem, SvgicPlugin } from '../types'
+import type { SvgicItem, SvgicPlugin, SvgicEventType, SvgicEventHandler } from '../types'
 import type { ParsedLayer } from './layerParser'
 import type { BoundElement } from './dataMapper'
 
-export type SvgicEventType = 'click' | 'hover' | 'leave'
-export type SvgicEventHandler = (id: string, item: SvgicItem | null) => void
+export type { SvgicEventType, SvgicEventHandler }
 
 interface AttachedListener {
   el: Element
@@ -21,6 +20,8 @@ export class EventManager {
   private attached: AttachedListener[] = []
   private popupShow: ((el: SVGElement, item: SvgicItem, event: MouseEvent) => void) | null = null
   private popupHide: (() => void) | null = null
+  private styleHover: ((id: string) => void) | null = null
+  private styleLeave: (() => void) | null = null
 
   constructor(
     private readonly getLayers: () => Map<string, ParsedLayer>,
@@ -38,6 +39,14 @@ export class EventManager {
   ): void {
     this.popupShow = onShow
     this.popupHide = onHide
+  }
+
+  setStyleCallbacks(
+    onHover: (id: string) => void,
+    onLeave: () => void,
+  ): void {
+    this.styleHover = onHover
+    this.styleLeave = onLeave
   }
 
   attach(): void {
@@ -112,6 +121,7 @@ export class EventManager {
       p => p.onElementHover?.(element, item) === false,
     )
     if (!cancelled) {
+      this.styleHover?.(id)
       this.popupShow?.(element, item ?? { id }, e as MouseEvent)
       this.emit('hover', id, item)
     }
@@ -141,6 +151,7 @@ export class EventManager {
       if (cancelled) return
     }
 
+    this.styleLeave?.()
     this.popupHide?.()
     this.emit('leave', id, item)
   }
