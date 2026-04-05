@@ -47,15 +47,15 @@ describe('parseLayers', () => {
   })
 
   it('пропускает элемент не-<g> с предупреждением', () => {
-    const svg = makeSvg(`<rect id="labels" x="0" y="0" width="10" height="10"/>`)
+    const svg = makeSvg(`<rect id="background" x="0" y="0" width="10" height="10"/>`)
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
     const result = parseLayers(svg, {
-      labels: { role: 'labels' },
+      background: { role: 'decorative' },
     })
 
     expect(result.size).toBe(0)
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('"labels"'))
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('"background"'))
   })
 
   it('возвращает пустой Map при пустом конфиге', () => {

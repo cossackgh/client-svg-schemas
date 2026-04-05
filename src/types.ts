@@ -9,7 +9,7 @@ export interface SvgicItem {
 }
 
 // Роль слоя в SVG-файле
-export type SvgicLayerRole = 'interactive' | 'decorative' | 'labels'
+export type SvgicLayerRole = 'interactive' | 'decorative'
 
 export interface SvgicLayer {
   role: SvgicLayerRole
@@ -84,13 +84,20 @@ export interface PopupConfig extends PopupPlacementElement {
   // По умолчанию placement: 'element' — поэтому PopupConfig расширяет его.
   // Пользователь может передать любой из трёх вариантов.
   render?: (item: SvgicItem) => HTMLElement | string
+  template?: string | HTMLTemplateElement
+  bind?: (el: HTMLElement, item: SvgicItem) => void
   trigger?: PopupTrigger   // default: 'hover'
 }
 
 // popup: true — дефолтный попап с title, placement: 'element', anchor: 'top-center'
 // popup: false | undefined — попап отключён
-// popup: PopupPlacement & { render? } — кастомная конфигурация
-export type PopupOption = boolean | (PopupPlacement & { render?: (item: SvgicItem) => HTMLElement | string; trigger?: PopupTrigger })
+// popup: PopupPlacement & { render? | template+bind? } — кастомная конфигурация
+export type PopupOption = boolean | (PopupPlacement & {
+  render?: (item: SvgicItem) => HTMLElement | string
+  template?: string | HTMLTemplateElement
+  bind?: (el: HTMLElement, item: SvgicItem) => void
+  trigger?: PopupTrigger
+})
 
 // --- Style ---
 

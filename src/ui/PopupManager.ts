@@ -65,22 +65,16 @@ export class PopupManager {
   }
 
   private ensurePopup(item: SvgicItem): void {
-    const hasCustomRender = !!(this.config as { render?: unknown }).render
-    const renderFn = (this.config as { render?: (i: SvgicItem) => HTMLElement | string }).render
-      ?? renderDefaultPopup
+    const cfg = this.config as { render?: unknown; template?: unknown; bind?: unknown }
+    const hasCustomContent = !!(cfg.render || cfg.template)
 
     // Дефолтный попап показываем только если есть title
-    if (!hasCustomRender && !item.title) {
+    if (!hasCustomContent && !item.title) {
       this.popupEl = null
       return
     }
 
-    const content = renderFn(item)
-    const el = typeof content === 'string'
-      ? htmlStringToElement(content)
-      : content
-
-    this.popupEl = el
+    this.popupEl = this.resolveContent(item)
 
     if (!this.styleEl && !document.querySelector('#svgic-popup-styles')) {
       this.styleEl = document.createElement('style')
@@ -112,17 +106,33 @@ export class PopupManager {
     const targetNode = this.resolveTargetNode()
     if (!targetNode) return
 
-    const renderFn = (this.config as { render?: (i: SvgicItem) => HTMLElement | string }).render
-      ?? renderDefaultPopup
-
-    const content = renderFn(item)
+    const el = this.resolveContent(item)
     targetNode.innerHTML = ''
+    targetNode.appendChild(el)
+  }
 
-    if (typeof content === 'string') {
-      targetNode.innerHTML = content
-    } else {
-      targetNode.appendChild(content)
+  private resolveContent(item: SvgicItem): HTMLElement {
+    const cfg = this.config as {
+      render?: (i: SvgicItem) => HTMLElement | string
+      template?: string | HTMLTemplateElement
+      bind?: (el: HTMLElement, item: SvgicItem) => void
     }
+
+    if (cfg.template) {
+      const tpl = typeof cfg.template === 'string'
+        ? document.querySelector<HTMLTemplateElement>(cfg.template)
+        : cfg.template
+      if (!tpl) throw new Error(`[svgic] popup template not found: "${cfg.template}"`)
+      const el = tpl.content.cloneNode(true) as HTMLElement
+      const wrapper = document.createElement('div')
+      wrapper.appendChild(el)
+      cfg.bind?.(wrapper, item)
+      return wrapper
+    }
+
+    const renderFn = cfg.render ?? renderDefaultPopup
+    const content = renderFn(item)
+    return typeof content === 'string' ? htmlStringToElement(content) : content
   }
 
   private resolveTargetNode(): HTMLElement | null {
