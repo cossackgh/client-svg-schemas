@@ -1,7 +1,7 @@
 import { defineComponent, ref, h, onMounted, onUnmounted, watch } from 'vue'
 import type { PropType } from 'vue'
 import { Svgic } from '../../core/Svgic'
-import type { SvgicItem, SvgicLayer, SvgicPlugin } from '../../types'
+import type { SvgicItem, SvgicLayer, SvgicPlugin, PopupOption, SvgicStyleConfig } from '../../types'
 
 export const SvgicVue = defineComponent({
   name: 'Svgic',
@@ -21,6 +21,14 @@ export const SvgicVue = defineComponent({
     },
     plugins: {
       type: Array as PropType<SvgicPlugin[]>,
+      default: undefined,
+    },
+    popup: {
+      type: [Boolean, Object] as PropType<PopupOption>,
+      default: undefined,
+    },
+    style: {
+      type: Object as PropType<SvgicStyleConfig>,
       default: undefined,
     },
   },
@@ -43,6 +51,8 @@ export const SvgicVue = defineComponent({
         data: props.data,
         layers: props.layers,
         plugins: props.plugins,
+        popup: props.popup,
+        style: props.style,
       })
 
       await client.ready
