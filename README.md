@@ -400,6 +400,69 @@ const { containerRef, client } = useSvgic({
 
 ---
 
+## ZoomPlugin — zoom и pan
+
+Официальный плагин для масштабирования и перемещения SVG-схемы.
+Поставляется в комплекте с библиотекой, без внешних зависимостей.
+
+```ts
+import { ZoomPlugin } from 'svgic/plugins/zoom'
+
+const zoom = ZoomPlugin({
+  wheelMode: 'ctrl',  // zoom колесом только при зажатом Ctrl
+  minScale: 0.5,
+  maxScale: 8,
+})
+
+const client = new Svgic('#container', {
+  src: '/map.svg',
+  plugins: [zoom],
+})
+```
+
+### Возможности
+
+| Устройство | Взаимодействие |
+|---|---|
+| Мышь — колесо | Zoom к точке курсора |
+| Мышь — перетаскивание | Pan |
+| Touch — два пальца | Pinch-to-zoom |
+| Touch — один палец | Pan |
+| Touch — двойной тап | Zoom in / reset |
+
+### Опции
+
+| Опция | Тип | По умолчанию | Описание |
+|---|---|---|---|
+| `wheelMode` | `'ctrl' \| 'always'` | `'ctrl'` | `ctrl` — zoom только при зажатом Ctrl; `always` — всегда |
+| `minScale` | `number` | `0.5` | Минимальный масштаб |
+| `maxScale` | `number` | `10` | Максимальный масштаб |
+| `pan` | `boolean` | `true` | Разрешить pan мышью |
+| `touch` | `boolean` | `true` | Разрешить touch-жесты |
+| `doubleTapScale` | `number` | `2` | Масштаб при двойном тапе |
+| `panBounds` | `boolean` | `true` | Ограничить pan границами SVG |
+| `animate` | `boolean` | `true` | Анимировать программные переходы |
+| `animationDuration` | `number` | `300` | Длительность анимации в мс |
+| `focusOnClick` | `boolean` | `false` | Автофокус на элемент при клике |
+| `focusScale` | `number` | `2` | Масштаб при авто-фокусе |
+
+### Программный API
+
+```ts
+zoom.zoomTo(3)                              // масштаб к центру viewBox
+zoom.panTo(100, 200)                        // переместить viewBox (SVG-координаты)
+zoom.focusElement('room-101')               // zoom + центрирование на элементе
+zoom.focusElement('room-101', { scale: 3 })
+zoom.reset()                                // сбросить к исходному viewBox
+zoom.getState()                             // → { scale, x, y }
+
+// Все методы поддерживают опцию animate
+zoom.reset({ animate: false })
+zoom.zoomTo(2, { animate: true })
+```
+
+---
+
 ## Плагины
 
 ```ts
