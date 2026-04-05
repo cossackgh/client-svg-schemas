@@ -44,6 +44,7 @@
       <button class="mode-btn active" data-mode="element">element</button>
       <button class="mode-btn" data-mode="cursor">cursor</button>
       <button class="mode-btn" data-mode="target">target</button>
+      <button class="mode-btn" data-mode="template">template</button>
       <button class="mode-btn" data-mode="off">off</button>
     </div>
   </header>
@@ -80,6 +81,46 @@
       </div>
     </aside>
   </div>
+
+  <!-- шаблон попапа для режима template — вёрстка отдельно от JS -->
+  <template id="room-popup-tpl">
+    <div class="room-popup">
+      <div class="room-popup__title"></div>
+      <div class="room-popup__desc"></div>
+      <div class="room-popup__status"></div>
+    </div>
+  </template>
+
+  <style>
+    .room-popup {
+      background: #1e1e2e;
+      border: 1px solid #3a3a5c;
+      border-radius: 6px;
+      padding: 8px 12px;
+      min-width: 160px;
+      pointer-events: none;
+      position: fixed;
+      z-index: 9999;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .room-popup__title {
+      font-weight: 600;
+      color: #e0e0ff;
+      margin-bottom: 2px;
+    }
+    .room-popup__desc {
+      color: #888;
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+    .room-popup__status {
+      font-size: 11px;
+    }
+    .room-popup__status.free       { color: #4caf81; }
+    .room-popup__status.busy       { color: #e06c75; }
+    .room-popup__status.restricted { color: #e5c07b; }
+  </style>
 
   <script type="module" src="./main.ts"></script>
 </body>

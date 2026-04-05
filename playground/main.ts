@@ -14,20 +14,36 @@ const rooms: SvgicItem[] = [
 
 // --- popup-режимы ---
 
-type PopupMode = 'element' | 'cursor' | 'target' | 'off'
+type PopupMode = 'element' | 'cursor' | 'target' | 'template' | 'off'
+
+const STATUS_LABELS: Record<string, string> = { free: 'Свободно', busy: 'Занято', restricted: 'Ограничен доступ' }
 
 const POPUP_CONFIGS: Record<PopupMode, PopupOption> = {
-  element: { placement: 'element', anchor: 'top-center', flip: true },
-  cursor:  { placement: 'cursor', offset: { x: 16, y: 16 } },
-  target:  { placement: 'target', target: '#info-panel' },
-  off:     false,
+  element:  { placement: 'element', anchor: 'top-center', flip: true },
+  cursor:   { placement: 'cursor', offset: { x: 16, y: 16 } },
+  target:   { placement: 'target', target: '#info-panel' },
+  template: {
+    placement: 'cursor',
+    offset: { x: 16, y: 16 },
+    template: '#room-popup-tpl',
+    bind(el, item) {
+      el.querySelector('.room-popup__title')!.textContent = item.title ?? item.id
+      el.querySelector('.room-popup__desc')!.textContent = (item.description as string) ?? ''
+      const statusEl = el.querySelector('.room-popup__status')!
+      const status = item.status as string | undefined
+      statusEl.textContent = status ? STATUS_LABELS[status] ?? status : ''
+      statusEl.className = `room-popup__status${status ? ` ${status}` : ''}`
+    },
+  },
+  off:      false,
 }
 
 const MODE_HINTS: Record<PopupMode, string> = {
-  element: '',
-  cursor:  '',
-  target:  '← hover сюда',
-  off:     '',
+  element:  '',
+  cursor:   '',
+  target:   '← hover сюда',
+  template: '',
+  off:      '',
 }
 
 // --- стилизация (базовая: default + hover) ---

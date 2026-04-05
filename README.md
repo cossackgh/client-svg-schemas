@@ -84,7 +84,7 @@ new Svgic(selector, {
 
 ```ts
 interface SvgicLayer {
-  role: 'interactive' | 'decorative' | 'labels'
+  role: 'interactive' | 'decorative'
 }
 ```
 
@@ -207,6 +207,47 @@ popup: {
 ```
 
 `render` принимает `SvgicItem` и возвращает `HTMLElement` или HTML-строку.
+
+### Попап через HTML-шаблон (`template` + `bind`)
+
+Если нужно отделить вёрстку попапа от кода инициализации — используйте `template` + `bind`. Дизайнер меняет HTML, не трогая JS.
+
+Определите шаблон в HTML:
+
+```html
+<template id="room-popup">
+  <div class="room-popup">
+    <strong class="room-popup__title"></strong>
+    <p class="room-popup__desc"></p>
+  </div>
+</template>
+```
+
+Передайте селектор или элемент напрямую:
+
+```ts
+popup: {
+  placement: 'cursor',
+  template: '#room-popup',   // селектор <template> элемента
+  bind(el, item) {           // el — клон шаблона, item — данные
+    el.querySelector('.room-popup__title')!.textContent = item.title ?? ''
+    el.querySelector('.room-popup__desc')!.textContent = item.description ?? ''
+  },
+}
+```
+
+Или передайте `HTMLTemplateElement` напрямую:
+
+```ts
+popup: {
+  placement: 'element',
+  anchor: 'top-center',
+  template: document.querySelector<HTMLTemplateElement>('#room-popup')!,
+  bind(el, item) { /* ... */ },
+}
+```
+
+`template` и `render` взаимоисключающие — если указан `template`, `render` игнорируется.
 
 ### Полная замена через плагин
 

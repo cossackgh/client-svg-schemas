@@ -51,7 +51,7 @@ svgic/
 ### Слои SVG
 - Слои идентифицируются по **`id`** на `<g>` элементах
 - Роль слоя задаётся в **конфиге** (не в SVG-файле) — совместимо с любым редактором
-- Роли: `interactive` | `decorative` | `labels`
+- Роли: `interactive` | `decorative`
 
 ```ts
 new Svgic('#container', {
