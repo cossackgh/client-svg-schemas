@@ -4,7 +4,8 @@
     "rootDir": "..",
     "paths": {
       "svgic": ["../src/index.ts"],
-      "svgic/vue": ["../src/adapters/vue/index.ts"]
+      "svgic/vue": ["../src/adapters/vue/index.ts"],
+      "svgic/plugins/zoom": ["../src/plugins/zoom/index.ts"]
     }
   },
   "include": ["./**/*", "../src/**/*"],

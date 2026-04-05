@@ -12,7 +12,8 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "paths": {
-      "svgic": ["./src/index.ts"]
+      "svgic": ["./src/index.ts"],
+      "svgic/plugins/zoom": ["./src/plugins/zoom/index.ts"]
     }
   },
   "include": ["src"],

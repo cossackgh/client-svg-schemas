@@ -7,9 +7,10 @@ export default defineConfig({
   plugins: [vue()],
   root: 'playground',
   resolve: {
-    alias: {
-      svgic: resolve(__dirname, 'src/index.ts'),
-      'svgic/vue': resolve(__dirname, 'src/adapters/vue/index.ts'),
-    },
+    alias: [
+      { find: 'svgic/plugins/zoom', replacement: resolve(__dirname, 'src/plugins/zoom/index.ts') },
+      { find: 'svgic/vue',          replacement: resolve(__dirname, 'src/adapters/vue/index.ts') },
+      { find: 'svgic',              replacement: resolve(__dirname, 'src/index.ts') },
+    ],
   },
 })

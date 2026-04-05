@@ -26,6 +26,8 @@ export interface ISvgic {
   setData(data: SvgicItem[]): void
   setHighlight(state: string, ids: string[]): void
   clearHighlight(state?: string): void
+  /** Возвращает корневой SVGSVGElement после загрузки, иначе null */
+  getElement(): SVGSVGElement | null
   destroy(): void
 }
 

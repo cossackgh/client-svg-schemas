@@ -71,6 +71,10 @@ export class Svgic implements ISvgic {
     return this
   }
 
+  getElement(): SVGSVGElement | null {
+    return this.svgEl
+  }
+
   destroy(): void {
     this.eventManager.destroy()
     this.popupManager?.destroy()

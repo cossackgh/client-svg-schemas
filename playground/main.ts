@@ -1,5 +1,6 @@
 import { Svgic } from 'svgic'
 import type { SvgicItem, PopupOption, SvgicStyleConfig } from 'svgic'
+import { ZoomPlugin } from 'svgic/plugins/zoom'
 
 // --- данные ---
 
@@ -135,6 +136,14 @@ function addLog(type: 'click' | 'hover' | 'leave', id: string, item: SvgicItem |
 // --- инициализация клиента ---
 
 function createClient(mode: PopupMode): Svgic {
+  const zoom = ZoomPlugin({
+    wheelMode: 'ctrl',
+    focusOnClick: false,
+    minScale: 0.5,
+    maxScale: 8,
+  })
+  ;(window as unknown as Record<string, unknown>).zoom = zoom
+
   const instance = new Svgic('#schema-container', {
     src: '/demo.svg',
     layers: {
@@ -144,6 +153,7 @@ function createClient(mode: PopupMode): Svgic {
     data: rooms,
     popup: POPUP_CONFIGS[mode],
     style: STYLE_CONFIG,
+    plugins: [zoom],
   })
 
   instance.on('hover', (id, item) => {

@@ -19,6 +19,10 @@
     "./react": {
       "import": "./dist/react.js",
       "types": "./dist/adapters/react/index.d.ts"
+    },
+    "./plugins/zoom": {
+      "import": "./dist/plugins/zoom.js",
+      "types": "./dist/plugins/zoom/index.d.ts"
     }
   },
   "files": [
