@@ -376,12 +376,33 @@ function onRoomClick(id: string, item: SvgicItem | null) {
     src="/map.svg"
     :layers="{ rooms: { role: 'interactive' } }"
     :data="rooms"
+    :popup="{ placement: 'cursor' }"
+    :style="{ default: { fill: '#2d2d52', cursor: 'pointer' }, hover: { fill: '#4a4a80' } }"
     @click="onRoomClick"
   />
 </template>
 ```
 
 Компонент реактивно реагирует на изменение пропа `:data`.
+
+### Пропы компонента
+
+| Проп | Тип | Описание |
+|---|---|---|
+| `src` | `string` | URL или SVG-строка (обязательный) |
+| `data` | `SvgicItem[]` | Данные для привязки к элементам |
+| `layers` | `Record<string, SvgicLayer>` | Описание слоёв SVG |
+| `plugins` | `SvgicPlugin[]` | Плагины (ZoomPlugin и др.) |
+| `popup` | `PopupOption` | Конфигурация попапа |
+| `style` | `SvgicStyleConfig` | Стилизация интерактивных элементов |
+
+### События компонента
+
+| Событие | Сигнатура |
+|---|---|
+| `@click` | `(id: string, item: SvgicItem \| null) => void` |
+| `@hover` | `(id: string, item: SvgicItem \| null) => void` |
+| `@leave` | `(id: string, item: SvgicItem \| null) => void` |
 
 ### Composable
 
@@ -391,12 +412,99 @@ import { useSvgic } from 'svgic/vue'
 const { containerRef, client } = useSvgic({
   src: '/map.svg',
   layers: { rooms: { role: 'interactive' } },
+  popup: true,
+  style: { default: { fill: '#e0e0e0', cursor: 'pointer' } },
 })
 ```
 
 ```html
 <div :ref="containerRef" />
 ```
+
+`client` — реактивный `shallowRef<Svgic | null>`, доступен после монтирования. Через него можно вызывать `setHighlight`, `setData`, методы плагинов и т.д.
+
+---
+
+## React
+
+### Компонент
+
+```tsx
+import { SvgicReact } from 'svgic/react'
+import type { SvgicItem } from 'svgic'
+
+const rooms: SvgicItem[] = [
+  { id: 'room-101', title: 'Переговорная' },
+]
+
+function Map() {
+  return (
+    <SvgicReact
+      src="/map.svg"
+      layers={{ rooms: { role: 'interactive' } }}
+      data={rooms}
+      popup={{ placement: 'cursor' }}
+      styleConfig={{
+        default: { fill: '#2d2d52', cursor: 'pointer' },
+        hover:   { fill: '#4a4a80' },
+      }}
+      onClick={(id, item) => console.log(id, item)}
+    />
+  )
+}
+```
+
+Компонент пересоздаёт клиент при смене `src` и реактивно обновляет данные при смене `data` без пересоздания.
+
+### Пропы компонента
+
+| Проп | Тип | Описание |
+|---|---|---|
+| `src` | `string` | URL или SVG-строка (обязательный) |
+| `data` | `SvgicItem[]` | Данные для привязки к элементам |
+| `layers` | `Record<string, SvgicLayer>` | Описание слоёв SVG |
+| `plugins` | `SvgicPlugin[]` | Плагины (ZoomPlugin и др.) |
+| `popup` | `PopupOption` | Конфигурация попапа |
+| `styleConfig` | `SvgicStyleConfig` | Стилизация интерактивных элементов |
+| `onClick` | `(id, item) => void` | Событие клика |
+| `onHover` | `(id, item) => void` | Событие наведения |
+| `onLeave` | `(id, item) => void` | Событие ухода курсора |
+| `className` | `string` | CSS-класс контейнера |
+| `style` | `CSSProperties` | Инлайн-стили контейнера |
+
+> `styleConfig` — конфигурация стилей SVG-слоёв. Называется иначе, чем в ядре, чтобы не конфликтовать со стандартным пропом `style` контейнера.
+
+### Hook
+
+```tsx
+import { useRef } from 'react'
+import { useSvgic } from 'svgic/react'
+import { ZoomPlugin } from 'svgic/plugins/zoom'
+
+const zoom = ZoomPlugin({ wheelMode: 'ctrl' })
+
+function Map() {
+  const { containerRef, client } = useSvgic({
+    src: '/map.svg',
+    layers: { rooms: { role: 'interactive' } },
+    plugins: [zoom],
+    style: { default: { fill: '#e0e0e0', cursor: 'pointer' } },
+  })
+
+  function handleReset() {
+    zoom.reset()
+  }
+
+  return (
+    <>
+      <div ref={containerRef} />
+      <button onClick={handleReset}>Сброс</button>
+    </>
+  )
+}
+```
+
+`client` — `Svgic | null`, доступен после монтирования (через `useState`).
 
 ---
 
