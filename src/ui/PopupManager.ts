@@ -123,11 +123,11 @@ export class PopupManager {
         ? document.querySelector<HTMLTemplateElement>(cfg.template)
         : cfg.template
       if (!tpl) throw new Error(`[svgic] popup template not found: "${cfg.template}"`)
-      const el = tpl.content.cloneNode(true) as HTMLElement
-      const wrapper = document.createElement('div')
-      wrapper.appendChild(el)
-      cfg.bind?.(wrapper, item)
-      return wrapper
+      const fragment = tpl.content.cloneNode(true) as DocumentFragment
+      const el = fragment.firstElementChild as HTMLElement | null
+      if (!el) throw new Error(`[svgic] popup template is empty: "${cfg.template}"`)
+      cfg.bind?.(el, item)
+      return el
     }
 
     const renderFn = cfg.render ?? renderDefaultPopup

@@ -38,7 +38,7 @@ describe('PopupManager — template + bind', () => {
   })
 
   it('клонирует <template> по селектору и вставляет в DOM', () => {
-    makeTemplate('<span class="title"></span>', 'my-popup')
+    makeTemplate('<div class="popup"><span class="title"></span></div>', 'my-popup')
 
     const manager = new PopupManager({
       placement: 'element',
@@ -57,7 +57,7 @@ describe('PopupManager — template + bind', () => {
   })
 
   it('принимает HTMLTemplateElement напрямую', () => {
-    const tpl = makeTemplate('<div class="popup-body"></div>', 'direct-tpl')
+    const tpl = makeTemplate('<div><span class="popup-body"></span></div>', 'direct-tpl')
 
     const manager = new PopupManager({
       placement: 'element',
