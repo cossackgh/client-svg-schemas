@@ -43,7 +43,6 @@ export class ZoomController {
   private hasDragged = false
 
   // --- touch ---
-  private activeTouches: Touch[] = []
   private lastPinchDist = 0
   private lastPinchMid = { x: 0, y: 0 }
   private lastTapTime = 0
@@ -60,7 +59,6 @@ export class ZoomController {
     }
     // Отключаем браузерный drag и text selection на SVG
     svg.style.userSelect = 'none'
-    svg.style.webkitUserSelect = 'none'
     if (this.opts.pan) {
       svg.style.cursor = 'grab'
     }
@@ -249,7 +247,6 @@ export class ZoomController {
 
   private handleTouchStart(e: TouchEvent): void {
     e.preventDefault()
-    this.activeTouches = Array.from(e.touches)
 
     if (e.touches.length === 1) {
       const t = e.touches[0]
@@ -338,7 +335,6 @@ export class ZoomController {
   }
 
   private handleTouchEnd(e: TouchEvent): void {
-    this.activeTouches = Array.from(e.touches)
     if (e.touches.length < 2) {
       this.lastPinchDist = 0
     }
@@ -394,10 +390,15 @@ export class ZoomController {
     }
   }
 
-  /** Применить viewBox к SVG */
+  /** Применить viewBox к SVG и уведомить подписчиков */
   private applyViewBox(): void {
-    const vb = this.currentViewBox()
+    this.commitViewBox(this.currentViewBox())
+  }
+
+  /** Записать viewBox в атрибут и диспатчить событие изменения вида */
+  private commitViewBox(vb: ViewBox): void {
     this.svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.width} ${vb.height}`)
+    this.svg.dispatchEvent(new CustomEvent('svgic:viewchange', { bubbles: false }))
   }
 
   /** Плавная анимация к целевому viewBox */
@@ -421,13 +422,12 @@ export class ZoomController {
         width:  from.width  + (target.width  - from.width)  * ease,
         height: from.height + (target.height - from.height) * ease,
       }
-      this.svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.width} ${vb.height}`)
-
       // Синхронизируем state
       const ovb = this.originalViewBox
       this.state.scale = ovb.width / vb.width
       this.state.x = vb.x
       this.state.y = vb.y
+      this.commitViewBox(vb)
 
       if (t < 1) {
         this.animFrame = requestAnimationFrame(tick)
@@ -442,12 +442,17 @@ export class ZoomController {
   /** Прочитать viewBox из SVG-атрибута */
   private readViewBox(): ViewBox {
     const vb = this.svg.viewBox.baseVal
-    // Если viewBox не задан — используем width/height SVG
+    // Если viewBox не задан — пробуем width/height SVG
     if (vb.width === 0 && vb.height === 0) {
-      const w = this.svg.width.baseVal.value  || 800
-      const h = this.svg.height.baseVal.value || 600
-      this.svg.setAttribute('viewBox', `0 0 ${w} ${h}`)
-      return { x: 0, y: 0, width: w, height: h }
+      const w = this.svg.width.baseVal.value
+      const h = this.svg.height.baseVal.value
+      if (!w || !h) {
+        console.warn('[svgic] ZoomPlugin: SVG has no viewBox and no width/height — falling back to 800×600')
+      }
+      const finalW = w || 800
+      const finalH = h || 600
+      this.svg.setAttribute('viewBox', `0 0 ${finalW} ${finalH}`)
+      return { x: 0, y: 0, width: finalW, height: finalH }
     }
     return { x: vb.x, y: vb.y, width: vb.width, height: vb.height }
   }
