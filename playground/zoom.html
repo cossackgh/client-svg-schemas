@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>svgic — Zoom</title>
+  <link rel="stylesheet" href="./shared.css" />
+  <style>
+    .header-controls {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .controls-label {
+      font-size: 0.72rem;
+      color: #555;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+    }
+    .mode-btn {
+      font-size: 0.72rem;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      padding: 3px 10px;
+      border-radius: 99px;
+      border: 1px solid #333;
+      background: transparent;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .mode-btn:hover  { border-color: #555; color: #aaa; }
+    .mode-btn.active { border-color: #4c8aff; color: #4c8aff; background: rgba(76, 138, 255, 0.08); }
+
+    /* zoom controls panel */
+    .zoom-panel {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #2a2a4a;
+      flex-shrink: 0;
+    }
+    .zoom-panel h2 {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #555;
+      margin-bottom: 0.5rem;
+    }
+    .zoom-state {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      margin-bottom: 0.6rem;
+    }
+    .zoom-state-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+    }
+    .zoom-state-label { color: #555; font-family: 'Cascadia Code', 'Fira Code', monospace; }
+    .zoom-state-value { color: #ccc; font-family: 'Cascadia Code', 'Fira Code', monospace; }
+    .zoom-buttons {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+    .zoom-btn {
+      font-size: 0.72rem;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      padding: 3px 10px;
+      border-radius: 99px;
+      border: 1px solid #333;
+      background: transparent;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .zoom-btn:hover { border-color: #555; color: #aaa; }
+    .zoom-btn.primary { border-color: #4c8aff; color: #4c8aff; }
+    .zoom-btn.primary:hover { background: rgba(76,138,255,0.08); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>svgic</h1>
+    <nav class="page-nav">
+      <a href="/"             class="nav-link">Popup</a>
+      <a href="/styling.html" class="nav-link">Styling</a>
+      <a href="/zoom.html"    class="nav-link active">Zoom</a>
+    </nav>
+    <div class="header-controls">
+      <div class="control-group">
+        <span class="controls-label">wheel:</span>
+        <button class="mode-btn active" data-wheel="ctrl">ctrl</button>
+        <button class="mode-btn" data-wheel="free">free</button>
+      </div>
+      <div class="control-group">
+        <span class="controls-label">focusOnClick:</span>
+        <button class="mode-btn" data-focus="on">on</button>
+        <button class="mode-btn active" data-focus="off">off</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <div id="schema-container"></div>
+
+    <aside class="sidebar">
+      <div class="zoom-panel">
+        <h2>Состояние</h2>
+        <div class="zoom-state">
+          <div class="zoom-state-row">
+            <span class="zoom-state-label">scale</span>
+            <span class="zoom-state-value" id="state-scale">1.00</span>
+          </div>
+          <div class="zoom-state-row">
+            <span class="zoom-state-label">x</span>
+            <span class="zoom-state-value" id="state-x">0</span>
+          </div>
+          <div class="zoom-state-row">
+            <span class="zoom-state-label">y</span>
+            <span class="zoom-state-value" id="state-y">0</span>
+          </div>
+        </div>
+        <div class="zoom-buttons">
+          <button class="zoom-btn primary" id="btn-zoom-in">zoom +</button>
+          <button class="zoom-btn primary" id="btn-zoom-out">zoom −</button>
+          <button class="zoom-btn" id="btn-reset">reset</button>
+          <button class="zoom-btn" id="btn-focus-101">focus room-101</button>
+          <button class="zoom-btn" id="btn-focus-203">focus room-203</button>
+        </div>
+      </div>
+
+      <div class="event-log" id="event-log">
+        <h2>События</h2>
+      </div>
+    </aside>
+  </div>
+
+  <script type="module" src="./zoom.ts"></script>
+</body>
+</html>

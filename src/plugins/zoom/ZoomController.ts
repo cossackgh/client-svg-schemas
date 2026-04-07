@@ -84,7 +84,7 @@ export class ZoomController {
     const vb = this.currentViewBox()
     const target = this.clampViewBox(x, y, vb.width, vb.height)
     if (options?.animate ?? this.opts.animate) {
-      this.animateTo({ ...target, width: vb.width, height: vb.height })
+      this.animateTo(vb, { ...target, width: vb.width, height: vb.height })
     } else {
       this.state.x = target.x
       this.state.y = target.y
@@ -112,11 +112,12 @@ export class ZoomController {
     const cx = bbox.x + bbox.width / 2
     const cy = bbox.y + bbox.height / 2
     const raw = { x: cx - newW / 2, y: cy - newH / 2, width: newW, height: newH }
+    const from = this.currentViewBox()
     const clamped = this.clampViewBox(raw.x, raw.y, raw.width, raw.height)
     this.state.scale = s
 
     if (options?.animate ?? this.opts.animate) {
-      this.animateTo({ ...clamped, width: raw.width, height: raw.height })
+      this.animateTo(from, { ...clamped, width: raw.width, height: raw.height })
     } else {
       this.state.x = clamped.x
       this.state.y = clamped.y
@@ -127,7 +128,7 @@ export class ZoomController {
   reset(options?: { animate?: boolean }): void {
     const ovb = this.originalViewBox
     if (options?.animate ?? this.opts.animate) {
-      this.animateTo(ovb)
+      this.animateTo(this.currentViewBox(), ovb)
     } else {
       this.state = { scale: 1, x: ovb.x, y: ovb.y }
       this.applyViewBox()
@@ -382,7 +383,7 @@ export class ZoomController {
     this.state.scale = newScale
 
     if (animate) {
-      this.animateTo({ ...clamped, width: newW, height: newH })
+      this.animateTo(vb, { ...clamped, width: newW, height: newH })
     } else {
       this.state.x = clamped.x
       this.state.y = clamped.y
@@ -402,7 +403,7 @@ export class ZoomController {
   }
 
   /** Плавная анимация к целевому viewBox */
-  private animateTo(target: ViewBox): void {
+  private animateTo(from: ViewBox, target: ViewBox): void {
     if (this.animFrame !== null) {
       cancelAnimationFrame(this.animFrame)
       this.animFrame = null
@@ -410,7 +411,6 @@ export class ZoomController {
 
     const duration = this.opts.animationDuration
     const startTime = performance.now()
-    const from = this.currentViewBox()
 
     const tick = (now: number) => {
       const t = Math.min((now - startTime) / duration, 1)
