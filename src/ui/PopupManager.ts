@@ -23,6 +23,18 @@ export class PopupManager {
   // Вызывается при hover / click на элемент
   show(targetEl: SVGElement, item: SvgicItem, event: MouseEvent): void {
     this.cancelHideTimer()
+
+    // Сбрасываем предыдущее состояние (смена элемента)
+    if (this.onMouseMove) {
+      document.removeEventListener('mousemove', this.onMouseMove)
+      this.onMouseMove = null
+    }
+    if (this.onViewChange) {
+      this.currentTarget?.ownerSVGElement?.removeEventListener('svgic:viewchange', this.onViewChange)
+      this.onViewChange = null
+    }
+    this.popupEl?.remove()
+
     this.currentTarget = targetEl
     this.ensurePopup(item)
     if (!this.popupEl) return

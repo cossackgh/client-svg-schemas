@@ -21,6 +21,7 @@ export class EventManager {
   private popupShow: ((el: SVGElement, item: SvgicItem, event: MouseEvent) => void) | null = null
   private popupHide: (() => void) | null = null
   private popupTrigger: 'hover' | 'click' = 'hover'
+  private currentPopupId: string | null = null
   private docClickFn: ((e: Event) => void) | null = null
   private styleHover: ((id: string) => void) | null = null
   private styleLeave: (() => void) | null = null
@@ -47,7 +48,10 @@ export class EventManager {
     if (trigger === 'click') {
       this.docClickFn = (e: Event) => {
         const isInsideLayer = this.attached.some(({ el }) => el.contains(e.target as Node))
-        if (!isInsideLayer) this.popupHide?.()
+        if (!isInsideLayer) {
+          this.currentPopupId = null
+          this.popupHide?.()
+        }
       }
       document.addEventListener('click', this.docClickFn)
     }
@@ -100,7 +104,10 @@ export class EventManager {
     const id = this.findBoundId(e.target, layerEl)
 
     if (id === null) {
-      if (this.popupTrigger === 'click') this.popupHide?.()
+      if (this.popupTrigger === 'click') {
+        this.currentPopupId = null
+        this.popupHide?.()
+      }
       this.emit('click', '', null)
       return
     }
@@ -114,7 +121,11 @@ export class EventManager {
     )
     if (!cancelled) {
       if (this.popupTrigger === 'click') {
-        this.popupShow?.(element, item ?? { id }, e as MouseEvent)
+        if (id !== this.currentPopupId) {
+          this.currentPopupId = id
+          this.popupShow?.(element, item ?? { id }, e as MouseEvent)
+        }
+        // клик на тот же элемент — попап уже открыт, ничего не делаем
       }
       this.emit('click', id, item)
     }

@@ -38,6 +38,7 @@
     <nav class="page-nav">
       <a href="/"             class="nav-link active">Popup</a>
       <a href="/styling.html" class="nav-link">Styling</a>
+      <a href="/zoom.html"    class="nav-link">Zoom</a>
     </nav>
     <div class="header-controls">
       <span class="controls-label">popup:</span>
@@ -45,6 +46,8 @@
       <button class="mode-btn" data-mode="cursor">cursor</button>
       <button class="mode-btn" data-mode="target">target</button>
       <button class="mode-btn" data-mode="template">template</button>
+      <button class="mode-btn" data-mode="click">click</button>
+      <button class="mode-btn" data-mode="interactive">interactive</button>
       <button class="mode-btn" data-mode="off">off</button>
     </div>
   </header>
@@ -120,6 +123,32 @@
     .room-popup__status.free       { color: #4caf81; }
     .room-popup__status.busy       { color: #e06c75; }
     .room-popup__status.restricted { color: #e5c07b; }
+
+    /* interactive popup */
+    .interactive-popup {
+      background: #1e1e2e;
+      border: 1px solid #3a3a5c;
+      border-radius: 6px;
+      padding: 8px 12px;
+      min-width: 160px;
+      position: fixed;
+      z-index: 9999;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .interactive-popup__title {
+      font-weight: 600;
+      color: #e0e0ff;
+      margin-bottom: 6px;
+    }
+    .interactive-popup__link {
+      display: inline-block;
+      font-size: 11px;
+      color: #4c8aff;
+      text-decoration: none;
+      padding: 2px 0;
+    }
+    .interactive-popup__link:hover { text-decoration: underline; }
   </style>
 
   <script type="module" src="./main.ts"></script>
