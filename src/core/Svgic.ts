@@ -81,7 +81,7 @@ export class Svgic implements ISvgic {
     this.popupManager = null
     this.styleManager?.destroy()
     this.styleManager = null
-    this.container.innerHTML = ''
+    this.svgEl?.remove()
     this.svgEl = null
     this.plugins.forEach(p => p.onDestroy?.(this))
     this.plugins = []
@@ -98,9 +98,13 @@ export class Svgic implements ISvgic {
 
     if (this.options.popup) {
       this.popupManager = new PopupManager(this.options.popup)
+      const trigger = this.options.popup !== true
+        ? (this.options.popup as { trigger?: 'hover' | 'click' }).trigger ?? 'hover'
+        : 'hover'
       this.eventManager.setPopupCallbacks(
         (el, item, event) => this.popupManager!.show(el, item, event),
         () => this.popupManager!.hide(),
+        trigger,
       )
     }
 

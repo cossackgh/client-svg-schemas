@@ -45,11 +45,22 @@ export function getElementPosition(
     const vw = window.innerWidth
     const vh = window.innerHeight
 
-    if (x + popupRect.width > vw) x = rect.right - popupRect.width
-    if (x < 0) x = rect.left
+    // Горизонтальный flip с учётом anchor:
+    // если popup был справа от элемента и уходит за правый край — переносим влево
+    // если popup был слева и уходит за левый край — переносим вправо
+    if (x + popupRect.width > vw) {
+      x = anchor.includes('right')
+        ? rect.left - popupRect.width - Math.abs(ox)
+        : rect.right - popupRect.width
+    }
+    if (x < 0) {
+      x = anchor.includes('left')
+        ? rect.right + Math.abs(ox)
+        : rect.left
+    }
 
+    // Вертикальный flip
     if (y < 0) {
-      // уходит вверх — переворачиваем вниз
       y = rect.bottom + Math.abs(oy)
     } else if (y + popupRect.height > vh) {
       y = rect.top - popupRect.height - Math.abs(oy)

@@ -99,6 +99,11 @@ export type PopupOption = boolean | (PopupPlacement & {
   template?: string | HTMLTemplateElement
   bind?: (el: HTMLElement, item: SvgicItem) => void
   trigger?: PopupTrigger
+  /** Попап не закрывается пока курсор находится на нём (для попапов со ссылками/кнопками).
+   *  Работает с placement: 'element'. При включении автоматически устанавливает hideDelay: 120 если не задан. */
+  interactive?: boolean
+  /** Задержка в мс перед скрытием попапа после того как курсор покинул элемент. */
+  hideDelay?: number
 })
 
 // --- Style ---
