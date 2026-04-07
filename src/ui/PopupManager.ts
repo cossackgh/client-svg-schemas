@@ -9,6 +9,7 @@ export class PopupManager {
   private config: Exclude<PopupOption, boolean>
   private currentTarget: SVGElement | null = null
   private onMouseMove: ((e: MouseEvent) => void) | null = null
+  private onViewChange: (() => void) | null = null
 
   constructor(option: PopupOption) {
     this.config = option === true
@@ -35,6 +36,13 @@ export class PopupManager {
     if (placement === 'cursor') {
       this.onMouseMove = (e: MouseEvent) => this.updatePosition(targetEl, e)
       document.addEventListener('mousemove', this.onMouseMove)
+    } else {
+      // element mode: следим за изменением viewBox (pan/zoom)
+      const svg = targetEl.ownerSVGElement
+      if (svg) {
+        this.onViewChange = () => this.updatePosition(targetEl, event)
+        svg.addEventListener('svgic:viewchange', this.onViewChange)
+      }
     }
   }
 
@@ -43,6 +51,11 @@ export class PopupManager {
     if (this.onMouseMove) {
       document.removeEventListener('mousemove', this.onMouseMove)
       this.onMouseMove = null
+    }
+
+    if (this.onViewChange) {
+      this.currentTarget?.ownerSVGElement?.removeEventListener('svgic:viewchange', this.onViewChange)
+      this.onViewChange = null
     }
 
     const { placement } = this.config

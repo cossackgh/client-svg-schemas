@@ -30,6 +30,10 @@ export interface ZoomPluginInstance extends SvgicPlugin {
  * zoom.reset()
  * ```
  */
+/** Порог масштаба для focusOnClick: фокус срабатывает только если текущий масштаб
+ *  меньше чем focusScale * FOCUS_SCALE_THRESHOLD (предотвращает повторный zoom на уже крупном виде) */
+const FOCUS_SCALE_THRESHOLD = 0.9
+
 export function ZoomPlugin(opts: ZoomPluginOptions = {}): ZoomPluginInstance {
   let controller: ZoomController | null = null
 
@@ -53,7 +57,7 @@ export function ZoomPlugin(opts: ZoomPluginOptions = {}): ZoomPluginInstance {
           if (!c) return
           const currentScale = c.getState().scale
           // Фокус только если масштаб ещё не крупнее focusScale
-          if (currentScale < (opts.focusScale ?? 2) * 0.9) {
+          if (currentScale < (opts.focusScale ?? 2) * FOCUS_SCALE_THRESHOLD) {
             c.focusElement(item.id)
           }
         })
