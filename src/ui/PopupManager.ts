@@ -3,6 +3,8 @@ import { renderDefaultPopup, DEFAULT_POPUP_STYLES } from './DefaultPopup'
 import { getElementPosition } from './placement/ElementPlacement'
 import { getCursorPosition } from './placement/CursorPlacement'
 
+const DEFAULT_INTERACTIVE_DELAY = 120
+
 export class PopupManager {
   private popupEl: HTMLElement | null = null
   private styleEl: HTMLStyleElement | null = null
@@ -10,6 +12,7 @@ export class PopupManager {
   private currentTarget: SVGElement | null = null
   private onMouseMove: ((e: MouseEvent) => void) | null = null
   private onViewChange: (() => void) | null = null
+  private hideTimer: ReturnType<typeof setTimeout> | null = null
 
   constructor(option: PopupOption) {
     this.config = option === true
@@ -19,6 +22,7 @@ export class PopupManager {
 
   // Вызывается при hover / click на элемент
   show(targetEl: SVGElement, item: SvgicItem, event: MouseEvent): void {
+    this.cancelHideTimer()
     this.currentTarget = targetEl
     this.ensurePopup(item)
     if (!this.popupEl) return
@@ -43,11 +47,49 @@ export class PopupManager {
         this.onViewChange = () => this.updatePosition(targetEl, event)
         svg.addEventListener('svgic:viewchange', this.onViewChange)
       }
+
+      // interactive mode: попап не скрывается пока курсор на нём
+      const cfg = this.config as { interactive?: boolean }
+      if (cfg.interactive) {
+        this.popupEl.addEventListener('mouseenter', () => this.cancelHideTimer())
+        this.popupEl.addEventListener('mouseleave', () => this.hide())
+      }
     }
   }
 
   // Вызывается при mouseleave / второй клик для скрытия
   hide(): void {
+    const delay = this.effectiveHideDelay
+    if (delay > 0) {
+      this.hideTimer = setTimeout(() => this.doHide(), delay)
+    } else {
+      this.doHide()
+    }
+  }
+
+  destroy(): void {
+    this.cancelHideTimer()
+    this.doHide()
+    this.styleEl?.remove()
+    this.popupEl = null
+    this.styleEl = null
+  }
+
+  private get effectiveHideDelay(): number {
+    const cfg = this.config as { interactive?: boolean; hideDelay?: number }
+    if (cfg.hideDelay !== undefined) return cfg.hideDelay
+    if (cfg.interactive) return DEFAULT_INTERACTIVE_DELAY
+    return 0
+  }
+
+  private cancelHideTimer(): void {
+    if (this.hideTimer !== null) {
+      clearTimeout(this.hideTimer)
+      this.hideTimer = null
+    }
+  }
+
+  private doHide(): void {
     if (this.onMouseMove) {
       document.removeEventListener('mousemove', this.onMouseMove)
       this.onMouseMove = null
@@ -68,13 +110,6 @@ export class PopupManager {
 
     this.popupEl?.remove()
     this.currentTarget = null
-  }
-
-  destroy(): void {
-    this.hide()
-    this.styleEl?.remove()
-    this.popupEl = null
-    this.styleEl = null
   }
 
   private ensurePopup(item: SvgicItem): void {

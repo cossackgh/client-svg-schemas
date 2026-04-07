@@ -20,6 +20,8 @@ export class EventManager {
   private attached: AttachedListener[] = []
   private popupShow: ((el: SVGElement, item: SvgicItem, event: MouseEvent) => void) | null = null
   private popupHide: (() => void) | null = null
+  private popupTrigger: 'hover' | 'click' = 'hover'
+  private docClickFn: ((e: Event) => void) | null = null
   private styleHover: ((id: string) => void) | null = null
   private styleLeave: (() => void) | null = null
 
@@ -36,9 +38,19 @@ export class EventManager {
   setPopupCallbacks(
     onShow: (el: SVGElement, item: SvgicItem, event: MouseEvent) => void,
     onHide: () => void,
+    trigger: 'hover' | 'click' = 'hover',
   ): void {
     this.popupShow = onShow
     this.popupHide = onHide
+    this.popupTrigger = trigger
+
+    if (trigger === 'click') {
+      this.docClickFn = (e: Event) => {
+        const isInsideLayer = this.attached.some(({ el }) => el.contains(e.target as Node))
+        if (!isInsideLayer) this.popupHide?.()
+      }
+      document.addEventListener('click', this.docClickFn)
+    }
   }
 
   setStyleCallbacks(
@@ -76,6 +88,10 @@ export class EventManager {
     }
     this.attached = []
     this.currentHoveredId = null
+    if (this.docClickFn) {
+      document.removeEventListener('click', this.docClickFn)
+      this.docClickFn = null
+    }
   }
 
   // --- private ---
@@ -84,6 +100,7 @@ export class EventManager {
     const id = this.findBoundId(e.target, layerEl)
 
     if (id === null) {
+      if (this.popupTrigger === 'click') this.popupHide?.()
       this.emit('click', '', null)
       return
     }
@@ -96,6 +113,9 @@ export class EventManager {
       p => p.onElementClick?.(element, item) === false,
     )
     if (!cancelled) {
+      if (this.popupTrigger === 'click') {
+        this.popupShow?.(element, item ?? { id }, e as MouseEvent)
+      }
       this.emit('click', id, item)
     }
   }
@@ -122,7 +142,9 @@ export class EventManager {
     )
     if (!cancelled) {
       this.styleHover?.(id)
-      this.popupShow?.(element, item ?? { id }, e as MouseEvent)
+      if (this.popupTrigger === 'hover') {
+        this.popupShow?.(element, item ?? { id }, e as MouseEvent)
+      }
       this.emit('hover', id, item)
     }
   }
@@ -152,7 +174,7 @@ export class EventManager {
     }
 
     this.styleLeave?.()
-    this.popupHide?.()
+    if (this.popupTrigger === 'hover') this.popupHide?.()
     this.emit('leave', id, item)
   }
 
