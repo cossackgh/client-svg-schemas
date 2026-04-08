@@ -1,36 +1,36 @@
 # svgic — API Reference
 
-> Практические примеры: **[docs/recipes.md](recipes.md)**
+> Practical examples: **[docs/recipes.md](recipes.md)**
 
-## Содержание
+## Table of Contents
 
-- [Конструктор](#конструктор)
+- [Constructor](#constructor)
 - [SvgicOptions](#svgicoptons)
-- [Методы экземпляра](#методы-экземпляра)
-- [События](#события)
-- [SvgicItem — схема данных](#svgicitem--схема-данных)
-- [Style — конфигурация стилей](#style--конфигурация-стилей)
-- [Popup — конфигурация попапа](#popup--конфигурация-попапа)
+- [Instance Methods](#instance-methods)
+- [Events](#events)
+- [SvgicItem — Data Schema](#svgicitem--data-schema)
+- [Style — Style Configuration](#style--style-configuration)
+- [Popup — Popup Configuration](#popup--popup-configuration)
 - [Plugin API](#plugin-api)
 - [ZoomPlugin](#zoomplugin)
 - [DebugPlugin](#debugplugin)
-- [Vue-адаптер](#vue-адаптер)
-- [React-адаптер](#react-адаптер)
+- [Vue Adapter](#vue-adapter)
+- [React Adapter](#react-adapter)
 
 ---
 
-## Конструктор
+## Constructor
 
 ```ts
 new Svgic(selector, options)
 ```
 
-| Параметр | Тип | Описание |
-|----------|-----|----------|
-| `selector` | `string \| Element` | CSS-селектор или DOM-элемент контейнера |
-| `options` | `SvgicOptions` | Конфигурация (см. ниже) |
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `selector` | `string \| Element` | CSS selector or container DOM element |
+| `options` | `SvgicOptions` | Configuration (see below) |
 
-Бросает `Error` если контейнер не найден.
+Throws `Error` if the container is not found.
 
 ```ts
 import { Svgic } from 'svgic'
@@ -59,14 +59,14 @@ interface SvgicOptions {
 }
 ```
 
-| Поле | Тип | Обязательное | Описание |
-|------|-----|:---:|----------|
-| `src` | `string` | ✅ | URL SVG-файла или SVG-строка (`<svg>...</svg>`) |
-| `data` | `SvgicItem[]` | — | Массив данных, привязываемых к элементам по `id` |
-| `layers` | `Record<string, SvgicLayer>` | — | Конфигурация слоёв SVG |
-| `plugins` | `SvgicPlugin[]` | — | Список плагинов |
-| `popup` | `PopupOption` | — | Конфигурация попапа (см. [Popup](#popup--конфигурация-попапа)) |
-| `style` | `SvgicStyleConfig` | — | Конфигурация стилей (см. [Style](#style--конфигурация-стилей)) |
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `src` | `string` | ✅ | SVG file URL or SVG string (`<svg>...</svg>`) |
+| `data` | `SvgicItem[]` | — | Data array bound to elements by `id` |
+| `layers` | `Record<string, SvgicLayer>` | — | SVG layer configuration |
+| `plugins` | `SvgicPlugin[]` | — | Plugin list |
+| `popup` | `PopupOption` | — | Popup configuration (see [Popup](#popup--popup-configuration)) |
+| `style` | `SvgicStyleConfig` | — | Style configuration (see [Style](#style--style-configuration)) |
 
 ### SvgicLayer
 
@@ -76,10 +76,10 @@ interface SvgicLayer {
 }
 ```
 
-Роль слоя задаётся в конфиге (не в SVG-файле). Слои идентифицируются по `id` атрибуту `<g>`-элементов.
+Layer role is set in config (not in the SVG file). Layers are identified by the `id` attribute of `<g>` elements.
 
-- `interactive` — элементы слоя реагируют на hover/click и участвуют в привязке данных
-- `decorative` — слой игнорируется при обработке событий
+- `interactive` — layer elements respond to hover/click and participate in data binding
+- `decorative` — layer is ignored for event handling
 
 ```ts
 new Svgic('#container', {
@@ -93,7 +93,7 @@ new Svgic('#container', {
 
 ---
 
-## Методы экземпляра
+## Instance Methods
 
 ### `client.ready`
 
@@ -101,7 +101,7 @@ new Svgic('#container', {
 readonly ready: Promise<void>
 ```
 
-Promise, который резолвится после загрузки и инициализации SVG. Необходимо дождаться перед вызовом `setData()` и программным API плагинов.
+Promise that resolves after SVG is loaded and initialized. Must be awaited before calling `setData()` and programmatic plugin APIs.
 
 ```ts
 await client.ready
@@ -114,7 +114,7 @@ client.setData(newData)
 setData(data: SvgicItem[]): void
 ```
 
-Обновляет привязанные данные. Вызывать после `await client.ready`.
+Updates bound data. Call after `await client.ready`.
 
 ### `client.on(event, handler)`
 
@@ -122,7 +122,7 @@ setData(data: SvgicItem[]): void
 on(event: 'click' | 'hover' | 'leave', handler: (id: string, item: SvgicItem | null) => void): this
 ```
 
-Подписка на события. Возвращает `this` для чейнинга.
+Subscribe to events. Returns `this` for chaining.
 
 ```ts
 client
@@ -136,7 +136,7 @@ client
 setHighlight(state: string, ids: string[]): void
 ```
 
-Устанавливает именованное состояние подсветки для указанных элементов. Стиль состояния задаётся в `style.states[state]`. Несколько состояний могут быть активны одновременно.
+Sets a named highlight state for the specified elements. The state style is defined in `style.states[state]`. Multiple states can be active simultaneously.
 
 ```ts
 client.setHighlight('free', ['room-101', 'room-102'])
@@ -149,11 +149,11 @@ client.setHighlight('busy', ['room-201'])
 clearHighlight(state?: string): void
 ```
 
-Снимает подсветку. Если `state` не указан — сбрасывает все активные состояния.
+Removes highlight. If `state` is not provided — clears all active states.
 
 ```ts
-client.clearHighlight('free')  // снять только 'free'
-client.clearHighlight()        // снять все
+client.clearHighlight('free')  // clear only 'free'
+client.clearHighlight()        // clear all
 ```
 
 ### `client.getElement()`
@@ -162,7 +162,7 @@ client.clearHighlight()        // снять все
 getElement(): SVGSVGElement | null
 ```
 
-Возвращает корневой `<svg>` элемент после загрузки, иначе `null`.
+Returns the root `<svg>` element after loading, otherwise `null`.
 
 ### `client.use(plugin)`
 
@@ -170,7 +170,7 @@ getElement(): SVGSVGElement | null
 use(plugin: SvgicPlugin): this
 ```
 
-Подключает плагин. Можно вызывать до или после инициализации. Если SVG уже загружен — `onInit` вызывается немедленно.
+Registers a plugin. Can be called before or after initialization. If SVG is already loaded — `onInit` is called immediately.
 
 ### `client.destroy()`
 
@@ -178,38 +178,38 @@ use(plugin: SvgicPlugin): this
 destroy(): void
 ```
 
-Удаляет SVG из DOM, отписывает все обработчики, вызывает `onDestroy` у плагинов.
+Removes SVG from the DOM, unsubscribes all handlers, calls `onDestroy` on plugins.
 
 ---
 
-## События
+## Events
 
-| Событие | Когда срабатывает | `item` |
-|---------|-------------------|--------|
-| `click` | клик по интерактивному элементу | данные элемента или `null` |
-| `hover` | наведение курсора | данные элемента или `null` |
-| `leave` | курсор покинул элемент | данные элемента или `null` |
+| Event | When fired | `item` |
+|-------|------------|--------|
+| `click` | click on an interactive element | element data or `null` |
+| `hover` | cursor enters element | element data or `null` |
+| `leave` | cursor leaves element | element data or `null` |
 
 ---
 
-## SvgicItem — схема данных
+## SvgicItem — Data Schema
 
 ```ts
 interface SvgicItem {
-  id: string           // совпадает с id атрибутом SVG-элемента
-  title?: string       // используется в дефолтном попапе
+  id: string           // matches the id attribute of the SVG element
+  title?: string       // used in the default popup
   description?: string
   image?: string
   link?: string
-  [key: string]: unknown  // любые кастомные поля
+  [key: string]: unknown  // any custom fields
 }
 ```
 
-`id` элемента в массиве `data` должен совпадать с `id` атрибутом SVG-элемента (`<g id="room-101">`).
+The `id` in the `data` array must match the `id` attribute of the SVG element (`<g id="room-101">`).
 
 ---
 
-## Style — конфигурация стилей
+## Style — Style Configuration
 
 ```ts
 interface SvgicStyleConfig {
@@ -220,12 +220,12 @@ interface SvgicStyleConfig {
 }
 ```
 
-| Поле | Описание |
-|------|----------|
-| `default` | Базовые стили всех интерактивных элементов |
-| `hover` | Стили при наведении курсора |
-| `highlightedHover` | Стили при наведении на подсвеченный элемент (применяется вместо `hover`) |
-| `states` | Именованные состояния для `setHighlight()` |
+| Field | Description |
+|-------|-------------|
+| `default` | Base styles for all interactive elements |
+| `hover` | Styles on cursor hover |
+| `highlightedHover` | Styles when hovering over a highlighted element (overrides `hover`) |
+| `states` | Named states for `setHighlight()` |
 
 ### SvgicStyleProperties
 
@@ -238,7 +238,7 @@ interface SvgicStyleProperties {
   cursor?: string
   transition?: string
   filter?: string
-  [key: string]: unknown  // любые CSS-свойства
+  [key: string]: unknown  // any CSS properties
 }
 ```
 
@@ -258,7 +258,7 @@ new Svgic('#container', {
 
 ---
 
-## Popup — конфигурация попапа
+## Popup — Popup Configuration
 
 ```ts
 popup?: boolean | (PopupPlacement & {
@@ -271,41 +271,41 @@ popup?: boolean | (PopupPlacement & {
 })
 ```
 
-| Значение | Поведение |
-|----------|-----------|
-| `true` | Дефолтный попап с `title`, размещение `element`, якорь `top-center` |
-| `false` / `undefined` | Попап отключён |
-| Объект | Кастомная конфигурация |
+| Value | Behavior |
+|-------|----------|
+| `true` | Default popup with `title`, placement `element`, anchor `top-center` |
+| `false` / `undefined` | Popup disabled |
+| Object | Custom configuration |
 
-### Общие поля попапа
+### Common Popup Fields
 
-| Поле | Тип | Default | Описание |
-|------|-----|:-------:|----------|
-| `render` | `(item) => HTMLElement \| string` | — | Кастомный рендер содержимого попапа |
-| `template` | `string \| HTMLTemplateElement` | — | HTML-шаблон для попапа |
-| `bind` | `(el, item) => void` | — | Привязка данных к отрендеренному шаблону |
-| `trigger` | `'hover' \| 'click'` | `'hover'` | Триггер открытия попапа |
-| `interactive` | `boolean` | `false` | Попап не закрывается пока курсор на нём (для ссылок/кнопок внутри) |
-| `hideDelay` | `number` | `0` / `120`* | Задержка скрытия в мс. *При `interactive: true` автоматически `120` |
+| Field | Type | Default | Description |
+|-------|------|:-------:|-------------|
+| `render` | `(item) => HTMLElement \| string` | — | Custom popup content renderer |
+| `template` | `string \| HTMLTemplateElement` | — | HTML template for the popup |
+| `bind` | `(el, item) => void` | — | Bind data to the rendered template |
+| `trigger` | `'hover' \| 'click'` | `'hover'` | Popup open trigger |
+| `interactive` | `boolean` | `false` | Popup stays open while cursor is on it (for links/buttons inside) |
+| `hideDelay` | `number` | `0` / `120`* | Hide delay in ms. *Automatically `120` when `interactive: true` |
 
-### Режим `placement: 'element'`
+### Mode `placement: 'element'`
 
-Попап прикреплён к SVG-элементу.
+Popup is anchored to the SVG element.
 
 ```ts
 popup: {
   placement: 'element',
   anchor?: PopupAnchor,  // default: 'top-center'
   offset?: { x?: number, y?: number },  // default: { x: 0, y: -8 }
-  flip?: boolean,        // default: true — авто-переворот если уходит за viewport
+  flip?: boolean,        // default: true — auto-flip if overflowing viewport
 }
 ```
 
 **PopupAnchor:** `'center'` | `'top'` | `'top-center'` | `'top-left'` | `'top-right'` | `'bottom'` | `'bottom-center'` | `'bottom-left'` | `'bottom-right'` | `'left'` | `'right'`
 
-### Режим `placement: 'cursor'`
+### Mode `placement: 'cursor'`
 
-Попап следует за курсором.
+Popup follows the cursor.
 
 ```ts
 popup: {
@@ -314,31 +314,31 @@ popup: {
 }
 ```
 
-### Режим `placement: 'target'`
+### Mode `placement: 'target'`
 
-Попап рендерится в указанный DOM-элемент вне SVG.
+Popup renders into a specified DOM element outside the SVG.
 
 ```ts
 popup: {
   placement: 'target',
-  target: string | HTMLElement,  // CSS-селектор или элемент
+  target: string | HTMLElement,  // CSS selector or element
   trigger?: 'hover' | 'click',  // default: 'hover'
 }
 ```
 
-### Примеры попапа
+### Popup Examples
 
 ```ts
-// Дефолтный попап
+// Default popup
 popup: true
 
-// Кастомный render
+// Custom render
 popup: {
   placement: 'cursor',
   render: (item) => `<strong>${item.title}</strong><br>${item.description ?? ''}`,
 }
 
-// Интерактивный попап со ссылкой
+// Interactive popup with a link
 popup: {
   placement: 'element',
   anchor: 'top-center',
@@ -350,7 +350,7 @@ popup: {
   },
 }
 
-// Попап в сайдбар
+// Popup in sidebar
 popup: {
   placement: 'target',
   target: '#sidebar',
@@ -374,13 +374,13 @@ interface SvgicPlugin {
 }
 ```
 
-| Хук | Когда вызывается | `return false` |
-|-----|-----------------|----------------|
-| `onInit` | После загрузки SVG | — |
-| `onDestroy` | При `client.destroy()` | — |
-| `onElementHover` | Наведение на элемент | Отменяет дефолтное поведение (hover-стиль, попап) |
-| `onElementLeave` | Курсор покинул элемент | Отменяет дефолтное поведение |
-| `onElementClick` | Клик по элементу | Отменяет дефолтное поведение |
+| Hook | When called | `return false` |
+|------|-------------|----------------|
+| `onInit` | After SVG is loaded | — |
+| `onDestroy` | On `client.destroy()` | — |
+| `onElementHover` | Hover over element | Cancels default behavior (hover style, popup) |
+| `onElementLeave` | Cursor leaves element | Cancels default behavior |
+| `onElementClick` | Click on element | Cancels default behavior |
 
 ```ts
 const myPlugin: SvgicPlugin = {
@@ -390,7 +390,7 @@ const myPlugin: SvgicPlugin = {
   },
   onElementClick(element, item) {
     console.log('clicked', element.id, item)
-    // return false  // чтобы отменить дефолт
+    // return false  // to cancel the default
   },
 }
 
@@ -404,13 +404,13 @@ const client = new Svgic('#container', {
 
 ## ZoomPlugin
 
-Официальный плагин zoom/pan. Поддерживает колесо мыши, перетаскивание, touch (pinch-zoom, pan, двойной тап).
+Official zoom/pan plugin. Supports mouse wheel, drag, touch (pinch-zoom, pan, double tap).
 
 ```ts
 import { ZoomPlugin } from 'svgic/plugins/zoom'
 ```
 
-### Опции
+### Options
 
 ```ts
 interface ZoomPluginOptions {
@@ -422,27 +422,27 @@ interface ZoomPluginOptions {
   doubleTapScale?   : number            // default: 2
   panBounds?        : boolean            // default: true
   animate?          : boolean            // default: true
-  animationDuration?: number            // default: 300 (мс)
+  animationDuration?: number            // default: 300 (ms)
   focusOnClick?     : boolean           // default: false
   focusScale?       : number            // default: 2
 }
 ```
 
-| Поле | Описание |
-|------|----------|
-| `minScale` | Минимальный масштаб |
-| `maxScale` | Максимальный масштаб |
-| `wheelMode` | `'always'` — зум всегда; `'ctrl'` — только с Ctrl (для страниц со скроллом) |
-| `pan` | Разрешить pan перетаскиванием мыши |
-| `touch` | Разрешить touch-жесты |
-| `doubleTapScale` | Масштаб при двойном тапе/клике |
-| `panBounds` | Ограничить pan границами SVG |
-| `animate` | Анимировать программные переходы |
-| `animationDuration` | Длительность анимации в мс |
-| `focusOnClick` | Автофокус на элемент при клике |
-| `focusScale` | Масштаб при авто-фокусе |
+| Field | Description |
+|-------|-------------|
+| `minScale` | Minimum scale |
+| `maxScale` | Maximum scale |
+| `wheelMode` | `'always'` — always zoom; `'ctrl'` — only with Ctrl (for scrollable pages) |
+| `pan` | Allow pan by mouse drag |
+| `touch` | Allow touch gestures |
+| `doubleTapScale` | Scale on double tap/click |
+| `panBounds` | Restrict pan to SVG bounds |
+| `animate` | Animate programmatic transitions |
+| `animationDuration` | Animation duration in ms |
+| `focusOnClick` | Auto-focus element on click |
+| `focusScale` | Scale when auto-focusing |
 
-### Программный API
+### Programmatic API
 
 ```ts
 const zoom = ZoomPlugin({ wheelMode: 'ctrl', focusOnClick: true })
@@ -450,22 +450,22 @@ const client = new Svgic('#container', { src: '/map.svg', plugins: [zoom] })
 
 await client.ready
 
-zoom.zoomTo(2)                              // установить масштаб
-zoom.panTo(100, 200)                        // переместить к SVG-координатам
-zoom.focusElement('room-101')               // zoom + center на элемент
-zoom.reset()                                // сбросить к исходному viewBox
+zoom.zoomTo(2)                              // set scale
+zoom.panTo(100, 200)                        // move to SVG coordinates
+zoom.focusElement('room-101')               // zoom + center on element
+zoom.reset()                                // reset to original viewBox
 zoom.getState()                             // { scale, x, y }
 ```
 
-Все методы принимают опциональный параметр `{ animate?: boolean }`.
+All methods accept an optional `{ animate?: boolean }` parameter.
 
 ### ZoomState
 
 ```ts
 interface ZoomState {
-  scale: number  // текущий масштаб (1 = исходный)
-  x: number      // смещение viewBox по X в SVG-координатах
-  y: number      // смещение viewBox по Y в SVG-координатах
+  scale: number  // current scale (1 = original)
+  x: number      // viewBox offset along X in SVG coordinates
+  y: number      // viewBox offset along Y in SVG coordinates
 }
 ```
 
@@ -473,13 +473,13 @@ interface ZoomState {
 
 ## DebugPlugin
 
-Плагин для разработки: показывает `id` и данные SVG-элементов при наведении/клике. Помогает отлаживать привязку данных.
+Development plugin: shows `id` and data of SVG elements on hover/click. Helps debug data binding.
 
 ```ts
 import { DebugPlugin } from 'svgic/plugins/debug'
 ```
 
-### Опции
+### Options
 
 ```ts
 interface DebugPluginOptions {
@@ -488,18 +488,18 @@ interface DebugPluginOptions {
 }
 ```
 
-| Поле | Default | Описание |
-|------|:-------:|----------|
-| `showOn` | `'hover'` | Когда показывать лейбл: при наведении, клике, или обоих |
-| `render` | — | Кастомный рендер содержимого лейбла |
+| Field | Default | Description |
+|-------|:-------:|-------------|
+| `showOn` | `'hover'` | When to show the label: on hover, click, or both |
+| `render` | — | Custom label content renderer |
 
-Режимы `showOn`:
-- `'hover'` — лейбл появляется при наведении, скрывается при уходе
-- `'click'` — лейбл закрепляется кликом, повторный клик снимает
-- `'both'` — лейбл при наведении + закрепление кликом
+`showOn` modes:
+- `'hover'` — label appears on hover, hides on leave
+- `'click'` — label is pinned on click, second click removes it
+- `'both'` — label on hover + pinned on click
 
 ```ts
-// Базовое использование — только в dev-режиме
+// Basic usage — dev mode only
 const debug = new URLSearchParams(location.search).has('debug')
 
 new Svgic('#container', {
@@ -507,18 +507,18 @@ new Svgic('#container', {
   plugins: debug ? [DebugPlugin()] : [],
 })
 
-// Кастомный рендер
+// Custom render
 DebugPlugin({
   showOn: 'both',
   render(id, item) {
-    return item ? `${id} · ${item.title}` : `${id} ⚠ нет данных`
+    return item ? `${id} · ${item.title}` : `${id} ⚠ no data`
   },
 })
 ```
 
 ---
 
-## Vue-адаптер
+## Vue Adapter
 
 ```ts
 import { SvgicVue } from 'svgic/vue'
@@ -526,24 +526,24 @@ import { SvgicVue } from 'svgic/vue'
 
 ### Props
 
-| Prop | Тип | Обязательный | Описание |
-|------|-----|:---:|----------|
-| `src` | `string` | ✅ | URL SVG-файла или SVG-строка |
-| `data` | `SvgicItem[]` | — | Данные (реактивно) |
-| `layers` | `Record<string, SvgicLayer>` | — | Конфигурация слоёв |
-| `plugins` | `SvgicPlugin[]` | — | Плагины |
-| `popup` | `PopupOption` | — | Конфигурация попапа |
-| `style` | `SvgicStyleConfig` | — | Конфигурация стилей |
+| Prop | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `src` | `string` | ✅ | SVG file URL or SVG string |
+| `data` | `SvgicItem[]` | — | Data (reactive) |
+| `layers` | `Record<string, SvgicLayer>` | — | Layer configuration |
+| `plugins` | `SvgicPlugin[]` | — | Plugins |
+| `popup` | `PopupOption` | — | Popup configuration |
+| `style` | `SvgicStyleConfig` | — | Style configuration |
 
 ### Events
 
-| Событие | Аргументы |
-|---------|-----------|
+| Event | Arguments |
+|-------|-----------|
 | `@click` | `(id: string, item: SvgicItem \| null)` |
 | `@hover` | `(id: string, item: SvgicItem \| null)` |
 | `@leave` | `(id: string, item: SvgicItem \| null)` |
 
-Компонент автоматически пересоздаёт клиент при смене `src` и реактивно обновляет данные при смене `data`.
+The component automatically recreates the client when `src` changes and reactively updates data when `data` changes.
 
 ```vue
 <template>
@@ -576,11 +576,11 @@ import { useSvgic } from 'svgic/vue'
 const { client, containerRef } = useSvgic(options)
 ```
 
-Возвращает `containerRef` (привязать к DOM-элементу) и `client` (экземпляр `Svgic` после инициализации).
+Returns `containerRef` (bind to a DOM element) and `client` (the `Svgic` instance after initialization).
 
 ---
 
-## React-адаптер
+## React Adapter
 
 ```ts
 import { SvgicReact } from 'svgic/react'
@@ -588,13 +588,13 @@ import { SvgicReact } from 'svgic/react'
 
 ### Props
 
-Аналогичны Vue-адаптеру: `src`, `data`, `layers`, `plugins`, `popup`, `style`, плюс коллбэки событий:
+Same as the Vue adapter: `src`, `data`, `layers`, `plugins`, `popup`, `style`, plus event callbacks:
 
-| Prop | Тип | Описание |
-|------|-----|----------|
-| `onClick` | `(id: string, item: SvgicItem \| null) => void` | Клик по элементу |
-| `onHover` | `(id: string, item: SvgicItem \| null) => void` | Наведение |
-| `onLeave` | `(id: string, item: SvgicItem \| null) => void` | Уход курсора |
+| Prop | Type | Description |
+|------|------|-------------|
+| `onClick` | `(id: string, item: SvgicItem \| null) => void` | Click on element |
+| `onHover` | `(id: string, item: SvgicItem \| null) => void` | Hover |
+| `onLeave` | `(id: string, item: SvgicItem \| null) => void` | Cursor leave |
 
 ```tsx
 import { SvgicReact } from 'svgic/react'
