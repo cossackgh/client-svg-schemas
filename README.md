@@ -621,6 +621,45 @@ zoom.zoomTo(2, { animate: true })
 
 ---
 
+## DebugPlugin — отображение id элементов
+
+Плагин для разработки: показывает `id` SVG-элементов прямо на схеме при наведении или клике. Удобен на этапе настройки — чтобы узнать нужные `id` без открытия DevTools.
+
+```ts
+import { DebugPlugin } from 'svgic/plugins/debug'
+
+const client = new Svgic('#container', {
+  src: '/map.svg',
+  plugins: [DebugPlugin()],
+})
+```
+
+Типичный паттерн — включать через URL-параметр:
+
+```ts
+const debug = new URLSearchParams(location.search).has('debug')
+
+new Svgic('#container', {
+  src: '/map.svg',
+  plugins: debug ? [DebugPlugin()] : [],
+})
+// http://localhost:5173/?debug → лейблы включены
+```
+
+### Опции
+
+| Опция | Тип | По умолчанию | Описание |
+|---|---|---|---|
+| `showOn` | `'hover' \| 'click' \| 'both'` | `'hover'` | Триггер показа лейбла |
+
+- `hover` — лейбл появляется при наведении, исчезает при уходе курсора
+- `click` — лейбл закрепляется по клику, повторный клик снимает
+- `both` — показывается при наведении, клик закрепляет (жёлтый цвет)
+
+> Предназначен только для разработки. Не включайте в продакшн-сборку.
+
+---
+
 ## Плагины
 
 ```ts
