@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>svgic — Debug</title>
+  <link rel="stylesheet" href="./shared.css" />
+  <style>
+    .header-controls {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .controls-label {
+      font-size: 0.72rem;
+      color: #555;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+    }
+    .mode-btn {
+      font-size: 0.72rem;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      padding: 3px 10px;
+      border-radius: 99px;
+      border: 1px solid #333;
+      background: transparent;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .mode-btn:hover  { border-color: #555; color: #aaa; }
+    .mode-btn.active { border-color: #4c8aff; color: #4c8aff; background: rgba(76, 138, 255, 0.08); }
+
+    /* ---- Debug info panel ---- */
+    .debug-panel {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #2a2a4a;
+      flex-shrink: 0;
+    }
+    .debug-panel h2 {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #555;
+      margin-bottom: 0.5rem;
+    }
+    .debug-desc {
+      font-size: 0.78rem;
+      color: #666;
+      line-height: 1.5;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+    }
+    .debug-desc strong {
+      color: #7dd3fc;
+    }
+    .debug-desc em {
+      color: #fbbf24;
+      font-style: normal;
+    }
+    .debug-url {
+      margin-top: 0.5rem;
+      font-size: 0.72rem;
+      color: #444;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+    }
+    .debug-url a {
+      color: #4c8aff;
+      text-decoration: none;
+    }
+    .debug-url a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>svgic</h1>
+    <nav class="page-nav">
+      <a href="/"             class="nav-link">Popup</a>
+      <a href="/styling.html" class="nav-link">Styling</a>
+      <a href="/zoom.html"    class="nav-link">Zoom</a>
+      <a href="/debug.html"   class="nav-link active">Debug</a>
+    </nav>
+    <div class="header-controls">
+      <span class="controls-label">render:</span>
+      <button class="mode-btn active" data-render="default">default</button>
+      <button class="mode-btn"        data-render="custom">custom</button>
+      <span class="controls-label" style="margin-left:0.5rem">showOn:</span>
+      <button class="mode-btn active" data-mode="hover">hover</button>
+      <button class="mode-btn"        data-mode="click">click</button>
+      <button class="mode-btn"        data-mode="both">both</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <div id="schema-container"></div>
+
+    <aside class="sidebar">
+      <div class="debug-panel">
+        <h2>DebugPlugin</h2>
+        <div class="debug-desc">
+          <div>наведи на элемент → видишь <strong>id</strong> и данные</div>
+          <div id="debug-mode-hint"></div>
+          <div style="margin-top:0.4rem;color:#f87171">наведи на <strong style="color:#f87171">Серверную</strong> → нет данных</div>
+        </div>
+        <div class="debug-url">
+          типичный паттерн: <a href="?debug" id="debug-url-link">?debug</a>
+        </div>
+      </div>
+
+      <div class="event-log" id="event-log">
+        <h2>События</h2>
+      </div>
+    </aside>
+  </div>
+
+  <script type="module" src="./debug.ts"></script>
+</body>
+</html>
