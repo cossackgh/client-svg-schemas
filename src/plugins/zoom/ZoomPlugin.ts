@@ -4,30 +4,30 @@ import { ZoomController } from './ZoomController'
 
 export interface ZoomPluginInstance extends SvgicPlugin {
   /**
-   * Устанавливает масштаб относительно центра текущего viewBox.
-   * @param scale - Целевой масштаб (1 = исходный размер)
+   * Sets scale relative to the center of the current viewBox.
+   * @param scale - Target scale (1 = original size)
    */
   zoomTo(scale: number, options?: { animate?: boolean }): void
   /**
-   * Перемещает viewBox к указанной позиции в SVG-координатах.
-   * @param x - Смещение по X
-   * @param y - Смещение по Y
+   * Moves the viewBox to the specified position in SVG coordinates.
+   * @param x - Offset along X
+   * @param y - Offset along Y
    */
   panTo(x: number, y: number, options?: { animate?: boolean }): void
   /**
-   * Фокусируется на элементе: zoom + центрирование.
-   * @param elementOrId - `id` элемента (строка) или ссылка на `SVGElement`
-   * @param options.scale - Целевой масштаб. Default: значение опции `focusScale`
+   * Focuses on an element: zoom + centering.
+   * @param elementOrId - Element `id` (string) or reference to an `SVGElement`
+   * @param options.scale - Target scale. Default: value of the `focusScale` option
    */
   focusElement(elementOrId: string | SVGElement, options?: { scale?: number; animate?: boolean }): void
-  /** Сбрасывает к исходному viewBox SVG-файла */
+  /** Resets to the original viewBox of the SVG file */
   reset(options?: { animate?: boolean }): void
-  /** Возвращает текущее состояние: `{ scale, x, y }` */
+  /** Returns the current state: `{ scale, x, y }` */
   getState(): ZoomState
 }
 
 /**
- * Официальный плагин zoom/pan для svgic.
+ * Official zoom/pan plugin for svgic.
  *
  * @example
  * ```ts
@@ -36,13 +36,13 @@ export interface ZoomPluginInstance extends SvgicPlugin {
  * const zoom = ZoomPlugin({ wheelMode: 'ctrl', focusOnClick: true })
  * const client = new Svgic('#container', { src: '/map.svg', plugins: [zoom] })
  *
- * // Программный API
+ * // Programmatic API
  * zoom.focusElement('room-101')
  * zoom.reset()
  * ```
  */
-/** Порог масштаба для focusOnClick: фокус срабатывает только если текущий масштаб
- *  меньше чем focusScale * FOCUS_SCALE_THRESHOLD (предотвращает повторный zoom на уже крупном виде) */
+/** Scale threshold for focusOnClick: focus only fires if current scale
+ *  is less than focusScale * FOCUS_SCALE_THRESHOLD (prevents re-zoom when already zoomed in) */
 const FOCUS_SCALE_THRESHOLD = 0.9
 
 export function ZoomPlugin(opts: ZoomPluginOptions = {}): ZoomPluginInstance {
@@ -67,7 +67,7 @@ export function ZoomPlugin(opts: ZoomPluginOptions = {}): ZoomPluginInstance {
           const c = controller
           if (!c) return
           const currentScale = c.getState().scale
-          // Фокус только если масштаб ещё не крупнее focusScale
+          // Focus only if scale is not yet larger than focusScale
           if (currentScale < (opts.focusScale ?? 2) * FOCUS_SCALE_THRESHOLD) {
             c.focusElement(item.id)
           }

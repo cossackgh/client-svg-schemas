@@ -25,16 +25,16 @@ export class ZoomController {
   private svg: SVGSVGElement
   private opts: Required<ZoomPluginOptions>
 
-  /** Исходный viewBox (из SVG-файла) */
+  /** Original viewBox (from the SVG file) */
   private originalViewBox: ViewBox
 
-  /** Текущее состояние */
+  /** Current state */
   private state: ZoomState
 
-  /** Слушатели событий для последующего удаления */
+  /** Event listeners for later removal */
   private listeners: Array<{ target: EventTarget; type: string; fn: EventListener }> = []
 
-  /** Анимация (RAF) */
+  /** Animation frame (RAF) */
   private animFrame: number | null = null
 
   // --- drag ---
@@ -57,7 +57,7 @@ export class ZoomController {
       x: this.originalViewBox.x,
       y: this.originalViewBox.y,
     }
-    // Отключаем браузерный drag и text selection на SVG
+    // Disable native browser drag and text selection on SVG
     svg.style.userSelect = 'none'
     if (this.opts.pan) {
       svg.style.cursor = 'grab'
@@ -65,7 +65,7 @@ export class ZoomController {
     this.attach()
   }
 
-  // ─── Публичный API ───────────────────────────────────────────────────────────
+  // ─── Public API ──────────────────────────────────────────────────────────────
 
   getState(): ZoomState {
     return { ...this.state }
@@ -74,7 +74,7 @@ export class ZoomController {
   zoomTo(scale: number, options?: { animate?: boolean }): void {
     const s = this.clampScale(scale)
     const vb = this.currentViewBox()
-    // Масштабируем относительно центра текущего viewBox
+    // Scale relative to center of current viewBox
     const cx = vb.x + vb.width / 2
     const cy = vb.y + vb.height / 2
     this.zoomAround(cx, cy, s, options?.animate ?? this.opts.animate)
@@ -92,7 +92,7 @@ export class ZoomController {
     }
   }
 
-  /** Сфокусироваться на SVG-элементе (zoom + center) */
+  /** Focus on an SVG element (zoom + center) */
   focusElement(elementOrId: string | SVGElement, options?: { scale?: number; animate?: boolean }): void {
     const el = typeof elementOrId === 'string'
       ? this.svg.querySelector(`#${CSS.escape(elementOrId)}`)
@@ -108,7 +108,7 @@ export class ZoomController {
     const newW = ovb.width / s
     const newH = ovb.height / s
 
-    // Центрируем viewBox на bbox элемента
+    // Center viewBox on element bbox
     const cx = bbox.x + bbox.width / 2
     const cy = bbox.y + bbox.height / 2
     const raw = { x: cx - newW / 2, y: cy - newH / 2, width: newW, height: newH }
@@ -146,7 +146,7 @@ export class ZoomController {
     this.listeners = []
   }
 
-  // ─── Инициализация слушателей ─────────────────────────────────────────────
+  // ─── Listener setup ───────────────────────────────────────────────────────
 
   private attach(): void {
     const svg = this.svg
@@ -201,7 +201,7 @@ export class ZoomController {
 
   private handleMouseDown(e: MouseEvent): void {
     if (e.button !== 0) return
-    e.preventDefault() // предотвращает native drag SVG в браузере
+    e.preventDefault() // prevent native SVG drag in browser
     this.isDragging = true
     this.hasDragged = false
     this.dragStart = {
@@ -226,7 +226,7 @@ export class ZoomController {
 
     const vb = this.currentViewBox()
     const rect = this.svg.getBoundingClientRect()
-    // Пересчёт пикселей в SVG-единицы
+    // Convert pixels to SVG units
     const scaleX = vb.width / rect.width
     const scaleY = vb.height / rect.height
 
@@ -251,7 +251,7 @@ export class ZoomController {
 
     if (e.touches.length === 1) {
       const t = e.touches[0]
-      // Двойной тап
+      // Double tap
       const now = Date.now()
       const dx = t.clientX - this.lastTapPos.x
       const dy = t.clientY - this.lastTapPos.y
@@ -263,7 +263,7 @@ export class ZoomController {
       this.lastTapTime = now
       this.lastTapPos = { x: t.clientX, y: t.clientY }
 
-      // Начало pan
+      // Start pan
       this.isDragging = true
       this.hasDragged = false
       this.dragStart = {
@@ -314,7 +314,7 @@ export class ZoomController {
 
       this.zoomAround(svgMid.x, svgMid.y, newScale, false)
 
-      // Дополнительно — pan от смещения середины пальцев
+      // Additionally — pan from midpoint finger movement
       if (this.opts.pan) {
         const vb = this.currentViewBox()
         const rect = this.svg.getBoundingClientRect()
@@ -346,7 +346,7 @@ export class ZoomController {
 
   private handleDoubleTap(t: Touch): void {
     const svgPt = this.clientToSvg(t.clientX, t.clientY)
-    // Если уже сильно увеличено — сбрасываем, иначе зумируем
+    // If already zoomed in significantly — reset, otherwise zoom in
     if (this.state.scale >= this.opts.doubleTapScale * 0.9) {
       this.reset()
     } else {
@@ -355,9 +355,9 @@ export class ZoomController {
     }
   }
 
-  // ─── Вспомогательные ─────────────────────────────────────────────────────
+  // ─── Helpers ─────────────────────────────────────────────────────────────
 
-  /** Текущий viewBox на основе state */
+  /** Current viewBox based on state */
   private currentViewBox(): ViewBox {
     const ovb = this.originalViewBox
     const w = ovb.width  / this.state.scale
@@ -365,13 +365,13 @@ export class ZoomController {
     return { x: this.state.x, y: this.state.y, width: w, height: h }
   }
 
-  /** Zoom вокруг точки в SVG-координатах */
+  /** Zoom around a point in SVG coordinates */
   private zoomAround(svgX: number, svgY: number, newScale: number, animate: boolean): void {
     const ovb = this.originalViewBox
     const newW = ovb.width  / newScale
     const newH = ovb.height / newScale
 
-    // Точка должна остаться на том же месте
+    // The point must stay in the same position
     const vb = this.currentViewBox()
     const ratioX = (svgX - vb.x) / vb.width
     const ratioY = (svgY - vb.y) / vb.height
@@ -391,18 +391,18 @@ export class ZoomController {
     }
   }
 
-  /** Применить viewBox к SVG и уведомить подписчиков */
+  /** Apply viewBox to SVG and notify subscribers */
   private applyViewBox(): void {
     this.commitViewBox(this.currentViewBox())
   }
 
-  /** Записать viewBox в атрибут и диспатчить событие изменения вида */
+  /** Write viewBox to attribute and dispatch view change event */
   private commitViewBox(vb: ViewBox): void {
     this.svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.width} ${vb.height}`)
     this.svg.dispatchEvent(new CustomEvent('svgic:viewchange', { bubbles: false }))
   }
 
-  /** Плавная анимация к целевому viewBox */
+  /** Smooth animation to target viewBox */
   private animateTo(from: ViewBox, target: ViewBox): void {
     if (this.animFrame !== null) {
       cancelAnimationFrame(this.animFrame)
@@ -422,7 +422,7 @@ export class ZoomController {
         width:  from.width  + (target.width  - from.width)  * ease,
         height: from.height + (target.height - from.height) * ease,
       }
-      // Синхронизируем state
+      // Sync state
       const ovb = this.originalViewBox
       this.state.scale = ovb.width / vb.width
       this.state.x = vb.x
@@ -439,10 +439,10 @@ export class ZoomController {
     this.animFrame = requestAnimationFrame(tick)
   }
 
-  /** Прочитать viewBox из SVG-атрибута */
+  /** Read viewBox from SVG attribute */
   private readViewBox(): ViewBox {
     const vb = this.svg.viewBox.baseVal
-    // Если viewBox не задан — пробуем width/height SVG
+    // If viewBox is not set — try SVG width/height
     if (vb.width === 0 && vb.height === 0) {
       const w = this.svg.width.baseVal.value
       const h = this.svg.height.baseVal.value
@@ -457,7 +457,7 @@ export class ZoomController {
     return { x: vb.x, y: vb.y, width: vb.width, height: vb.height }
   }
 
-  /** Конвертировать клиентские координаты в SVG user units */
+  /** Convert client coordinates to SVG user units */
   private clientToSvg(clientX: number, clientY: number): { x: number; y: number } {
     const rect = this.svg.getBoundingClientRect()
     const vb   = this.currentViewBox()
@@ -466,19 +466,19 @@ export class ZoomController {
     return { x, y }
   }
 
-  /** Ограничить масштаб */
+  /** Clamp scale */
   private clampScale(s: number): number {
     return Math.max(this.opts.minScale, Math.min(this.opts.maxScale, s))
   }
 
-  /** Ограничить позицию viewBox чтобы не выходил за пределы SVG */
+  /** Clamp viewBox position to prevent going outside SVG bounds */
   private clampViewBox(x: number, y: number, w: number, h: number): { x: number; y: number } {
     if (!this.opts.panBounds) return { x, y }
 
     const ovb = this.originalViewBox
 
-    // Когда viewBox шире SVG (zoom out) — центрируем
-    // Когда viewBox уже SVG (zoom in) — ограничиваем пределами SVG
+    // When viewBox is wider than SVG (zoom out) — center it
+    // When viewBox is narrower than SVG (zoom in) — restrict to SVG bounds
     const clampedX = w >= ovb.width
       ? ovb.x - (w - ovb.width) / 2
       : Math.max(ovb.x, Math.min(x, ovb.x + ovb.width - w))
