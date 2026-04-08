@@ -3,15 +3,26 @@ import type { ZoomPluginOptions, ZoomState } from './types'
 import { ZoomController } from './ZoomController'
 
 export interface ZoomPluginInstance extends SvgicPlugin {
-  /** Установить масштаб (относительно центра текущего viewBox) */
+  /**
+   * Устанавливает масштаб относительно центра текущего viewBox.
+   * @param scale - Целевой масштаб (1 = исходный размер)
+   */
   zoomTo(scale: number, options?: { animate?: boolean }): void
-  /** Переместить viewBox к позиции (в SVG-координатах) */
+  /**
+   * Перемещает viewBox к указанной позиции в SVG-координатах.
+   * @param x - Смещение по X
+   * @param y - Смещение по Y
+   */
   panTo(x: number, y: number, options?: { animate?: boolean }): void
-  /** Сфокусироваться на элементе по id или ссылке */
+  /**
+   * Фокусируется на элементе: zoom + центрирование.
+   * @param elementOrId - `id` элемента (строка) или ссылка на `SVGElement`
+   * @param options.scale - Целевой масштаб. Default: значение опции `focusScale`
+   */
   focusElement(elementOrId: string | SVGElement, options?: { scale?: number; animate?: boolean }): void
-  /** Сбросить к исходному viewBox */
+  /** Сбрасывает к исходному viewBox SVG-файла */
   reset(options?: { animate?: boolean }): void
-  /** Текущее состояние */
+  /** Возвращает текущее состояние: `{ scale, x, y }` */
   getState(): ZoomState
 }
 
