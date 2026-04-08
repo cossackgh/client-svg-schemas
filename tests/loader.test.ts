@@ -39,7 +39,7 @@ describe('loadSvg — URL (fetch)', () => {
 
     const el = await loadSvg('/demo.svg')
     expect(el).toBeInstanceOf(SVGSVGElement)
-    expect(fetch).toHaveBeenCalledWith('/demo.svg')
+    expect(fetch).toHaveBeenCalledWith('/demo.svg', expect.objectContaining({ signal: expect.any(AbortSignal) }))
   })
 
   it('бросает ошибку при HTTP 404', async () => {

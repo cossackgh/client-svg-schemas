@@ -18,6 +18,11 @@ export function mapData(
   const result = new Map<string, BoundElement>()
 
   for (const item of data) {
+    if (!item.id) {
+      console.warn('[svgic] Item with empty id — skipped')
+      continue
+    }
+
     if (result.has(item.id)) {
       console.warn(`[svgic] Duplicate item id "${item.id}" in data — skipped`)
       continue

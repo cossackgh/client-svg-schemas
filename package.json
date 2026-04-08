@@ -52,9 +52,9 @@
     "react": ">=17.0.0",
     "vue": ">=3.0.0"
   },
-  "peerDependenciesOptional": {
-    "react": true,
-    "vue": true
+  "peerDependenciesMeta": {
+    "react": { "optional": true },
+    "vue": { "optional": true }
   },
   "devDependencies": {
     "@types/jsdom": "^28.0.1",

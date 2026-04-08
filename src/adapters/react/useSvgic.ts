@@ -5,12 +5,10 @@ import type { SvgicOptions } from '../../types'
 export function useSvgic(options: SvgicOptions) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [client, setClient] = useState<Svgic | null>(null)
-  const optionsRef = useRef(options)
-
   useEffect(() => {
     if (!containerRef.current) return
 
-    const c = new Svgic(containerRef.current, optionsRef.current)
+    const c = new Svgic(containerRef.current, options)
     c.ready.then(() => setClient(c))
 
     return () => {
