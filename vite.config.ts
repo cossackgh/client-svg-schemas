@@ -20,6 +20,7 @@ export default defineConfig({
         vue: resolve(__dirname, 'src/adapters/vue/index.ts'),
         react: resolve(__dirname, 'src/adapters/react/index.ts'),
         'plugins/zoom': resolve(__dirname, 'src/plugins/zoom/index.ts'),
+        'plugins/debug': resolve(__dirname, 'src/plugins/debug/index.ts'),
       },
       formats: ['es', 'cjs'],
       name: 'Svgic',

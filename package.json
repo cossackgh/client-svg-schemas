@@ -23,6 +23,10 @@
     "./plugins/zoom": {
       "import": "./dist/plugins/zoom.js",
       "types": "./dist/plugins/zoom/index.d.ts"
+    },
+    "./plugins/debug": {
+      "import": "./dist/plugins/debug.js",
+      "types": "./dist/plugins/debug/index.d.ts"
     }
   },
   "files": [
