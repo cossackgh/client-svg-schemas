@@ -1,6 +1,6 @@
 /**
- * Загружает SVG из URL или из строки.
- * Возвращает распарсенный SVGSVGElement.
+ * Loads SVG from a URL or from a string.
+ * Returns a parsed SVGSVGElement.
  */
 export async function loadSvg(src: string): Promise<SVGSVGElement> {
   const svgString = isSvgString(src) ? src : await fetchSvg(src)

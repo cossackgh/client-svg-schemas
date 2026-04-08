@@ -2,17 +2,17 @@ import type { SvgicPlugin, ISvgic, SvgicItem } from '../../types'
 
 export interface DebugPluginOptions {
   /**
-   * Триггер показа лейбла с id элемента.
-   * - `'hover'` — показывать при наведении (default)
-   * - `'click'` — показывать при клике, скрывать при повторном клике
-   * - `'both'` — показывать при наведении, закреплять/откреплять кликом
+   * Trigger for showing the element id label.
+   * - `'hover'` — show on hover (default)
+   * - `'click'` — show on click, hide on second click
+   * - `'both'` — show on hover, pin/unpin on click
    */
   showOn?: 'hover' | 'click' | 'both'
 
   /**
-   * Кастомный рендер содержимого лейбла.
-   * Получает `id` элемента и привязанные данные (`null` если данных нет).
-   * Возвращает `HTMLElement` или HTML-строку.
+   * Custom label content renderer.
+   * Receives the element `id` and bound data (`null` if no data).
+   * Returns an `HTMLElement` or HTML string.
    *
    * @example
    * ```ts
@@ -20,7 +20,7 @@ export interface DebugPluginOptions {
    *   render(id, item) {
    *     return item
    *       ? `${id} · ${item.title}`
-   *       : `${id} ⚠ нет данных`
+   *       : `${id} ⚠ no data`
    *   }
    * })
    * ```
@@ -89,7 +89,7 @@ function renderDefault(id: string, item: SvgicItem | null): HTMLElement {
   } else {
     const noDataSpan = document.createElement('span')
     noDataSpan.className = 'svgic-debug-nodata'
-    noDataSpan.textContent = '⚠ нет данных'
+    noDataSpan.textContent = '⚠ no data'
     el.appendChild(noDataSpan)
   }
 
@@ -125,8 +125,8 @@ function positionLabel(label: HTMLElement, target: SVGElement): void {
 }
 
 /**
- * Плагин для разработки: показывает id и данные SVG-элементов при наведении/клике.
- * Помогает отлаживать привязку данных — сразу видно, есть ли в `data` запись для элемента.
+ * Development plugin: shows id and data of SVG elements on hover/click.
+ * Helps debug data binding — instantly shows whether a `data` record exists for an element.
  *
  * @example
  * ```ts
@@ -181,7 +181,7 @@ export function DebugPlugin(opts: DebugPluginOptions = {}): SvgicPlugin {
       if (showOn === 'hover') {
         removeHoverLabel()
       } else if (showOn === 'both') {
-        // Убрать hover-лейбл только если элемент не закреплён
+        // Remove hover label only if the element is not pinned
         const hoveredId = hoverLabel?.querySelector('.svgic-debug-id')?.textContent
         if (hoveredId !== pinnedId) removeHoverLabel()
       }
