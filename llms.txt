@@ -8,9 +8,10 @@
 npm install svgic
 ```
 
-## Полный API Reference
+## Документация
 
-Все параметры, типы и примеры: [docs/api.md](docs/api.md)
+- Полный API Reference: [docs/api.md](docs/api.md)
+- Практические примеры (recipes): [docs/recipes.md](docs/recipes.md)
 
 ---
 

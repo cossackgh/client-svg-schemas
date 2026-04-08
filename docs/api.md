@@ -1,5 +1,7 @@
 # svgic — API Reference
 
+> Практические примеры: **[docs/recipes.md](recipes.md)**
+
 ## Содержание
 
 - [Конструктор](#конструктор)
