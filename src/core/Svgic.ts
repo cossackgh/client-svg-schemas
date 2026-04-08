@@ -6,7 +6,34 @@ import { EventManager } from './eventManager'
 import { PopupManager } from '../ui/PopupManager'
 import { StyleManager } from '../ui/StyleManager'
 
+/**
+ * Интерактивный SVG-клиент.
+ *
+ * Встраивает SVG в DOM, привязывает слои к данным, обрабатывает события
+ * (hover, click) и позволяет расширять поведение через плагины.
+ *
+ * @example
+ * ```ts
+ * import { Svgic } from 'svgic'
+ *
+ * const client = new Svgic('#container', {
+ *   src: '/map.svg',
+ *   layers: {
+ *     rooms:      { role: 'interactive' },
+ *     background: { role: 'decorative' },
+ *   },
+ *   data: [
+ *     { id: 'room-101', title: 'Переговорная' },
+ *   ],
+ *   popup: true,
+ * })
+ *
+ * await client.ready
+ * client.on('click', (id, item) => console.log(id, item))
+ * ```
+ */
 export class Svgic implements ISvgic {
+  /** Promise, который резолвится после загрузки и инициализации SVG */
   readonly ready: Promise<void>
 
   private container: Element
@@ -19,6 +46,11 @@ export class Svgic implements ISvgic {
   private popupManager: PopupManager | null = null
   private styleManager: StyleManager | null = null
 
+  /**
+   * @param selector - CSS-селектор или DOM-элемент контейнера
+   * @param options - Конфигурация клиента
+   * @throws {Error} Если контейнер не найден
+   */
   constructor(selector: string | Element, options: SvgicOptions) {
     const container = typeof selector === 'string'
       ? document.querySelector(selector)
@@ -47,6 +79,11 @@ export class Svgic implements ISvgic {
     })
   }
 
+  /**
+   * Подключает плагин. Можно вызывать до или после инициализации.
+   * Если SVG уже загружен — `onInit` вызывается немедленно.
+   * Возвращает `this` для чейнинга.
+   */
   use(plugin: SvgicPlugin): this {
     this.plugins.push(plugin)
     // Если SVG уже загружен — сразу вызываем onInit для позднего плагина
@@ -56,6 +93,10 @@ export class Svgic implements ISvgic {
     return this
   }
 
+  /**
+   * Обновляет привязанные данные. Вызывать после `await client.ready`.
+   * @param data - Массив элементов данных. `id` каждого должен совпадать с атрибутом `id` в SVG.
+   */
   setData(data: SvgicItem[]): void {
     if (!this.svgEl) {
       console.warn('[svgic] setData() called before SVG is ready — call after awaiting client.ready')
@@ -64,23 +105,48 @@ export class Svgic implements ISvgic {
     this.boundElements = mapData(this.svgEl, data)
   }
 
+  /**
+   * Устанавливает именованное состояние подсветки для указанных элементов.
+   * Стиль состояния задаётся в `style.states[state]`.
+   * Несколько состояний могут быть активны одновременно.
+   * @param state - Имя состояния (ключ из `style.states`)
+   * @param ids - Массив `id` элементов
+   */
   setHighlight(state: string, ids: string[]): void {
     this.styleManager?.setHighlight(state, ids)
   }
 
+  /**
+   * Снимает подсветку.
+   * @param state - Имя состояния. Если не указан — сбрасывает все активные состояния.
+   */
   clearHighlight(state?: string): void {
     this.styleManager?.clearHighlight(state)
   }
 
+  /**
+   * Подписывается на событие. Возвращает `this` для чейнинга.
+   * @param event - `'click'` | `'hover'` | `'leave'`
+   * @param handler - Коллбэк с `id` элемента и его данными (`null` если данных нет)
+   *
+   * @example
+   * ```ts
+   * client
+   *   .on('click', (id, item) => console.log('clicked', id, item))
+   *   .on('hover', (id, item) => console.log('hovered', id))
+   * ```
+   */
   on(event: SvgicEventType, handler: SvgicEventHandler): this {
     this.eventManager.on(event, handler)
     return this
   }
 
+  /** Возвращает корневой `<svg>` элемент после загрузки, иначе `null` */
   getElement(): SVGSVGElement | null {
     return this.svgEl
   }
 
+  /** Удаляет SVG из DOM, отписывает все обработчики, вызывает `onDestroy` у плагинов */
   destroy(): void {
     this.eventManager.destroy()
     this.popupManager?.destroy()

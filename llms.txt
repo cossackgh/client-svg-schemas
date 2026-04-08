@@ -1,0 +1,146 @@
+# svgic
+
+> Интерактивный SVG-клиент для JS/TS/Vue 3/React. Встраивает SVG в DOM, привязывает слои к данным, обрабатывает события, поддерживает попапы, стили и плагины.
+
+## Установка
+
+```bash
+npm install svgic
+```
+
+## Документация
+
+- Полный API Reference: [docs/api.md](docs/api.md)
+- Практические примеры (recipes): [docs/recipes.md](docs/recipes.md)
+
+---
+
+## Ключевые концепции
+
+- **Слои** — `<g id="...">` в SVG-файле. Роль слоя (`interactive` | `decorative`) задаётся в конфиге, не в SVG.
+- **Данные** — массив `SvgicItem[]`, привязывается к элементам по совпадению `id`.
+- **Инициализация асинхронная** — `await client.ready` перед вызовом `setData()` и API плагинов.
+- **Плагины** — расширяют поведение через хуки `onInit`, `onElementClick`, `onElementHover` и т.д.
+
+---
+
+## Базовый пример (ванильный JS/TS)
+
+```ts
+import { Svgic } from 'svgic'
+
+const client = new Svgic('#container', {
+  src: '/map.svg',
+  layers: {
+    rooms:      { role: 'interactive' },
+    background: { role: 'decorative' },
+  },
+  data: [
+    { id: 'room-101', title: 'Переговорная' },
+    { id: 'room-102', title: 'Опен-спейс' },
+  ],
+  popup: true,
+  style: {
+    default: { fill: '#e2e8f0', cursor: 'pointer', transition: 'fill 0.2s' },
+    hover:   { fill: '#93c5fd' },
+    states:  { busy: { fill: '#fca5a5' }, free: { fill: '#86efac' } },
+  },
+})
+
+await client.ready
+
+client.on('click', (id, item) => console.log(id, item))
+client.setHighlight('busy', ['room-101'])
+```
+
+## Vue 3
+
+```vue
+<template>
+  <SvgicVue src="/map.svg" :data="rooms" :popup="true" @click="onRoomClick" />
+</template>
+
+<script setup lang="ts">
+import { SvgicVue } from 'svgic/vue'
+import type { SvgicItem } from 'svgic'
+
+const rooms = ref<SvgicItem[]>([{ id: 'room-101', title: 'Переговорная' }])
+const onRoomClick = (id: string, item: SvgicItem | null) => console.log(id, item)
+</script>
+```
+
+## React
+
+```tsx
+import { SvgicReact } from 'svgic/react'
+
+<SvgicReact
+  src="/map.svg"
+  data={rooms}
+  popup={true}
+  onClick={(id, item) => console.log(id, item)}
+/>
+```
+
+---
+
+## Публичный API (краткая шпаргалка)
+
+```ts
+// Конструктор
+new Svgic(selector: string | Element, options: SvgicOptions)
+
+// Ожидание инициализации
+await client.ready
+
+// Методы
+client.setData(data: SvgicItem[])
+client.on('click' | 'hover' | 'leave', (id, item) => void)
+client.setHighlight(state: string, ids: string[])
+client.clearHighlight(state?: string)
+client.getElement(): SVGSVGElement | null
+client.use(plugin: SvgicPlugin)
+client.destroy()
+```
+
+---
+
+## Плагины
+
+```ts
+import { ZoomPlugin } from 'svgic/plugins/zoom'
+import { DebugPlugin } from 'svgic/plugins/debug'
+
+// ZoomPlugin — zoom/pan колесом, перетаскиванием, touch
+const zoom = ZoomPlugin({ wheelMode: 'ctrl', focusOnClick: true })
+zoom.zoomTo(2)
+zoom.focusElement('room-101')
+zoom.reset()
+
+// DebugPlugin — показывает id элементов при наведении (только dev)
+const debug = DebugPlugin({ showOn: 'both' })
+```
+
+---
+
+## Типы данных
+
+```ts
+interface SvgicItem {
+  id: string
+  title?: string
+  description?: string
+  image?: string
+  link?: string
+  [key: string]: unknown  // кастомные поля
+}
+
+interface SvgicOptions {
+  src: string                          // URL или SVG-строка
+  data?: SvgicItem[]
+  layers?: Record<string, { role: 'interactive' | 'decorative' }>
+  plugins?: SvgicPlugin[]
+  popup?: boolean | PopupConfig        // см. docs/api.md
+  style?: SvgicStyleConfig             // см. docs/api.md
+}
+```
