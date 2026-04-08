@@ -80,7 +80,10 @@
       <a href="/debug.html"   class="nav-link active">Debug</a>
     </nav>
     <div class="header-controls">
-      <span class="controls-label">showOn:</span>
+      <span class="controls-label">render:</span>
+      <button class="mode-btn active" data-render="default">default</button>
+      <button class="mode-btn"        data-render="custom">custom</button>
+      <span class="controls-label" style="margin-left:0.5rem">showOn:</span>
       <button class="mode-btn active" data-mode="hover">hover</button>
       <button class="mode-btn"        data-mode="click">click</button>
       <button class="mode-btn"        data-mode="both">both</button>
@@ -94,8 +97,9 @@
       <div class="debug-panel">
         <h2>DebugPlugin</h2>
         <div class="debug-desc">
-          <div>наведи на элемент → видишь <strong>id</strong></div>
+          <div>наведи на элемент → видишь <strong>id</strong> и данные</div>
           <div id="debug-mode-hint"></div>
+          <div style="margin-top:0.4rem;color:#f87171">наведи на <strong style="color:#f87171">Серверную</strong> → нет данных</div>
         </div>
         <div class="debug-url">
           типичный паттерн: <a href="?debug" id="debug-url-link">?debug</a>

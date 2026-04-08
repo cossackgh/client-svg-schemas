@@ -3,7 +3,7 @@ import type { SvgicItem } from 'svgic'
 import { DebugPlugin } from 'svgic/plugins/debug'
 import type { DebugPluginOptions } from 'svgic/plugins/debug'
 
-// --- данные ---
+// --- данные (room-203 намеренно отсутствует — демо "нет данных") ---
 
 const rooms: SvgicItem[] = [
   { id: 'room-101', title: 'Переговорная А',    status: 'free',       capacity: 12 },
@@ -11,7 +11,7 @@ const rooms: SvgicItem[] = [
   { id: 'room-103', title: 'Кухня',             status: 'free',       capacity: 20 },
   { id: 'room-201', title: 'Кабинет директора', status: 'busy',       capacity: 4  },
   { id: 'room-202', title: 'Бухгалтерия',       status: 'free',       capacity: 8  },
-  { id: 'room-203', title: 'Серверная',         status: 'restricted', capacity: 2  },
+  // room-203 не добавлен в data — наведи на "Серверную" чтобы увидеть ⚠ нет данных
 ]
 
 // --- режимы showOn ---
@@ -27,7 +27,8 @@ const MODE_HINTS: Record<ShowOnMode, string> = {
 // --- UI ---
 
 const eventLog    = document.getElementById('event-log')!
-const modeButtons = document.querySelectorAll<HTMLButtonElement>('.mode-btn')
+const modeButtons = document.querySelectorAll<HTMLButtonElement>('.mode-btn[data-mode]')
+const renderBtns  = document.querySelectorAll<HTMLButtonElement>('.mode-btn[data-render]')
 const modeHint    = document.getElementById('debug-mode-hint')!
 
 function addLog(type: 'click' | 'hover' | 'leave', id: string, item: SvgicItem | null) {
@@ -44,10 +45,25 @@ function setModeHint(mode: ShowOnMode) {
   modeHint.innerHTML = MODE_HINTS[mode]
 }
 
+// --- кастомный render: показывает status и capacity из данных ---
+
+function customRender(id: string, item: SvgicItem | null): string {
+  if (!item) return `<b style="color:#7dd3fc">${id}</b> <span style="color:#f87171">⚠ нет данных</span>`
+  const status = item.status as string | undefined
+  const cap    = item.capacity as number | undefined
+  return [
+    `<b style="color:#7dd3fc">${id}</b>`,
+    item.title ? `<span style="color:#94a3b8">${item.title}</span>` : '',
+    status     ? `<span style="color:#64748b">${status}</span>` : '',
+    cap        ? `<span style="color:#475569">${cap} чел.</span>` : '',
+  ].filter(Boolean).join('<span style="color:#334155"> · </span>')
+}
+
 // --- клиент ---
 
 let client: Svgic
 let currentMode: ShowOnMode = 'hover'
+let useCustomRender = false
 
 function createClient(mode: ShowOnMode): Svgic {
   const instance = new Svgic('#schema-container', {
@@ -61,7 +77,10 @@ function createClient(mode: ShowOnMode): Svgic {
       default: { fill: '#2d2d52', cursor: 'pointer', transition: 'fill 0.18s ease' },
       hover:   { fill: '#4a4a80' },
     },
-    plugins: [DebugPlugin({ showOn: mode })],
+    plugins: [DebugPlugin({
+      showOn: mode,
+      render: useCustomRender ? customRender : undefined,
+    })],
   })
 
   instance.on('hover', (id, item) => { if (id) addLog('hover', id, item) })
@@ -76,26 +95,33 @@ function switchMode(mode: ShowOnMode) {
   client.destroy()
   client = createClient(mode)
   setModeHint(mode)
-  modeButtons.forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.mode === mode)
-  })
+  modeButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode))
+}
+
+function switchRender(custom: boolean) {
+  useCustomRender = custom
+  client.destroy()
+  client = createClient(currentMode)
+  renderBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.render === (custom ? 'custom' : 'default')))
 }
 
 // --- старт ---
 
-// Поддержка паттерна ?debug в URL — плагин уже подключён всегда на этой странице,
-// но демонстрируем как это работает через query-параметр в других проектах.
 const params = new URLSearchParams(location.search)
 if (params.has('showOn')) {
   const fromUrl = params.get('showOn') as ShowOnMode
-  if (['hover', 'click', 'both'].includes(fromUrl)) {
-    currentMode = fromUrl
-  }
+  if (['hover', 'click', 'both'].includes(fromUrl)) currentMode = fromUrl
 }
 
 client = createClient(currentMode)
 setModeHint(currentMode)
+
 modeButtons.forEach(btn => {
   btn.classList.toggle('active', btn.dataset.mode === currentMode)
   btn.addEventListener('click', () => switchMode(btn.dataset.mode as ShowOnMode))
+})
+
+renderBtns.forEach(btn => {
+  btn.classList.toggle('active', btn.dataset.render === 'default')
+  btn.addEventListener('click', () => switchRender(btn.dataset.render === 'custom'))
 })
