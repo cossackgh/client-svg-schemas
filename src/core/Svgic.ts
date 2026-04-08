@@ -41,7 +41,10 @@ export class Svgic implements ISvgic {
       options.plugins.forEach(p => this.use(p))
     }
 
-    this.ready = this.init()
+    this.ready = this.init().catch(err => {
+      console.error('[svgic] Initialization failed:', err)
+      throw err
+    })
   }
 
   use(plugin: SvgicPlugin): this {
@@ -54,7 +57,10 @@ export class Svgic implements ISvgic {
   }
 
   setData(data: SvgicItem[]): void {
-    if (!this.svgEl) return
+    if (!this.svgEl) {
+      console.warn('[svgic] setData() called before SVG is ready — call after awaiting client.ready')
+      return
+    }
     this.boundElements = mapData(this.svgEl, data)
   }
 

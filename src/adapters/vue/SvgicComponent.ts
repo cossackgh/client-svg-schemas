@@ -43,10 +43,10 @@ export const SvgicVue = defineComponent({
     const containerRef = ref<HTMLElement | null>(null)
     let client: Svgic | null = null
 
-    onMounted(async () => {
+    async function createClient() {
       if (!containerRef.value) return
-
-      client = new Svgic(containerRef.value, {
+      client?.destroy()
+      const instance = new Svgic(containerRef.value, {
         src: props.src,
         data: props.data,
         layers: props.layers,
@@ -54,13 +54,17 @@ export const SvgicVue = defineComponent({
         popup: props.popup,
         style: props.style,
       })
+      client = instance
+      await instance.ready
+      if (client !== instance) return  // размонтирован или src сменился пока ждали
+      instance.on('click', (id, item) => emit('click', id, item))
+      instance.on('hover', (id, item) => emit('hover', id, item))
+      instance.on('leave', (id, item) => emit('leave', id, item))
+    }
 
-      await client.ready
+    onMounted(createClient)
 
-      client.on('click', (id, item) => emit('click', id, item))
-      client.on('hover', (id, item) => emit('hover', id, item))
-      client.on('leave', (id, item) => emit('leave', id, item))
-    })
+    watch(() => props.src, createClient)
 
     watch(
       () => props.data,

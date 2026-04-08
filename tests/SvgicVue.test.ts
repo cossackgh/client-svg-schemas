@@ -19,9 +19,11 @@ function makeSvgEl(inner = '<g id="rooms"><rect id="room-1"/></g>'): SVGSVGEleme
   return doc.documentElement as unknown as SVGSVGElement
 }
 
-/** Ждём: nextTick (onMounted) + один микротаск (ready promise) + nextTick (DOM-обновление) */
+/** Ждём завершения async init(): несколько микротасков (loadSvg + .catch() + createClient) */
 async function waitForReady() {
   await nextTick()
+  await Promise.resolve()
+  await Promise.resolve()
   await Promise.resolve()
   await nextTick()
 }
@@ -132,6 +134,58 @@ describe('SvgicVue — watch data', () => {
     expect(setDataSpy).not.toHaveBeenCalled()
     app.unmount()
     setDataSpy.mockRestore()
+  })
+})
+
+// ---- watch src ----
+
+describe('SvgicVue — watch src', () => {
+  it('при смене src пересоздаёт клиент и вызывает loadSvg с новым src', async () => {
+    const src = ref('/map-a.svg')
+
+    const Wrapper = defineComponent({
+      setup: () => ({ src }),
+      render() {
+        return h(SvgicVue, { src: this.src as string })
+      },
+    })
+
+    const app = createApp(Wrapper)
+    app.mount(container)
+    await waitForReady()
+
+    expect(loadSvg).toHaveBeenCalledWith('/map-a.svg')
+    vi.mocked(loadSvg).mockClear()
+
+    src.value = '/map-b.svg'
+    await waitForReady()
+
+    expect(loadSvg).toHaveBeenCalledWith('/map-b.svg')
+    app.unmount()
+  })
+
+  it('при смене src уничтожает старый клиент', async () => {
+    const destroySpy = vi.spyOn(Svgic.prototype, 'destroy')
+    const src = ref('/map-a.svg')
+
+    const Wrapper = defineComponent({
+      setup: () => ({ src }),
+      render() {
+        return h(SvgicVue, { src: this.src as string })
+      },
+    })
+
+    const app = createApp(Wrapper)
+    app.mount(container)
+    await waitForReady()
+
+    destroySpy.mockClear()
+    src.value = '/map-b.svg'
+    await waitForReady()
+
+    expect(destroySpy).toHaveBeenCalledOnce()
+    app.unmount()
+    destroySpy.mockRestore()
   })
 })
 

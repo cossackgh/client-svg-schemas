@@ -82,15 +82,6 @@ export type PopupPlacement =
   | PopupPlacementCursor
   | PopupPlacementTarget
 
-export interface PopupConfig extends PopupPlacementElement {
-  // По умолчанию placement: 'element' — поэтому PopupConfig расширяет его.
-  // Пользователь может передать любой из трёх вариантов.
-  render?: (item: SvgicItem) => HTMLElement | string
-  template?: string | HTMLTemplateElement
-  bind?: (el: HTMLElement, item: SvgicItem) => void
-  trigger?: PopupTrigger   // default: 'hover'
-}
-
 // popup: true — дефолтный попап с title, placement: 'element', anchor: 'top-center'
 // popup: false | undefined — попап отключён
 // popup: PopupPlacement & { render? | template+bind? } — кастомная конфигурация

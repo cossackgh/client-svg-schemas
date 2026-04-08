@@ -8,11 +8,23 @@ export async function loadSvg(src: string): Promise<SVGSVGElement> {
 }
 
 function isSvgString(src: string): boolean {
-  return src.trimStart().startsWith('<')
+  return src.trimStart().match(/^<[\s\S!?]/) !== null
 }
 
-async function fetchSvg(url: string): Promise<string> {
-  const response = await fetch(url)
+async function fetchSvg(url: string, timeoutMs = 30_000): Promise<string> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  let response: Response
+  try {
+    response = await fetch(url, { signal: controller.signal })
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error(`[svgic] Timeout loading SVG from "${url}" (${timeoutMs}ms)`)
+    }
+    throw err
+  } finally {
+    clearTimeout(timer)
+  }
 
   if (!response.ok) {
     throw new Error(`[svgic] Failed to load SVG from "${url}": ${response.status} ${response.statusText}`)
