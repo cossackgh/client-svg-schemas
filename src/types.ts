@@ -1,24 +1,24 @@
-/** Элемент данных — привязывается к SVG-элементу по id */
+/** Data element — bound to an SVG element by id */
 export interface SvgicItem {
-  /** Совпадает с `id` атрибутом SVG-элемента (`<g id="room-101">`) */
+  /** Matches the `id` attribute of the SVG element (`<g id="room-101">`) */
   id: string
-  /** Заголовок — используется в дефолтном попапе */
+  /** Title — used in the default popup */
   title?: string
   description?: string
   image?: string
   link?: string
-  /** Любые кастомные поля */
+  /** Any custom fields */
   [key: string]: unknown
 }
 
-/** Роль слоя в SVG-файле */
+/** Layer role in the SVG file */
 export type SvgicLayerRole = 'interactive' | 'decorative'
 
 export interface SvgicLayer {
   /**
-   * Роль слоя:
-   * - `interactive` — элементы реагируют на hover/click и участвуют в привязке данных
-   * - `decorative` — слой игнорируется при обработке событий
+   * Layer role:
+   * - `interactive` — elements respond to hover/click and participate in data binding
+   * - `decorative` — layer is ignored for event handling
    */
   role: SvgicLayerRole
 }
@@ -27,60 +27,60 @@ export type SvgicEventType = 'click' | 'hover' | 'leave'
 export type SvgicEventHandler = (id: string, item: SvgicItem | null) => void
 
 /**
- * Публичный интерфейс клиента — используется в плагинах, чтобы избежать кругового импорта.
- * Полная реализация — класс `Svgic`.
+ * Public client interface — used in plugins to avoid circular imports.
+ * Full implementation — the `Svgic` class.
  */
 export interface ISvgic {
-  /** Promise, который резолвится после загрузки и инициализации SVG */
+  /** Promise that resolves after SVG is loaded and initialized */
   readonly ready: Promise<void>
   /**
-   * Подключает плагин. Можно вызывать до или после инициализации.
-   * Если SVG уже загружен — `onInit` вызывается немедленно.
+   * Registers a plugin. Can be called before or after initialization.
+   * If SVG is already loaded — `onInit` is called immediately.
    */
   use(plugin: SvgicPlugin): ISvgic
   /**
-   * Подписывается на событие. Возвращает `this` для чейнинга.
+   * Subscribes to an event. Returns `this` for chaining.
    * @param event - `'click'` | `'hover'` | `'leave'`
-   * @param handler - Коллбэк с `id` элемента и его данными (`null` если данных нет)
+   * @param handler - Callback with the element `id` and its data (`null` if no data)
    */
   on(event: SvgicEventType, handler: SvgicEventHandler): ISvgic
   /**
-   * Обновляет привязанные данные. Вызывать после `await client.ready`.
-   * @param data - Массив элементов данных. `id` каждого должен совпадать с атрибутом `id` в SVG.
+   * Updates bound data. Call after `await client.ready`.
+   * @param data - Array of data elements. Each `id` must match the `id` attribute in SVG.
    */
   setData(data: SvgicItem[]): void
   /**
-   * Устанавливает именованное состояние подсветки для указанных элементов.
-   * Стиль состояния задаётся в `style.states[state]`.
-   * Несколько состояний могут быть активны одновременно.
-   * @param state - Имя состояния (ключ из `style.states`)
-   * @param ids - Массив `id` элементов
+   * Sets a named highlight state for the specified elements.
+   * The state style is defined in `style.states[state]`.
+   * Multiple states can be active simultaneously.
+   * @param state - State name (key from `style.states`)
+   * @param ids - Array of element `id`s
    */
   setHighlight(state: string, ids: string[]): void
   /**
-   * Снимает подсветку.
-   * @param state - Имя состояния. Если не указан — сбрасывает все активные состояния.
+   * Removes highlight.
+   * @param state - State name. If not provided — clears all active states.
    */
   clearHighlight(state?: string): void
-  /** Возвращает корневой `<svg>` элемент после загрузки, иначе `null` */
+  /** Returns the root `<svg>` element after loading, otherwise `null` */
   getElement(): SVGSVGElement | null
-  /** Удаляет SVG из DOM, отписывает все обработчики, вызывает `onDestroy` у плагинов */
+  /** Removes SVG from DOM, unsubscribes all handlers, calls `onDestroy` on plugins */
   destroy(): void
 }
 
-/** Хуки плагина */
+/** Plugin hooks */
 export interface SvgicPlugin {
-  /** Уникальное имя плагина */
+  /** Unique plugin name */
   name: string
-  /** Вызывается после загрузки и инициализации SVG */
+  /** Called after SVG is loaded and initialized */
   onInit?: (client: ISvgic) => void
-  /** Вызывается при `client.destroy()` */
+  /** Called on `client.destroy()` */
   onDestroy?: (client: ISvgic) => void
-  /** Вызывается при наведении курсора. `return false` — отменяет дефолтное поведение */
+  /** Called on cursor hover. `return false` — cancels default behavior */
   onElementHover?: (element: SVGElement, item: SvgicItem | null) => void | false
-  /** Вызывается когда курсор покидает элемент. `return false` — отменяет дефолтное поведение */
+  /** Called when cursor leaves the element. `return false` — cancels default behavior */
   onElementLeave?: (element: SVGElement, item: SvgicItem | null) => void | false
-  /** Вызывается при клике по элементу. `return false` — отменяет дефолтное поведение */
+  /** Called on element click. `return false` — cancels default behavior */
   onElementClick?: (element: SVGElement, item: SvgicItem | null) => void | false
 }
 
@@ -99,28 +99,28 @@ export interface PopupOffset {
   y?: number
 }
 
-/** Попап прикреплён к SVG-элементу */
+/** Popup anchored to an SVG element */
 export interface PopupPlacementElement {
   placement: 'element'
-  /** Якорь позиционирования. Default: `'top-center'` */
+  /** Positioning anchor. Default: `'top-center'` */
   anchor?: PopupAnchor
-  /** Отступ от якоря в пикселях. Default: `{ x: 0, y: -8 }` */
+  /** Offset from anchor in pixels. Default: `{ x: 0, y: -8 }` */
   offset?: PopupOffset
-  /** Авто-переворот если попап уходит за край viewport. Default: `true` */
+  /** Auto-flip if popup overflows the viewport edge. Default: `true` */
   flip?: boolean
 }
 
-/** Попап следует за курсором */
+/** Popup follows the cursor */
 export interface PopupPlacementCursor {
   placement: 'cursor'
-  /** Отступ от курсора в пикселях. Default: `{ x: 16, y: 16 }` */
+  /** Offset from cursor in pixels. Default: `{ x: 16, y: 16 }` */
   offset?: PopupOffset
 }
 
-/** Попап рендерится в указанный DOM-узел вне SVG */
+/** Popup renders into a specified DOM node outside the SVG */
 export interface PopupPlacementTarget {
   placement: 'target'
-  /** CSS-селектор или DOM-элемент контейнера */
+  /** CSS selector or container DOM element */
   target: string | HTMLElement
   /** Default: `'hover'` */
   trigger?: PopupTrigger
@@ -132,28 +132,28 @@ export type PopupPlacement =
   | PopupPlacementTarget
 
 /**
- * Конфигурация попапа:
- * - `true` — дефолтный попап с `title`, placement `element`, anchor `top-center`
- * - `false` | `undefined` — попап отключён
- * - Объект — кастомная конфигурация
+ * Popup configuration:
+ * - `true` — default popup with `title`, placement `element`, anchor `top-center`
+ * - `false` | `undefined` — popup disabled
+ * - Object — custom configuration
  */
 export type PopupOption = boolean | (PopupPlacement & {
-  /** Кастомный рендер содержимого попапа. Принимает `SvgicItem`, возвращает `HTMLElement` или HTML-строку */
+  /** Custom popup content renderer. Receives `SvgicItem`, returns `HTMLElement` or HTML string */
   render?: (item: SvgicItem) => HTMLElement | string
-  /** HTML-шаблон (`<template>` элемент или его CSS-селектор). Используется совместно с `bind` */
+  /** HTML template (`<template>` element or its CSS selector). Used together with `bind` */
   template?: string | HTMLTemplateElement
-  /** Привязка данных к клону шаблона. `el` — клон `<template>`, `item` — данные элемента */
+  /** Bind data to the template clone. `el` — clone of `<template>`, `item` — element data */
   bind?: (el: HTMLElement, item: SvgicItem) => void
-  /** Триггер открытия попапа. Default: `'hover'` */
+  /** Popup open trigger. Default: `'hover'` */
   trigger?: PopupTrigger
   /**
-   * Попап не закрывается пока курсор находится на нём.
-   * Используется для попапов со ссылками или кнопками внутри.
-   * При включении автоматически устанавливает `hideDelay: 120` если не задан.
-   * Работает с `placement: 'element'`.
+   * Popup stays open while cursor is on it.
+   * Use for popups with links or buttons inside.
+   * When enabled, automatically sets `hideDelay: 120` if not specified.
+   * Works with `placement: 'element'`.
    */
   interactive?: boolean
-  /** Задержка в мс перед скрытием попапа после того как курсор покинул элемент */
+  /** Delay in ms before hiding the popup after cursor leaves the element */
   hideDelay?: number
 })
 
@@ -167,32 +167,32 @@ export interface SvgicStyleProperties {
   cursor?: string
   transition?: string
   filter?: string
-  /** Любые дополнительные CSS-свойства */
+  /** Any additional CSS properties */
   [key: string]: unknown
 }
 
 export interface SvgicStyleConfig {
-  /** Базовые стили всех интерактивных элементов */
+  /** Base styles for all interactive elements */
   default?: SvgicStyleProperties
-  /** Стили при наведении курсора */
+  /** Styles on cursor hover */
   hover?: SvgicStyleProperties
   /**
-   * Стили при наведении на подсвеченный элемент.
-   * Применяется вместо `hover` если элемент уже имеет активное состояние из `states`.
+   * Styles when hovering over a highlighted element.
+   * Applied instead of `hover` if the element already has an active state from `states`.
    */
   highlightedHover?: SvgicStyleProperties
-  /** Именованные состояния для `setHighlight()` */
+  /** Named states for `setHighlight()` */
   states?: Record<string, SvgicStyleProperties>
 }
 
-/** Опции инициализации */
+/** Initialization options */
 export interface SvgicOptions {
-  /** URL SVG-файла или SVG-строка (`<svg>...</svg>`) */
+  /** SVG file URL or SVG string (`<svg>...</svg>`) */
   src: string
-  /** Массив данных, привязываемых к элементам по совпадению `id` */
+  /** Data array bound to elements by matching `id` */
   data?: SvgicItem[]
   /**
-   * Конфигурация слоёв SVG. Ключ — значение атрибута `id` элемента `<g>` в SVG-файле.
+   * SVG layer configuration. Key — the `id` attribute value of the `<g>` element in the SVG file.
    * @example
    * ```ts
    * layers: {
@@ -202,10 +202,10 @@ export interface SvgicOptions {
    * ```
    */
   layers?: Record<string, SvgicLayer>
-  /** Список плагинов */
+  /** Plugin list */
   plugins?: SvgicPlugin[]
-  /** Конфигурация попапа */
+  /** Popup configuration */
   popup?: PopupOption
-  /** Конфигурация стилей интерактивных элементов */
+  /** Interactive element style configuration */
   style?: SvgicStyleConfig
 }
