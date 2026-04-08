@@ -1,30 +1,30 @@
 # svgic
 
-> Интерактивный SVG-клиент для JS/TS/Vue 3/React. Встраивает SVG в DOM, привязывает слои к данным, обрабатывает события, поддерживает попапы, стили и плагины.
+> Interactive SVG client for JS/TS/Vue 3/React. Embeds SVG into the DOM, binds layers to data, handles events, supports popups, styles, and plugins.
 
-## Установка
+## Installation
 
 ```bash
 npm install svgic
 ```
 
-## Документация
+## Documentation
 
-- Полный API Reference: [docs/api.md](docs/api.md)
-- Практические примеры (recipes): [docs/recipes.md](docs/recipes.md)
-
----
-
-## Ключевые концепции
-
-- **Слои** — `<g id="...">` в SVG-файле. Роль слоя (`interactive` | `decorative`) задаётся в конфиге, не в SVG.
-- **Данные** — массив `SvgicItem[]`, привязывается к элементам по совпадению `id`.
-- **Инициализация асинхронная** — `await client.ready` перед вызовом `setData()` и API плагинов.
-- **Плагины** — расширяют поведение через хуки `onInit`, `onElementClick`, `onElementHover` и т.д.
+- Full API Reference: [docs/api.md](docs/api.md)
+- Practical examples (recipes): [docs/recipes.md](docs/recipes.md)
 
 ---
 
-## Базовый пример (ванильный JS/TS)
+## Key Concepts
+
+- **Layers** — `<g id="...">` elements in the SVG file. Layer role (`interactive` | `decorative`) is set in config, not in SVG.
+- **Data** — an array of `SvgicItem[]`, bound to elements by matching `id`.
+- **Initialization is async** — `await client.ready` before calling `setData()` and plugin APIs.
+- **Plugins** — extend behavior via hooks: `onInit`, `onElementClick`, `onElementHover`, etc.
+
+---
+
+## Basic Example (vanilla JS/TS)
 
 ```ts
 import { Svgic } from 'svgic'
@@ -36,8 +36,8 @@ const client = new Svgic('#container', {
     background: { role: 'decorative' },
   },
   data: [
-    { id: 'room-101', title: 'Переговорная' },
-    { id: 'room-102', title: 'Опен-спейс' },
+    { id: 'room-101', title: 'Conference Room' },
+    { id: 'room-102', title: 'Open Space' },
   ],
   popup: true,
   style: {
@@ -64,7 +64,7 @@ client.setHighlight('busy', ['room-101'])
 import { SvgicVue } from 'svgic/vue'
 import type { SvgicItem } from 'svgic'
 
-const rooms = ref<SvgicItem[]>([{ id: 'room-101', title: 'Переговорная' }])
+const rooms = ref<SvgicItem[]>([{ id: 'room-101', title: 'Conference Room' }])
 const onRoomClick = (id: string, item: SvgicItem | null) => console.log(id, item)
 </script>
 ```
@@ -84,16 +84,16 @@ import { SvgicReact } from 'svgic/react'
 
 ---
 
-## Публичный API (краткая шпаргалка)
+## Public API (quick reference)
 
 ```ts
-// Конструктор
+// Constructor
 new Svgic(selector: string | Element, options: SvgicOptions)
 
-// Ожидание инициализации
+// Wait for initialization
 await client.ready
 
-// Методы
+// Methods
 client.setData(data: SvgicItem[])
 client.on('click' | 'hover' | 'leave', (id, item) => void)
 client.setHighlight(state: string, ids: string[])
@@ -105,25 +105,25 @@ client.destroy()
 
 ---
 
-## Плагины
+## Plugins
 
 ```ts
 import { ZoomPlugin } from 'svgic/plugins/zoom'
 import { DebugPlugin } from 'svgic/plugins/debug'
 
-// ZoomPlugin — zoom/pan колесом, перетаскиванием, touch
+// ZoomPlugin — zoom/pan via wheel, drag, touch
 const zoom = ZoomPlugin({ wheelMode: 'ctrl', focusOnClick: true })
 zoom.zoomTo(2)
 zoom.focusElement('room-101')
 zoom.reset()
 
-// DebugPlugin — показывает id элементов при наведении (только dev)
+// DebugPlugin — shows element ids on hover (dev only)
 const debug = DebugPlugin({ showOn: 'both' })
 ```
 
 ---
 
-## Типы данных
+## Data Types
 
 ```ts
 interface SvgicItem {
@@ -132,15 +132,15 @@ interface SvgicItem {
   description?: string
   image?: string
   link?: string
-  [key: string]: unknown  // кастомные поля
+  [key: string]: unknown  // custom fields
 }
 
 interface SvgicOptions {
-  src: string                          // URL или SVG-строка
+  src: string                          // URL or SVG string
   data?: SvgicItem[]
   layers?: Record<string, { role: 'interactive' | 'decorative' }>
   plugins?: SvgicPlugin[]
-  popup?: boolean | PopupConfig        // см. docs/api.md
-  style?: SvgicStyleConfig             // см. docs/api.md
+  popup?: boolean | PopupConfig        // see docs/api.md
+  style?: SvgicStyleConfig             // see docs/api.md
 }
 ```
