@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -58,22 +58,22 @@
 
     <aside class="sidebar">
       <div class="info-panel" id="info-panel">
-        <h2>Информация <span id="info-panel-mode" style="font-weight:400;text-transform:none;letter-spacing:0;color:#4c8aff;font-size:0.65rem;"></span></h2>
-        <p class="info-empty" id="info-hint">Кликните на комнату</p>
+        <h2>Info <span id="info-panel-mode" style="font-weight:400;text-transform:none;letter-spacing:0;color:#4c8aff;font-size:0.65rem;"></span></h2>
+        <p class="info-empty" id="info-hint">Click a room</p>
         <div class="info-card" id="info-card">
           <div class="info-title" id="info-title"></div>
           <div class="info-desc"  id="info-desc"></div>
           <div class="info-fields">
             <div class="info-field">
-              <span class="info-field-label">Номер</span>
+              <span class="info-field-label">ID</span>
               <span class="info-field-value" id="info-id"></span>
             </div>
             <div class="info-field">
-              <span class="info-field-label">Статус</span>
+              <span class="info-field-label">Status</span>
               <span class="info-field-value" id="info-status"></span>
             </div>
             <div class="info-field">
-              <span class="info-field-label">Вместимость</span>
+              <span class="info-field-label">Capacity</span>
               <span class="info-field-value" id="info-capacity"></span>
             </div>
           </div>
@@ -81,12 +81,12 @@
       </div>
 
       <div class="event-log" id="event-log">
-        <h2>События</h2>
+        <h2>Events</h2>
       </div>
     </aside>
   </div>
 
-  <!-- шаблон попапа для режима template — вёрстка отдельно от JS -->
+  <!-- popup template for template mode — markup separate from JS -->
   <template id="room-popup-tpl">
     <div class="room-popup">
       <div class="room-popup__title"></div>

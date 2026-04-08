@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -86,43 +86,43 @@
 
     <aside class="sidebar">
       <div class="highlight-panel">
-        <h2>Подсветка</h2>
+        <h2>Highlight</h2>
         <div class="highlight-groups">
 
           <div class="highlight-group">
-            <span class="highlight-group-label">по статусу</span>
-            <button class="hl-btn" data-hl="free">Свободные</button>
-            <button class="hl-btn" data-hl="busy">Занятые</button>
-            <button class="hl-btn" data-hl="restricted">Ограничен</button>
+            <span class="highlight-group-label">by status</span>
+            <button class="hl-btn" data-hl="free">Available</button>
+            <button class="hl-btn" data-hl="busy">Occupied</button>
+            <button class="hl-btn" data-hl="restricted">Restricted</button>
           </div>
 
           <div class="highlight-group">
-            <span class="highlight-group-label">все сразу</span>
-            <button class="hl-btn" data-hl="all-free">Свободные</button>
-            <button class="hl-btn" data-hl="all-busy">Занятые</button>
+            <span class="highlight-group-label">all at once</span>
+            <button class="hl-btn" data-hl="all-free">Available</button>
+            <button class="hl-btn" data-hl="all-busy">Occupied</button>
           </div>
 
         </div>
-        <button class="hl-btn-clear" id="btn-clear">Сбросить всё</button>
+        <button class="hl-btn-clear" id="btn-clear">Clear all</button>
       </div>
 
       <div class="info-panel" id="info-panel">
-        <h2>Информация</h2>
-        <p class="info-empty" id="info-hint">Кликните на комнату</p>
+        <h2>Info</h2>
+        <p class="info-empty" id="info-hint">Click a room</p>
         <div class="info-card" id="info-card">
           <div class="info-title" id="info-title"></div>
           <div class="info-desc"  id="info-desc"></div>
           <div class="info-fields">
             <div class="info-field">
-              <span class="info-field-label">Номер</span>
+              <span class="info-field-label">ID</span>
               <span class="info-field-value" id="info-id"></span>
             </div>
             <div class="info-field">
-              <span class="info-field-label">Статус</span>
+              <span class="info-field-label">Status</span>
               <span class="info-field-value" id="info-status"></span>
             </div>
             <div class="info-field">
-              <span class="info-field-label">Вместимость</span>
+              <span class="info-field-label">Capacity</span>
               <span class="info-field-value" id="info-capacity"></span>
             </div>
           </div>
@@ -130,7 +130,7 @@
       </div>
 
       <div class="event-log" id="event-log">
-        <h2>События</h2>
+        <h2>Events</h2>
       </div>
     </aside>
   </div>
