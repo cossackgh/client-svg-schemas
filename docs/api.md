@@ -72,7 +72,7 @@ interface SvgicOptions {
 
 ```ts
 interface SvgicLayer {
-  role: 'interactive' | 'decorative'
+  role: 'interactive' | 'decorative' | 'data' | string
 }
 ```
 
@@ -80,6 +80,8 @@ Layer role is set in config (not in the SVG file). Layers are identified by the 
 
 - `interactive` — layer elements respond to hover/click and participate in data binding
 - `decorative` — layer is ignored for event handling
+- `data` — read-only layer for plugins (e.g. waypoints, corridors); completely ignored by the core
+- Any other string — custom role for plugin use
 
 ```ts
 new Svgic('#container', {
@@ -87,6 +89,7 @@ new Svgic('#container', {
   layers: {
     'rooms':      { role: 'interactive' },
     'background': { role: 'decorative' },
+    'waypoints':  { role: 'data' },
   },
 })
 ```
@@ -163,6 +166,27 @@ getElement(): SVGSVGElement | null
 ```
 
 Returns the root `<svg>` element after loading, otherwise `null`.
+
+### `client.getLayer(id)`
+
+```ts
+getLayer(id: string): { element: SVGGElement; role: string } | null
+```
+
+Returns a parsed layer by its `id`. Useful for plugins that need direct access to SVG layer elements — for example, a navigation plugin reading waypoints from a `'data'` layer.
+
+Returns `null` if the layer is not registered, not found in SVG, or the client is not yet initialized (before `ready`) or has been destroyed.
+
+```ts
+const navPlugin: SvgicPlugin = {
+  name: 'nav',
+  onInit(client) {
+    const layer = client.getLayer('waypoints') // { element: SVGGElement, role: 'data' }
+    const points = layer?.element.querySelectorAll('[data-node]')
+    // build navigation graph...
+  },
+}
+```
 
 ### `client.use(plugin)`
 

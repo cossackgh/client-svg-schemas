@@ -72,7 +72,7 @@ interface SvgicOptions {
 
 ```ts
 interface SvgicLayer {
-  role: 'interactive' | 'decorative'
+  role: 'interactive' | 'decorative' | 'data' | string
 }
 ```
 
@@ -80,6 +80,8 @@ interface SvgicLayer {
 
 - `interactive` — элементы слоя реагируют на hover/click и участвуют в привязке данных
 - `decorative` — слой игнорируется при обработке событий
+- `data` — слой только для чтения плагинами (например, waypoints, коридоры); полностью игнорируется ядром
+- Любая другая строка — произвольная роль для использования плагинами
 
 ```ts
 new Svgic('#container', {
@@ -87,6 +89,7 @@ new Svgic('#container', {
   layers: {
     'rooms':      { role: 'interactive' },
     'background': { role: 'decorative' },
+    'waypoints':  { role: 'data' },
   },
 })
 ```
@@ -163,6 +166,27 @@ getElement(): SVGSVGElement | null
 ```
 
 Возвращает корневой `<svg>` элемент после загрузки, иначе `null`.
+
+### `client.getLayer(id)`
+
+```ts
+getLayer(id: string): { element: SVGGElement; role: string } | null
+```
+
+Возвращает распарсенный слой по его `id`. Используется в плагинах для прямого доступа к SVG-элементам слоя — например, навигационный плагин может вытащить точки из слоя с ролью `'data'`.
+
+Возвращает `null`, если слой не зарегистрирован, не найден в SVG, или клиент ещё не инициализирован (до `ready`) либо уже уничтожен.
+
+```ts
+const navPlugin: SvgicPlugin = {
+  name: 'nav',
+  onInit(client) {
+    const layer = client.getLayer('waypoints') // { element: SVGGElement, role: 'data' }
+    const points = layer?.element.querySelectorAll('[data-node]')
+    // строим граф навигации...
+  },
+}
+```
 
 ### `client.use(plugin)`
 
