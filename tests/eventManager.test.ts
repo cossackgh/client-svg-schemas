@@ -87,7 +87,7 @@ describe('EventManager — click', () => {
 
     fireMouseEvent(svg.getElementById('unknown')!, 'click')
 
-    expect(handler).toHaveBeenCalledWith('', null)
+    expect(handler).toHaveBeenCalledWith(null, null)
   })
 
   it('finds id when clicking child element of bound group', () => {

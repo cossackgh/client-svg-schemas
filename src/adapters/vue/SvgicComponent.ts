@@ -34,9 +34,9 @@ export const SvgicVue = defineComponent({
   },
 
   emits: {
-    click: (_id: string, _item: SvgicItem | null) => true,
-    hover: (_id: string, _item: SvgicItem | null) => true,
-    leave: (_id: string, _item: SvgicItem | null) => true,
+    click: (_id: string | null, _item: SvgicItem | null) => true,
+    hover: (_id: string | null, _item: SvgicItem | null) => true,
+    leave: (_id: string | null, _item: SvgicItem | null) => true,
   },
 
   setup(props, { emit }) {
@@ -45,7 +45,14 @@ export const SvgicVue = defineComponent({
 
     async function createClient() {
       if (!containerRef.value) return
-      client?.destroy()
+
+      if (client) {
+        // Reuse existing client — setSrc() serializes concurrent calls via initPromise,
+        // preventing the race condition where a slow fetch appends stale SVG after destroy()
+        await client.setSrc(props.src)
+        return
+      }
+
       const instance = new Svgic(containerRef.value, {
         src: props.src,
         data: props.data,
@@ -56,7 +63,8 @@ export const SvgicVue = defineComponent({
       })
       client = instance
       await instance.ready
-      if (client !== instance) return  // unmounted or src changed while waiting
+      if (client !== instance) return  // unmounted while waiting
+      // on() subscriptions are registered once and survive setSrc() calls
       instance.on('click', (id, item) => emit('click', id, item))
       instance.on('hover', (id, item) => emit('hover', id, item))
       instance.on('leave', (id, item) => emit('leave', id, item))
@@ -66,6 +74,8 @@ export const SvgicVue = defineComponent({
 
     watch(() => props.src, createClient)
 
+    // Note: intentionally not deep — requires a new array reference to trigger.
+    // Mutating the array in place will not be detected.
     watch(
       () => props.data,
       (newData) => {

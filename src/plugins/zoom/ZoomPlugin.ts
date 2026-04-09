@@ -47,9 +47,12 @@ const FOCUS_SCALE_THRESHOLD = 0.9
 
 export function ZoomPlugin(opts: ZoomPluginOptions = {}): ZoomPluginInstance {
   let controller: ZoomController | null = null
+  // Prevents duplicate handler registration across setSrc() calls.
+  // EventManager preserves on() handlers after destroy(), so we must guard manually.
+  let clickAttached = false
 
   const assertReady = (): ZoomController => {
-    if (!controller) throw new Error('[ZoomPlugin] Plugin not initialized yet. Wait for client.ready.')
+    if (!controller) throw new Error('[ZoomPlugin] Plugin is not active — call after client.ready or before client.destroy().')
     return controller
   }
 
@@ -61,8 +64,9 @@ export function ZoomPlugin(opts: ZoomPluginOptions = {}): ZoomPluginInstance {
       if (!svg) return
       controller = new ZoomController(svg, opts)
 
-      if (opts.focusOnClick) {
-        client.on('click', (_id: string, item: SvgicItem | null) => {
+      if (opts.focusOnClick && !clickAttached) {
+        clickAttached = true
+        client.on('click', (_id: string | null, item: SvgicItem | null) => {
           if (!item?.id) return
           const c = controller
           if (!c) return

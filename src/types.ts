@@ -26,7 +26,13 @@ export interface SvgicLayer {
 }
 
 export type SvgicEventType = 'click' | 'hover' | 'leave'
-export type SvgicEventHandler = (id: string, item: SvgicItem | null) => void
+/**
+ * `id` is `null` when the event fires on an empty area (no bound element).
+ * Use this to reset state on background clicks:
+ * @example
+ * client.on('click', (id) => { if (id === null) client.clearHighlight() })
+ */
+export type SvgicEventHandler = (id: string | null, item: SvgicItem | null) => void
 
 /**
  * Public client interface — used in plugins to avoid circular imports.

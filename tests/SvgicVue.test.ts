@@ -164,8 +164,8 @@ describe('SvgicVue — watch src', () => {
     app.unmount()
   })
 
-  it('destroys old client when src changes', async () => {
-    const destroySpy = vi.spyOn(Svgic.prototype, 'destroy')
+  it('reuses client via setSrc() when src changes', async () => {
+    const setSrcSpy = vi.spyOn(Svgic.prototype, 'setSrc')
     const src = ref('/map-a.svg')
 
     const Wrapper = defineComponent({
@@ -179,13 +179,14 @@ describe('SvgicVue — watch src', () => {
     app.mount(container)
     await waitForReady()
 
-    destroySpy.mockClear()
+    setSrcSpy.mockClear()
     src.value = '/map-b.svg'
     await waitForReady()
 
-    expect(destroySpy).toHaveBeenCalledOnce()
+    expect(setSrcSpy).toHaveBeenCalledOnce()
+    expect(setSrcSpy).toHaveBeenCalledWith('/map-b.svg')
     app.unmount()
-    destroySpy.mockRestore()
+    setSrcSpy.mockRestore()
   })
 })
 

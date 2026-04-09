@@ -308,6 +308,7 @@ export class ZoomController {
       const dist = this.touchDist(e.touches[0], e.touches[1])
       const mid  = this.touchMid(e.touches[0], e.touches[1])
 
+      if (this.lastPinchDist === 0) return
       const pinchFactor = dist / this.lastPinchDist
       const newScale = this.clampScale(this.state.scale * pinchFactor)
       const svgMid = this.clientToSvg(mid.x, mid.y)

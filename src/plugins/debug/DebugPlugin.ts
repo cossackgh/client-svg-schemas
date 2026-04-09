@@ -106,6 +106,12 @@ function applyContent(
   const content = customRender ? customRender(id, item) : renderDefault(id, item)
   if (typeof content === 'string') {
     label.innerHTML = content
+    label.querySelectorAll('script').forEach(el => el.remove())
+    for (const el of label.querySelectorAll('*')) {
+      for (const attr of [...el.attributes]) {
+        if (attr.name.startsWith('on')) el.removeAttribute(attr.name)
+      }
+    }
   } else {
     label.appendChild(content)
   }
@@ -144,12 +150,14 @@ export function DebugPlugin(opts: DebugPluginOptions = {}): SvgicPlugin {
   const { showOn = 'hover', render } = opts
 
   let hoverLabel: HTMLElement | null = null
+  let hoveredId: string | null = null
   let pinnedLabel: HTMLElement | null = null
   let pinnedId: string | null = null
 
   function removeHoverLabel(): void {
     hoverLabel?.remove()
     hoverLabel = null
+    hoveredId = null
   }
 
   function removePinnedLabel(): void {
@@ -168,11 +176,13 @@ export function DebugPlugin(opts: DebugPluginOptions = {}): SvgicPlugin {
     onDestroy(_client: ISvgic): void {
       removeHoverLabel()
       removePinnedLabel()
+      document.getElementById(STYLE_ID)?.remove()
     },
 
     onElementHover(element: SVGElement, item: SvgicItem | null): void {
       if (showOn !== 'hover' && showOn !== 'both') return
       if (!hoverLabel) hoverLabel = createLabel()
+      hoveredId = element.id
       applyContent(hoverLabel, element.id, item, render)
       positionLabel(hoverLabel, element)
     },
@@ -182,7 +192,6 @@ export function DebugPlugin(opts: DebugPluginOptions = {}): SvgicPlugin {
         removeHoverLabel()
       } else if (showOn === 'both') {
         // Remove hover label only if the element is not pinned
-        const hoveredId = hoverLabel?.querySelector('.svgic-debug-id')?.textContent
         if (hoveredId !== pinnedId) removeHoverLabel()
       }
     },

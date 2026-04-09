@@ -153,7 +153,12 @@ export class StyleManager {
       lines.push(`.svgic-hover.svgic-is-highlighted > :not(g) { ${toCSS(highlightedHover)} }`)
     }
     for (const [state, stateStyle] of Object.entries(states)) {
-      lines.push(`.svgic-state-${state} > :not(g) { ${toCSS(stateStyle)} }`)
+      const safeState = state.replace(/[^a-zA-Z0-9_-]/g, '')
+      if (safeState !== state) {
+        console.warn(`[svgic] Invalid state name "${state}" — only [a-zA-Z0-9_-] allowed, skipped`)
+        continue
+      }
+      lines.push(`.svgic-state-${safeState} > :not(g) { ${toCSS(stateStyle)} }`)
     }
 
     return lines.join('\n')

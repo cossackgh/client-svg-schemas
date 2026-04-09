@@ -108,7 +108,7 @@ export class EventManager {
         this.currentPopupId = null
         this.popupHide?.()
       }
-      this.emit('click', '', null)
+      this.emit('click', null, null)
       return
     }
 
@@ -189,7 +189,7 @@ export class EventManager {
     this.emit('leave', id, item)
   }
 
-  private emit(event: SvgicEventType, id: string, item: SvgicItem | null): void {
+  private emit(event: SvgicEventType, id: string | null, item: SvgicItem | null): void {
     for (const handler of this.handlers[event]) {
       handler(id, item)
     }

@@ -20,6 +20,10 @@ export function mapData(
   for (const [, layer] of layers) {
     if (layer.role !== 'interactive') continue
     for (const el of layer.element.querySelectorAll('[id]')) {
+      if (available.has(el.id)) {
+        console.warn(`[svgic] Duplicate element id "${el.id}" found across interactive layers — first occurrence used`)
+        continue
+      }
       available.set(el.id, el as SVGElement)
     }
   }

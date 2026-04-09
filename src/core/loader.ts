@@ -8,7 +8,9 @@ export async function loadSvg(src: string): Promise<SVGSVGElement> {
 }
 
 function isSvgString(src: string): boolean {
-  return src.trimStart().match(/^<[\s\S!?]/) !== null
+  // Any string starting with '<' is treated as inline SVG, not a URL.
+  // No valid URL begins with '<', so this is a safe and simple heuristic.
+  return src.trimStart().startsWith('<')
 }
 
 async function fetchSvg(url: string, timeoutMs = 30_000): Promise<string> {
@@ -52,5 +54,24 @@ function parseSvg(svgString: string): SVGSVGElement {
     throw new Error('[svgic] Root element is not <svg>')
   }
 
+  sanitizeSvg(svgEl)
+
   return svgEl
+}
+
+/**
+ * Removes potentially dangerous content from SVG before DOM insertion:
+ * - <script> elements
+ * - inline event handler attributes (on*)
+ */
+function sanitizeSvg(svgEl: SVGSVGElement): void {
+  svgEl.querySelectorAll('script').forEach(el => el.remove())
+
+  for (const el of svgEl.querySelectorAll('*')) {
+    for (const attr of [...el.attributes]) {
+      if (attr.name.startsWith('on')) {
+        el.removeAttribute(attr.name)
+      }
+    }
+  }
 }
