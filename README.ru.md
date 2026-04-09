@@ -25,7 +25,7 @@ const client = new Svgic('#container', {
   src: '/map.svg',
   layers: {
     rooms:      { role: 'interactive' },
-    background: { role: 'decorative' },
+    background: { role: 'data' },
   },
   data: [
     { id: 'room-101', title: 'Переговорная', description: 'Вместимость 12 человек' },
@@ -86,7 +86,7 @@ new Svgic(selector, {
 
 ```ts
 interface SvgicLayer {
-  role: 'interactive' | 'decorative'
+  role: 'interactive' | 'data' | string
 }
 ```
 
