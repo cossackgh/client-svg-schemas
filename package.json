@@ -52,19 +52,19 @@
     "react": ">=17.0.0",
     "vue": ">=3.0.0"
   },
-  "peerDependenciesMeta": {
-    "react": { "optional": true },
-    "vue": { "optional": true }
+  "peerDependenciesOptional": {
+    "react": true,
+    "vue": true
   },
   "devDependencies": {
     "@types/jsdom": "^28.0.1",
     "@types/react": "^19.2.14",
-    "@vitejs/plugin-vue": "^5.0.0",
+    "@vitejs/plugin-vue": "^6.0.5",
     "jsdom": "^29.0.1",
     "typescript": "^5.4.0",
-    "vite": "^5.0.0",
+    "vite": "^8.0.7",
     "vite-plugin-dts": "^3.9.0",
-    "vitest": "^1.6.0",
+    "vitest": "^4.1.3",
     "vue": "^3.4.0",
     "vue-tsc": "^2.0.0"
   }
