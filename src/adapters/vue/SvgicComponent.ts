@@ -34,9 +34,9 @@ export const SvgicVue = defineComponent({
   },
 
   emits: {
-    click: (_id: string, _item: SvgicItem | null) => true,
-    hover: (_id: string, _item: SvgicItem | null) => true,
-    leave: (_id: string, _item: SvgicItem | null) => true,
+    click: (_id: string | null, _item: SvgicItem | null) => true,
+    hover: (_id: string | null, _item: SvgicItem | null) => true,
+    leave: (_id: string | null, _item: SvgicItem | null) => true,
   },
 
   setup(props, { emit }) {

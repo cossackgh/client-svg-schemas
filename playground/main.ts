@@ -161,10 +161,10 @@ function showInfoForTarget(item: SvgicItem | null) {
   infoCap.textContent = item.capacity ? `${item.capacity} people` : '—'
 }
 
-function addLog(type: 'click' | 'hover' | 'leave', id: string, item: SvgicItem | null) {
+function addLog(type: 'click' | 'hover' | 'leave', id: string | null, item: SvgicItem | null) {
   const el = document.createElement('div')
   el.className = `log-entry ${type}`
-  el.textContent = `${type.padEnd(5)}  ${item?.title ?? (id || 'empty')}`
+  el.textContent = `${type.padEnd(5)}  ${item?.title ?? (id ?? 'empty')}`
   const h2 = eventLog.querySelector('h2')!
   h2.after(el)
   const entries = eventLog.querySelectorAll('.log-entry')
@@ -205,7 +205,7 @@ function createClient(mode: PopupMode): Svgic {
   })
 
   instance.on('click', (id, item) => {
-    activeId = id || null
+    activeId = id
     showInfo(item)
     addLog('click', id, item)
   })
@@ -253,7 +253,7 @@ document.getElementById('reload-btn')!.addEventListener('click', async () => {
   const data = reloadToggle ? roomsAlt : rooms
   await client.setSrc('/demo.svg')
   client.setData(data)
-  addLog('click', '', null)
+  addLog('click', null, null)
   const entry = eventLog.querySelector('.log-entry')!
   entry.textContent = `setSrc  demo.svg (${reloadToggle ? 'alt data' : 'original data'})`
 })

@@ -10,9 +10,9 @@ export interface SvgicProps {
   popup?: PopupOption
   /** SVG layer style configuration (not container CSS — use style/className for that) */
   styleConfig?: SvgicStyleConfig
-  onClick?: (id: string, item: SvgicItem | null) => void
-  onHover?: (id: string, item: SvgicItem | null) => void
-  onLeave?: (id: string, item: SvgicItem | null) => void
+  onClick?: (id: string | null, item: SvgicItem | null) => void
+  onHover?: (id: string | null, item: SvgicItem | null) => void
+  onLeave?: (id: string | null, item: SvgicItem | null) => void
   className?: string
   style?: CSSProperties
 }

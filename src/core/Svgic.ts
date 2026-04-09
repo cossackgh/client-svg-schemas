@@ -104,16 +104,9 @@ export class Svgic implements ISvgic {
   async setSrc(src: string): Promise<void> {
     // Chain onto the current promise so concurrent calls are serialized
     this.initPromise = this.initPromise.catch(() => {}).then(async () => {
-      this.eventManager.destroy()
-      this.popupManager?.destroy()
-      this.popupManager = null
-      this.styleManager?.destroy()
-      this.styleManager = null
-      this.svgEl?.remove()
-      this.svgEl = null
+      this.teardown()
       this.layers = new Map()
       this.boundElements = new Map()
-      this.plugins.forEach(p => p.onDestroy?.(this))
       this.options = { ...this.options, src, data: undefined }
       await this.init()
     })
@@ -187,6 +180,11 @@ export class Svgic implements ISvgic {
 
   /** Removes SVG from DOM, unsubscribes all handlers, calls `onDestroy` on plugins */
   destroy(): void {
+    this.teardown()
+    this.plugins = []
+  }
+
+  private teardown(): void {
     this.eventManager.destroy()
     this.popupManager?.destroy()
     this.popupManager = null
@@ -195,7 +193,6 @@ export class Svgic implements ISvgic {
     this.svgEl?.remove()
     this.svgEl = null
     this.plugins.forEach(p => p.onDestroy?.(this))
-    this.plugins = []
   }
 
   private async init(): Promise<void> {

@@ -62,7 +62,7 @@ export function ZoomPlugin(opts: ZoomPluginOptions = {}): ZoomPluginInstance {
       controller = new ZoomController(svg, opts)
 
       if (opts.focusOnClick) {
-        client.on('click', (_id: string, item: SvgicItem | null) => {
+        client.on('click', (_id: string | null, item: SvgicItem | null) => {
           if (!item?.id) return
           const c = controller
           if (!c) return
