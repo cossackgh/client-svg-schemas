@@ -418,7 +418,7 @@ const rooms = ref<SvgicItem[]>([
   { id: 'room-101', title: 'Переговорная' },
 ])
 
-function onRoomClick(id: string, item: SvgicItem | null) {
+function onRoomClick(id: string | null, item: SvgicItem | null) {
   console.log(id, item)
 }
 </script>
@@ -452,9 +452,9 @@ function onRoomClick(id: string, item: SvgicItem | null) {
 
 | Событие | Сигнатура |
 |---|---|
-| `@click` | `(id: string, item: SvgicItem \| null) => void` |
-| `@hover` | `(id: string, item: SvgicItem \| null) => void` |
-| `@leave` | `(id: string, item: SvgicItem \| null) => void` |
+| `@click` | `(id: string \| null, item: SvgicItem \| null) => void` |
+| `@hover` | `(id: string \| null, item: SvgicItem \| null) => void` |
+| `@leave` | `(id: string \| null, item: SvgicItem \| null) => void` |
 
 ### Composable
 
