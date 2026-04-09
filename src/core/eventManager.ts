@@ -125,7 +125,7 @@ export class EventManager {
           this.currentPopupId = id
           this.popupShow?.(element, item ?? { id }, e as MouseEvent)
         }
-        // клик на тот же элемент — попап уже открыт, ничего не делаем
+        // click on the same element — popup is already open, do nothing
       }
       this.emit('click', id, item)
     }
@@ -135,7 +135,7 @@ export class EventManager {
     const id = this.findBoundId(e.target, layerEl)
     if (id === this.currentHoveredId) return
 
-    // leave предыдущий
+    // leave previous
     if (this.currentHoveredId !== null) {
       this.fireLeave(this.currentHoveredId)
     }
@@ -161,8 +161,8 @@ export class EventManager {
   }
 
   private handleMouseOut(e: Event, layerEl: SVGGElement): void {
-    // mouseout стреляет при переходе между дочерними элементами —
-    // игнорируем если курсор остаётся внутри того же слоя
+    // mouseout fires when moving between child elements —
+    // ignore if cursor stays within the same layer
     const relatedTarget = (e as MouseEvent).relatedTarget
     if (relatedTarget instanceof Node && layerEl.contains(relatedTarget)) return
 

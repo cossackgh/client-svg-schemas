@@ -56,7 +56,7 @@ export const SvgicVue = defineComponent({
       })
       client = instance
       await instance.ready
-      if (client !== instance) return  // размонтирован или src сменился пока ждали
+      if (client !== instance) return  // unmounted or src changed while waiting
       instance.on('click', (id, item) => emit('click', id, item))
       instance.on('hover', (id, item) => emit('hover', id, item))
       instance.on('leave', (id, item) => emit('leave', id, item))

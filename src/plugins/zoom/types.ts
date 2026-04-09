@@ -1,42 +1,42 @@
 export interface ZoomPluginOptions {
-  /** Минимальный масштаб. Default: 0.5 */
+  /** Minimum scale. Default: 0.5 */
   minScale?: number
-  /** Максимальный масштаб. Default: 10 */
+  /** Maximum scale. Default: 10 */
   maxScale?: number
   /**
-   * Режим зума колесом мыши.
-   * - 'always'  — всегда (для fullscreen-карт)
-   * - 'ctrl'    — только при зажатом Ctrl (для страниц со скроллом)
+   * Mouse wheel zoom mode.
+   * - 'always'  — always (for fullscreen maps)
+   * - 'ctrl'    — only when Ctrl is held (for scrollable pages)
    * Default: 'ctrl'
    */
   wheelMode?: 'always' | 'ctrl'
-  /** Разрешить pan перетаскиванием мыши. Default: true */
+  /** Allow pan by mouse drag. Default: true */
   pan?: boolean
-  /** Разрешить touch-жесты (pinch-zoom, pan, двойной тап). Default: true */
+  /** Allow touch gestures (pinch-zoom, pan, double tap). Default: true */
   touch?: boolean
-  /** Масштаб при двойном тапе/клике. Default: 2 */
+  /** Scale on double tap/click. Default: 2 */
   doubleTapScale?: number
-  /** Ограничить pan границами SVG. Default: true */
+  /** Restrict pan to SVG bounds. Default: true */
   panBounds?: boolean
-  /** Анимировать программные переходы. Default: true */
+  /** Animate programmatic transitions. Default: true */
   animate?: boolean
-  /** Длительность анимации в мс. Default: 300 */
+  /** Animation duration in ms. Default: 300 */
   animationDuration?: number
   /**
-   * Автофокус на элемент при клике.
-   * Масштаб при фокусе — focusScale (если текущий scale < focusScale).
+   * Auto-focus element on click.
+   * Focus scale — focusScale (only if current scale < focusScale).
    * Default: false
    */
   focusOnClick?: boolean
-  /** Масштаб при авто-фокусе на элемент. Default: 2 */
+  /** Scale when auto-focusing on an element. Default: 2 */
   focusScale?: number
 }
 
 export interface ZoomState {
-  /** Текущий масштаб (1 = исходный) */
+  /** Current scale (1 = original) */
   scale: number
-  /** Смещение viewBox по X в SVG-координатах */
+  /** ViewBox offset along X in SVG coordinates */
   x: number
-  /** Смещение viewBox по Y в SVG-координатах */
+  /** ViewBox offset along Y in SVG coordinates */
   y: number
 }

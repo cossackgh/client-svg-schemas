@@ -8,7 +8,7 @@ export interface SvgicProps {
   layers?: Record<string, SvgicLayer>
   plugins?: SvgicPlugin[]
   popup?: PopupOption
-  /** Конфигурация стилей SVG-слоёв (не CSS контейнера — для этого используй style/className) */
+  /** SVG layer style configuration (not container CSS — use style/className for that) */
   styleConfig?: SvgicStyleConfig
   onClick?: (id: string, item: SvgicItem | null) => void
   onHover?: (id: string, item: SvgicItem | null) => void
@@ -33,7 +33,7 @@ export function SvgicReact({
   const containerRef = useRef<HTMLDivElement | null>(null)
   const clientRef = useRef<Svgic | null>(null)
 
-  // Инициализация и очистка при смене src
+  // Initialize and clean up when src changes
   useEffect(() => {
     if (!containerRef.current) return
 
@@ -53,7 +53,7 @@ export function SvgicReact({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src])
 
-  // Реактивное обновление данных без пересоздания клиента
+  // Reactively update data without recreating the client
   useEffect(() => {
     if (clientRef.current && data) {
       clientRef.current.setData(data)

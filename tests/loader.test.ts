@@ -7,19 +7,19 @@ const VALID_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"
 
 const INVALID_SVG = `<not-svg><garbage></not-svg>`
 
-describe('loadSvg — SVG-строка', () => {
-  it('парсит валидный SVG из строки', async () => {
+describe('loadSvg — SVG string', () => {
+  it('parses valid SVG from string', async () => {
     const el = await loadSvg(VALID_SVG)
     expect(el).toBeInstanceOf(SVGSVGElement)
     expect(el.querySelector('#room-1')).not.toBeNull()
   })
 
-  it('бросает ошибку при невалидном SVG', async () => {
-    // DOMParser не кидает при парсинге, но root-элемент будет не SVGSVGElement
+  it('throws on invalid SVG', async () => {
+    // DOMParser does not throw on parse, but root element will not be SVGSVGElement
     await expect(loadSvg(INVALID_SVG)).rejects.toThrow('[svgic]')
   })
 
-  it('определяет строку с пробелами в начале', async () => {
+  it('detects string with leading whitespace', async () => {
     const el = await loadSvg(`   ${VALID_SVG}`)
     expect(el).toBeInstanceOf(SVGSVGElement)
   })
@@ -30,7 +30,7 @@ describe('loadSvg — URL (fetch)', () => {
     vi.restoreAllMocks()
   })
 
-  it('загружает SVG по URL', async () => {
+  it('loads SVG from URL', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
       headers: { get: () => 'image/svg+xml' },
@@ -42,7 +42,7 @@ describe('loadSvg — URL (fetch)', () => {
     expect(fetch).toHaveBeenCalledWith('/demo.svg', expect.objectContaining({ signal: expect.any(AbortSignal) }))
   })
 
-  it('бросает ошибку при HTTP 404', async () => {
+  it('throws on HTTP 404', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: false,
       status: 404,
@@ -53,7 +53,7 @@ describe('loadSvg — URL (fetch)', () => {
     await expect(loadSvg('/missing.svg')).rejects.toThrow('404')
   })
 
-  it('бросает ошибку при неожиданном content-type', async () => {
+  it('throws on unexpected content-type', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
       headers: { get: () => 'application/octet-stream' },

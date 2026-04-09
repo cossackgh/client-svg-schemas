@@ -5,6 +5,10 @@ import { getCursorPosition } from './placement/CursorPlacement'
 
 const DEFAULT_INTERACTIVE_DELAY = 120
 
+/**
+ * Manages the lifecycle of popups: rendering, positioning, and cleanup.
+ * Supports element-anchored, cursor-following, target, and interactive placement modes.
+ */
 export class PopupManager {
   private popupEl: HTMLElement | null = null
   private styleEl: HTMLStyleElement | null = null
@@ -20,11 +24,16 @@ export class PopupManager {
       : option as Exclude<PopupOption, boolean>
   }
 
-  // Вызывается при hover / click на элемент
+  /**
+   * Shows the popup for the given element and item.
+   * @param targetEl - The SVG element that triggered the popup
+   * @param item - Data item associated with the element
+   * @param event - Mouse event used for cursor-based positioning
+   */
   show(targetEl: SVGElement, item: SvgicItem, event: MouseEvent): void {
     this.cancelHideTimer()
 
-    // Сбрасываем предыдущее состояние (смена элемента)
+    // Reset previous state (element change)
     if (this.onMouseMove) {
       document.removeEventListener('mousemove', this.onMouseMove)
       this.onMouseMove = null
@@ -53,14 +62,14 @@ export class PopupManager {
       this.onMouseMove = (e: MouseEvent) => this.updatePosition(targetEl, e)
       document.addEventListener('mousemove', this.onMouseMove)
     } else {
-      // element mode: следим за изменением viewBox (pan/zoom)
+      // element mode: track viewBox changes (pan/zoom)
       const svg = targetEl.ownerSVGElement
       if (svg) {
         this.onViewChange = () => this.updatePosition(targetEl, event)
         svg.addEventListener('svgic:viewchange', this.onViewChange)
       }
 
-      // interactive mode: попап не скрывается пока курсор на нём
+      // interactive mode: popup stays visible while cursor is over it
       const cfg = this.config as { interactive?: boolean }
       if (cfg.interactive) {
         this.popupEl.addEventListener('mouseenter', () => this.cancelHideTimer())
@@ -69,7 +78,7 @@ export class PopupManager {
     }
   }
 
-  // Вызывается при mouseleave / второй клик для скрытия
+  /** Hides the popup. Respects `hideDelay` for interactive mode. */
   hide(): void {
     const delay = this.effectiveHideDelay
     if (delay > 0) {
@@ -128,7 +137,7 @@ export class PopupManager {
     const cfg = this.config as { render?: unknown; template?: unknown; bind?: unknown }
     const hasCustomContent = !!(cfg.render || cfg.template)
 
-    // Дефолтный попап показываем только если есть title
+    // Default popup is shown only if item has a title
     if (!hasCustomContent && !item.title) {
       this.popupEl = null
       return

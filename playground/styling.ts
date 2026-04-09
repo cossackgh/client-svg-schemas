@@ -1,20 +1,20 @@
 import { Svgic } from 'svgic'
 import type { SvgicItem, SvgicStyleConfig } from 'svgic'
 
-// --- данные ---
+// --- data ---
 
 const rooms: SvgicItem[] = [
-  { id: 'room-101', title: 'Переговорная А', description: 'Основная переговорная, оснащена проектором и видеосвязью', status: 'free', capacity: 12 },
-  { id: 'room-102', title: 'Опен-спейс', description: 'Рабочее пространство продуктовой команды', status: 'busy', capacity: 30 },
-  { id: 'room-103', title: 'Кухня', description: 'Зона отдыха и питания, кофемашина, холодильник', status: 'free', capacity: 20 },
-  { id: 'room-201', title: 'Кабинет директора', description: 'Кабинет и приёмная генерального директора', status: 'busy', capacity: 4 },
-  { id: 'room-202', title: 'Бухгалтерия', description: 'Финансовый и бухгалтерский отдел', status: 'free', capacity: 8 },
-  { id: 'room-203', title: 'Серверная', description: 'Серверное оборудование и сетевая инфраструктура', status: 'restricted', capacity: 2 },
+  { id: 'room-101', title: 'Conference Room A', description: 'Main meeting room with projector and video conferencing', status: 'free', capacity: 12 },
+  { id: 'room-102', title: 'Open Space', description: 'Product team workspace', status: 'busy', capacity: 30 },
+  { id: 'room-103', title: 'Kitchen', description: 'Break room with coffee machine and fridge', status: 'free', capacity: 20 },
+  { id: 'room-201', title: "CEO's Office", description: "CEO's office and reception area", status: 'busy', capacity: 4 },
+  { id: 'room-202', title: 'Accounting', description: 'Finance and accounting department', status: 'free', capacity: 8 },
+  { id: 'room-203', title: 'Server Room', description: 'Server hardware and network infrastructure', status: 'restricted', capacity: 2 },
 ]
 
 const byStatus = (status: string) => rooms.filter(r => r.status === status).map(r => r.id)
 
-// --- стилизация ---
+// --- styling ---
 
 const STYLE_CONFIG: SvgicStyleConfig = {
   default: {
@@ -36,7 +36,7 @@ const STYLE_CONFIG: SvgicStyleConfig = {
   },
 }
 
-// --- UI-элементы ---
+// --- UI elements ---
 
 const infoHint  = document.getElementById('info-hint')!
 const infoCard  = document.getElementById('info-card')!
@@ -49,7 +49,7 @@ const eventLog  = document.getElementById('event-log')!
 const hlButtons = document.querySelectorAll<HTMLButtonElement>('.hl-btn')
 const btnClear  = document.getElementById('btn-clear')!
 
-// --- вспомогательные ---
+// --- helpers ---
 
 function showInfo(item: SvgicItem | null) {
   if (!item) {
@@ -64,24 +64,24 @@ function showInfo(item: SvgicItem | null) {
   infoId.textContent    = item.id
 
   const status = item.status as string | undefined
-  const labels: Record<string, string> = { free: 'Свободно', busy: 'Занято', restricted: 'Ограничен доступ' }
+  const labels: Record<string, string> = { free: 'Available', busy: 'Occupied', restricted: 'Restricted' }
   infoStatus.innerHTML = status
     ? `<span class="status-badge status-${status}">${labels[status] ?? status}</span>`
     : '—'
-  infoCap.textContent = item.capacity ? `${item.capacity} чел.` : '—'
+  infoCap.textContent = item.capacity ? `${item.capacity} people` : '—'
 }
 
 function addLog(type: 'click' | 'hover' | 'leave', id: string, item: SvgicItem | null) {
   const el = document.createElement('div')
   el.className = `log-entry ${type}`
-  el.textContent = `${type.padEnd(5)}  ${item?.title ?? (id || 'пусто')}`
+  el.textContent = `${type.padEnd(5)}  ${item?.title ?? (id || 'empty')}`
   const h2 = eventLog.querySelector('h2')!
   h2.after(el)
   const entries = eventLog.querySelectorAll('.log-entry')
   if (entries.length > 30) entries[entries.length - 1].remove()
 }
 
-// --- инициализация клиента ---
+// --- client initialization ---
 
 const client = new Svgic('#schema-container', {
   src: '/demo.svg',
@@ -114,9 +114,9 @@ client.on('click', (id, item) => {
 
 ;(window as unknown as Record<string, unknown>).client = client
 
-// --- highlight-кнопки ---
+// --- highlight buttons ---
 
-// Маппинг действий кнопок: 'all-free' и 'all-busy' показывают оба состояния одновременно
+// Button action mapping: 'all-free' and 'all-busy' show both states simultaneously
 const HL_ACTIONS: Record<string, { state: string; ids: string[] }[]> = {
   'free':       [{ state: 'free',       ids: byStatus('free') }],
   'busy':       [{ state: 'busy',       ids: byStatus('busy') }],
@@ -136,12 +136,12 @@ hlButtons.forEach(btn => {
     const action = btn.dataset.hl!
     const isActive = btn.classList.contains('active')
 
-    // Сбросить все кнопки и все состояния
+    // Reset all buttons and states
     hlButtons.forEach(b => b.classList.remove('active'))
     client.clearHighlight()
 
     if (!isActive) {
-      // Применить выбранное действие
+      // Apply selected action
       const mappings = HL_ACTIONS[action] ?? []
       mappings.forEach(({ state, ids }) => client.setHighlight(state, ids))
       btn.classList.add('active')

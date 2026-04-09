@@ -6,10 +6,10 @@ export interface BoundElement {
 }
 
 /**
- * Привязывает SvgicItem[] к SVG-элементам по полю item.id.
- * Возвращает Map: itemId → { element, item }.
- * Элементы, не найденные в SVG, пропускаются с предупреждением.
- * Дубликаты id в data пропускаются с предупреждением.
+ * Binds SvgicItem[] to SVG elements by item.id field.
+ * Returns Map: itemId → { element, item }.
+ * Items not found in SVG are skipped with a warning.
+ * Duplicate ids in data are skipped with a warning.
  */
 export function mapData(
   svg: SVGSVGElement,

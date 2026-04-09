@@ -4,12 +4,12 @@ import { ZoomPlugin } from 'svgic/plugins/zoom'
 import type { ZoomPluginInstance } from 'svgic/plugins/zoom'
 
 const rooms: SvgicItem[] = [
-  { id: 'room-101', title: 'Переговорная А' },
-  { id: 'room-102', title: 'Опен-спейс' },
-  { id: 'room-103', title: 'Кухня' },
-  { id: 'room-201', title: 'Кабинет директора' },
-  { id: 'room-202', title: 'Бухгалтерия' },
-  { id: 'room-203', title: 'Серверная' },
+  { id: 'room-101', title: 'Conference Room A' },
+  { id: 'room-102', title: 'Open Space' },
+  { id: 'room-103', title: 'Kitchen' },
+  { id: 'room-201', title: "CEO's Office" },
+  { id: 'room-202', title: 'Accounting' },
+  { id: 'room-203', title: 'Server Room' },
 ]
 
 // --- UI ---
@@ -23,7 +23,7 @@ const focusBtns   = document.querySelectorAll<HTMLButtonElement>('[data-focus]')
 
 // --- state ---
 
-let wheelMode: 'ctrl' | 'free' = 'ctrl'
+let wheelMode: 'ctrl' | 'always' = 'ctrl'
 let focusOnClick = false
 let zoom: ZoomPluginInstance
 let client: Svgic
@@ -41,7 +41,7 @@ function updateState() {
 function addLog(type: 'click' | 'hover' | 'leave', id: string, item: SvgicItem | null) {
   const el = document.createElement('div')
   el.className = `log-entry ${type}`
-  el.textContent = `${type.padEnd(5)}  ${item?.title ?? (id || 'пусто')}`
+  el.textContent = `${type.padEnd(5)}  ${item?.title ?? (id || 'empty')}`
   const h2 = eventLog.querySelector('h2')!
   h2.after(el)
   const entries = eventLog.querySelectorAll('.log-entry')
@@ -87,7 +87,7 @@ function createClient() {
     addLog('leave', id, item)
   })
 
-  // Обновляем state при каждом изменении viewBox
+  // Update state on every viewBox change
   const svgEl = document.querySelector('#schema-container svg')
   if (svgEl) {
     svgEl.addEventListener('svgic:viewchange', () => updateState())
@@ -101,7 +101,7 @@ function createClient() {
   ;(window as unknown as Record<string, unknown>).client = client
 }
 
-// --- кнопки управления ---
+// --- control buttons ---
 
 document.getElementById('btn-zoom-in')!.addEventListener('click', () => {
   zoom.zoomTo(zoom.getState().scale * 1.5)
@@ -122,11 +122,11 @@ document.getElementById('btn-focus-203')!.addEventListener('click', () => {
   zoom.focusElement('room-203', { scale: 3 })
 })
 
-// --- переключатели ---
+// --- toggles ---
 
 wheelBtns.forEach(btn => {
   btn.addEventListener('click', () => {
-    wheelMode = btn.dataset.wheel as 'ctrl' | 'free'
+    wheelMode = btn.dataset.wheel as 'ctrl' | 'always'
     wheelBtns.forEach(b => b.classList.toggle('active', b === btn))
     client.destroy()
     createClient()
@@ -142,6 +142,6 @@ focusBtns.forEach(btn => {
   })
 })
 
-// --- старт ---
+// --- start ---
 
 createClient()

@@ -16,25 +16,25 @@ describe('mapData', () => {
     vi.restoreAllMocks()
   })
 
-  it('привязывает item к SVG-элементу по id', () => {
+  it('binds item to SVG element by id', () => {
     const svg = makeSvg(`
       <rect id="room-1" x="0" y="0" width="10" height="10"/>
       <rect id="room-2" x="10" y="0" width="10" height="10"/>
     `)
     const data: SvgicItem[] = [
-      { id: 'room-1', title: 'Комната 1' },
-      { id: 'room-2', title: 'Комната 2' },
+      { id: 'room-1', title: 'Room 1' },
+      { id: 'room-2', title: 'Room 2' },
     ]
 
     const result = mapData(svg, data)
 
     expect(result.size).toBe(2)
-    expect(result.get('room-1')?.item.title).toBe('Комната 1')
+    expect(result.get('room-1')?.item.title).toBe('Room 1')
     expect(result.get('room-1')?.element.tagName.toLowerCase()).toBe('rect')
-    expect(result.get('room-2')?.item.title).toBe('Комната 2')
+    expect(result.get('room-2')?.item.title).toBe('Room 2')
   })
 
-  it('хранит ссылку на тот же DOM-элемент', () => {
+  it('stores reference to the same DOM element', () => {
     const svg = makeSvg(`<rect id="r1"/>`)
     const data: SvgicItem[] = [{ id: 'r1' }]
 
@@ -43,7 +43,7 @@ describe('mapData', () => {
     expect(result.get('r1')?.element).toBe(svg.getElementById('r1'))
   })
 
-  it('пропускает item без соответствующего SVG-элемента', () => {
+  it('skips item with no matching SVG element', () => {
     const svg = makeSvg(`<rect id="room-1"/>`)
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const data: SvgicItem[] = [
@@ -58,28 +58,28 @@ describe('mapData', () => {
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('"missing"'))
   })
 
-  it('пропускает дубликаты id в data', () => {
+  it('skips duplicate ids in data', () => {
     const svg = makeSvg(`<rect id="room-1"/>`)
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const data: SvgicItem[] = [
-      { id: 'room-1', title: 'Первый' },
-      { id: 'room-1', title: 'Дубликат' },
+      { id: 'room-1', title: 'First' },
+      { id: 'room-1', title: 'Duplicate' },
     ]
 
     const result = mapData(svg, data)
 
     expect(result.size).toBe(1)
-    expect(result.get('room-1')?.item.title).toBe('Первый')
+    expect(result.get('room-1')?.item.title).toBe('First')
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('"room-1"'))
   })
 
-  it('возвращает пустой Map при пустом data', () => {
+  it('returns empty Map for empty data', () => {
     const svg = makeSvg(`<rect id="room-1"/>`)
     const result = mapData(svg, [])
     expect(result.size).toBe(0)
   })
 
-  it('сохраняет кастомные поля item', () => {
+  it('preserves custom item fields', () => {
     const svg = makeSvg(`<rect id="zone-a"/>`)
     const data: SvgicItem[] = [{ id: 'zone-a', capacity: 50, status: 'free' }]
 

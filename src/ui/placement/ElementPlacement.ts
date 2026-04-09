@@ -5,6 +5,10 @@ const DEFAULTS = {
   offset: { x: 0, y: -8 },
 }
 
+/**
+ * Calculates popup position anchored to an SVG element's bounding rect.
+ * Optionally flips the popup when it would overflow the viewport.
+ */
 export function getElementPosition(
   popupEl: HTMLElement,
   targetEl: SVGElement,
@@ -20,21 +24,21 @@ export function getElementPosition(
   let x = 0
   let y = 0
 
-  // Горизонталь
+  // Horizontal
   if (anchor.includes('left')) {
     x = rect.left - popupRect.width + ox
   } else if (anchor.includes('right')) {
     x = rect.right + ox
   } else {
-    // center по горизонтали
+    // center horizontally
     x = rect.left + rect.width / 2 - popupRect.width / 2 + ox
   }
 
-  // Вертикаль
+  // Vertical
   if (anchor.startsWith('bottom')) {
     y = rect.bottom + oy
   } else if (anchor === 'center' || anchor === 'left' || anchor === 'right') {
-    // вертикальное центрирование: center, left, right
+    // vertical centering: center, left, right
     y = rect.top + rect.height / 2 - popupRect.height / 2 + oy
   } else {
     // top-*
@@ -45,9 +49,9 @@ export function getElementPosition(
     const vw = window.innerWidth
     const vh = window.innerHeight
 
-    // Горизонтальный flip с учётом anchor:
-    // если popup был справа от элемента и уходит за правый край — переносим влево
-    // если popup был слева и уходит за левый край — переносим вправо
+    // Horizontal flip based on anchor:
+    // if popup was to the right and goes past right edge — move it left
+    // if popup was to the left and goes past left edge — move it right
     if (x + popupRect.width > vw) {
       x = anchor.includes('right')
         ? rect.left - popupRect.width - Math.abs(ox)
@@ -59,7 +63,7 @@ export function getElementPosition(
         : rect.left
     }
 
-    // Вертикальный flip
+    // Vertical flip
     if (y < 0) {
       y = rect.bottom + Math.abs(oy)
     } else if (y + popupRect.height > vh) {

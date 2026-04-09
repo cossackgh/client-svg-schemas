@@ -35,11 +35,11 @@ afterEach(() => {
 // ---- init ----
 
 describe('Svgic — init', () => {
-  it('бросает ошибку если контейнер не найден', () => {
+  it('throws if container is not found', () => {
     expect(() => new Svgic('#nonexistent', { src: '' })).toThrow('[svgic]')
   })
 
-  it('принимает CSS-селектор', async () => {
+  it('accepts CSS selector', async () => {
     vi.mocked(loadSvg).mockResolvedValue(makeSvgEl())
     const client = new Svgic('#test-app', { src: '/test.svg' })
     await client.ready
@@ -47,7 +47,7 @@ describe('Svgic — init', () => {
     client.destroy()
   })
 
-  it('принимает Element напрямую', async () => {
+  it('accepts Element directly', async () => {
     vi.mocked(loadSvg).mockResolvedValue(makeSvgEl())
     const client = new Svgic(container, { src: '' })
     await client.ready
@@ -55,14 +55,14 @@ describe('Svgic — init', () => {
     client.destroy()
   })
 
-  it('getElement() возвращает null до ready', () => {
+  it('getElement() returns null before ready', () => {
     vi.mocked(loadSvg).mockResolvedValue(makeSvgEl())
     const client = new Svgic(container, { src: '' })
     expect(client.getElement()).toBeNull()
     client.destroy()
   })
 
-  it('getElement() возвращает SVGSVGElement после ready', async () => {
+  it('getElement() returns SVGSVGElement after ready', async () => {
     vi.mocked(loadSvg).mockResolvedValue(makeSvgEl())
     const client = new Svgic(container, { src: '' })
     await client.ready
@@ -74,7 +74,7 @@ describe('Svgic — init', () => {
 // ---- use() ----
 
 describe('Svgic — use()', () => {
-  it('вызывает onInit плагина после ready', async () => {
+  it('calls plugin onInit after ready', async () => {
     vi.mocked(loadSvg).mockResolvedValue(makeSvgEl())
     const plugin: SvgicPlugin = { name: 'p', onInit: vi.fn() }
     const client = new Svgic(container, { src: '', plugins: [plugin] })
@@ -84,7 +84,7 @@ describe('Svgic — use()', () => {
     client.destroy()
   })
 
-  it('use() на готовом клиенте вызывает onInit сразу', async () => {
+  it('use() on ready client calls onInit immediately', async () => {
     vi.mocked(loadSvg).mockResolvedValue(makeSvgEl())
     const client = new Svgic(container, { src: '' })
     await client.ready
@@ -94,11 +94,11 @@ describe('Svgic — use()', () => {
     client.destroy()
   })
 
-  it('use() до ready не вызывает onInit сразу', () => {
+  it('use() before ready does not call onInit immediately', () => {
     vi.mocked(loadSvg).mockResolvedValue(makeSvgEl())
     const plugin: SvgicPlugin = { name: 'early', onInit: vi.fn() }
     const client = new Svgic(container, { src: '', plugins: [plugin] })
-    // до await ready — onInit ещё не должен быть вызван
+    // before await ready — onInit should not have been called yet
     expect(plugin.onInit).not.toHaveBeenCalled()
     client.destroy()
   })
@@ -107,7 +107,7 @@ describe('Svgic — use()', () => {
 // ---- on() ----
 
 describe('Svgic — on()', () => {
-  it('регистрирует click-обработчик и вызывает его при клике на bound-элемент', async () => {
+  it('registers click handler and calls it on click on bound element', async () => {
     const svgEl = makeSvgEl('<g id="rooms"><rect id="room-1"/></g>')
     vi.mocked(loadSvg).mockResolvedValue(svgEl)
 
@@ -128,7 +128,7 @@ describe('Svgic — on()', () => {
     client.destroy()
   })
 
-  it('on() возвращает this для цепочки вызовов', async () => {
+  it('on() returns this for method chaining', async () => {
     vi.mocked(loadSvg).mockResolvedValue(makeSvgEl())
     const client = new Svgic(container, { src: '' })
     await client.ready
@@ -140,7 +140,7 @@ describe('Svgic — on()', () => {
 // ---- setData() ----
 
 describe('Svgic — setData()', () => {
-  it('обновляет привязку — новый bound-элемент получает обработчик', async () => {
+  it('updates binding — new bound element gets handler', async () => {
     const svgEl = makeSvgEl('<g id="rooms"><rect id="r1"/><rect id="r2"/></g>')
     vi.mocked(loadSvg).mockResolvedValue(svgEl)
 
@@ -154,11 +154,11 @@ describe('Svgic — setData()', () => {
     const handler = vi.fn()
     client.on('click', handler)
 
-    // r2 ещё не привязан — click не вызовет handler с id='r2'
+    // r2 is not bound yet — click will not call handler with id='r2'
     svgEl.getElementById('r2')!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     expect(handler).not.toHaveBeenCalledWith('r2', expect.anything())
 
-    // привязываем r2 через setData
+    // bind r2 via setData
     client.setData([{ id: 'r2', title: 'R2' }])
     handler.mockClear()
 
@@ -167,7 +167,7 @@ describe('Svgic — setData()', () => {
     client.destroy()
   })
 
-  it('setData() до ready (svgEl не готов) — не бросает', () => {
+  it('setData() before ready (svgEl not ready) — does not throw', () => {
     vi.mocked(loadSvg).mockResolvedValue(makeSvgEl())
     const client = new Svgic(container, { src: '' })
     expect(() => client.setData([{ id: 'x' }])).not.toThrow()
@@ -178,7 +178,7 @@ describe('Svgic — setData()', () => {
 // ---- destroy() ----
 
 describe('Svgic — destroy()', () => {
-  it('удаляет SVG из DOM', async () => {
+  it('removes SVG from DOM', async () => {
     vi.mocked(loadSvg).mockResolvedValue(makeSvgEl())
     const client = new Svgic(container, { src: '' })
     await client.ready
@@ -187,7 +187,7 @@ describe('Svgic — destroy()', () => {
     expect(container.querySelector('svg')).toBeNull()
   })
 
-  it('getElement() возвращает null после destroy', async () => {
+  it('getElement() returns null after destroy', async () => {
     vi.mocked(loadSvg).mockResolvedValue(makeSvgEl())
     const client = new Svgic(container, { src: '' })
     await client.ready
@@ -195,7 +195,7 @@ describe('Svgic — destroy()', () => {
     expect(client.getElement()).toBeNull()
   })
 
-  it('вызывает onDestroy на каждом плагине', async () => {
+  it('calls onDestroy on each plugin', async () => {
     vi.mocked(loadSvg).mockResolvedValue(makeSvgEl())
     const plugin: SvgicPlugin = { name: 'p', onDestroy: vi.fn() }
     const client = new Svgic(container, { src: '', plugins: [plugin] })
@@ -205,7 +205,7 @@ describe('Svgic — destroy()', () => {
     expect(plugin.onDestroy).toHaveBeenCalledWith(client)
   })
 
-  it('после destroy click-обработчики не вызываются', async () => {
+  it('after destroy click handlers are not called', async () => {
     const svgEl = makeSvgEl('<g id="rooms"><rect id="room-1"/></g>')
     vi.mocked(loadSvg).mockResolvedValue(svgEl)
 

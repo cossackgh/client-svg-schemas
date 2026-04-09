@@ -2,22 +2,22 @@ import { Svgic } from 'svgic'
 import type { SvgicItem, PopupOption, SvgicStyleConfig } from 'svgic'
 import { ZoomPlugin } from 'svgic/plugins/zoom'
 
-// --- данные ---
+// --- data ---
 
 const rooms: SvgicItem[] = [
-  { id: 'room-101', title: 'Переговорная А', description: 'Основная переговорная, оснащена проектором и видеосвязью', status: 'free', capacity: 12 },
-  { id: 'room-102', title: 'Опен-спейс', description: 'Рабочее пространство продуктовой команды', status: 'busy', capacity: 30 },
-  { id: 'room-103', title: 'Кухня', description: 'Зона отдыха и питания, кофемашина, холодильник', status: 'free', capacity: 20 },
-  { id: 'room-201', title: 'Кабинет директора', description: 'Кабинет и приёмная генерального директора', status: 'busy', capacity: 4 },
-  { id: 'room-202', title: 'Бухгалтерия', description: 'Финансовый и бухгалтерский отдел', status: 'free', capacity: 8 },
-  { id: 'room-203', title: 'Серверная', description: 'Серверное оборудование и сетевая инфраструктура', status: 'restricted', capacity: 2 },
+  { id: 'room-101', title: 'Conference Room A', description: 'Main meeting room with projector and video conferencing', status: 'free', capacity: 12 },
+  { id: 'room-102', title: 'Open Space', description: 'Product team workspace', status: 'busy', capacity: 30 },
+  { id: 'room-103', title: 'Kitchen', description: 'Break room with coffee machine and fridge', status: 'free', capacity: 20 },
+  { id: 'room-201', title: "CEO's Office", description: "CEO's office and reception area", status: 'busy', capacity: 4 },
+  { id: 'room-202', title: 'Accounting', description: 'Finance and accounting department', status: 'free', capacity: 8 },
+  { id: 'room-203', title: 'Server Room', description: 'Server hardware and network infrastructure', status: 'restricted', capacity: 2 },
 ]
 
-// --- popup-режимы ---
+// --- popup modes ---
 
 type PopupMode = 'element' | 'cursor' | 'target' | 'template' | 'click' | 'interactive' | 'off'
 
-const STATUS_LABELS: Record<string, string> = { free: 'Свободно', busy: 'Занято', restricted: 'Ограничен доступ' }
+const STATUS_LABELS: Record<string, string> = { free: 'Available', busy: 'Occupied', restricted: 'Restricted' }
 
 const POPUP_CONFIGS: Record<PopupMode, PopupOption> = {
   element:  { placement: 'element', anchor: 'top-center', flip: true },
@@ -56,7 +56,7 @@ const POPUP_CONFIGS: Record<PopupMode, PopupOption> = {
       const link = document.createElement('a')
       link.className = 'interactive-popup__link'
       link.href = '#'
-      link.textContent = 'Подробнее →'
+      link.textContent = 'Details →'
       link.addEventListener('click', e => {
         e.preventDefault()
         showInfo(item)
@@ -71,14 +71,14 @@ const POPUP_CONFIGS: Record<PopupMode, PopupOption> = {
 const MODE_HINTS: Record<PopupMode, string> = {
   element:     '',
   cursor:      '',
-  target:      '← hover сюда',
+  target:      '← hover here',
   template:    '',
   click:       'trigger: click',
   interactive: 'interactive: true',
   off:         '',
 }
 
-// --- стилизация (базовая: default + hover) ---
+// --- styling (basic: default + hover) ---
 
 const STYLE_CONFIG: SvgicStyleConfig = {
   default: {
@@ -91,7 +91,7 @@ const STYLE_CONFIG: SvgicStyleConfig = {
   },
 }
 
-// --- UI-элементы ---
+// --- UI elements ---
 
 const infoHint      = document.getElementById('info-hint')!
 const infoCard      = document.getElementById('info-card')!
@@ -104,13 +104,13 @@ const eventLog      = document.getElementById('event-log')!
 const infoPanelMode = document.getElementById('info-panel-mode')!
 const modeButtons   = document.querySelectorAll<HTMLButtonElement>('.mode-btn')
 
-// --- состояние ---
+// --- state ---
 
 let activeId:    string | null = null
 let currentMode: PopupMode = 'element'
 let client: Svgic
 
-// --- вспомогательные ---
+// --- helpers ---
 
 function showInfo(item: SvgicItem | null) {
   if (currentMode === 'target') return
@@ -127,11 +127,11 @@ function showInfo(item: SvgicItem | null) {
   infoId.textContent    = item.id
 
   const status = item.status as string | undefined
-  const labels: Record<string, string> = { free: 'Свободно', busy: 'Занято', restricted: 'Ограничен доступ' }
+  const labels: Record<string, string> = { free: 'Available', busy: 'Occupied', restricted: 'Restricted' }
   infoStatus.innerHTML = status
     ? `<span class="status-badge status-${status}">${labels[status] ?? status}</span>`
     : '—'
-  infoCap.textContent = item.capacity ? `${item.capacity} чел.` : '—'
+  infoCap.textContent = item.capacity ? `${item.capacity} people` : '—'
 }
 
 function showInfoForTarget(item: SvgicItem | null) {
@@ -147,24 +147,24 @@ function showInfoForTarget(item: SvgicItem | null) {
   infoId.textContent    = item.id
 
   const status = item.status as string | undefined
-  const labels: Record<string, string> = { free: 'Свободно', busy: 'Занято', restricted: 'Ограничен доступ' }
+  const labels: Record<string, string> = { free: 'Available', busy: 'Occupied', restricted: 'Restricted' }
   infoStatus.innerHTML = status
     ? `<span class="status-badge status-${status}">${labels[status] ?? status}</span>`
     : '—'
-  infoCap.textContent = item.capacity ? `${item.capacity} чел.` : '—'
+  infoCap.textContent = item.capacity ? `${item.capacity} people` : '—'
 }
 
 function addLog(type: 'click' | 'hover' | 'leave', id: string, item: SvgicItem | null) {
   const el = document.createElement('div')
   el.className = `log-entry ${type}`
-  el.textContent = `${type.padEnd(5)}  ${item?.title ?? (id || 'пусто')}`
+  el.textContent = `${type.padEnd(5)}  ${item?.title ?? (id || 'empty')}`
   const h2 = eventLog.querySelector('h2')!
   h2.after(el)
   const entries = eventLog.querySelectorAll('.log-entry')
   if (entries.length > 30) entries[entries.length - 1].remove()
 }
 
-// --- инициализация клиента ---
+// --- client initialization ---
 
 function createClient(mode: PopupMode): Svgic {
   const zoom = ZoomPlugin({
@@ -207,7 +207,7 @@ function createClient(mode: PopupMode): Svgic {
   return instance
 }
 
-// --- переключение режима ---
+// --- mode switching ---
 
 function switchMode(mode: PopupMode) {
   currentMode = mode
@@ -229,7 +229,7 @@ function switchMode(mode: PopupMode) {
   })
 }
 
-// --- старт ---
+// --- start ---
 
 client = createClient(currentMode)
 ;(window as unknown as Record<string, unknown>).client = client

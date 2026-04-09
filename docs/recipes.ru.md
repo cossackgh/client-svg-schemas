@@ -1,22 +1,22 @@
 # svgic — Recipes
 
-Practical examples for common usage scenarios.
+Практические примеры для типовых сценариев использования.
 
-## Table of Contents
+## Содержание
 
-- [Office Map with Color Status](#office-map-with-color-status)
-- [Floor Switching](#floor-switching)
-- [Zoom + Element Focus + Reset Button](#zoom--element-focus--reset-button)
-- [Popup with a Button Inside](#popup-with-a-button-inside)
-- [Detail Panel Instead of Popup](#detail-panel-instead-of-popup)
-- [Custom Plugin](#custom-plugin)
-- [Vue: Reactive Data and Highlighting](#vue-reactive-data-and-highlighting)
+- [Карта офиса с цветовым статусом](#карта-офиса-с-цветовым-статусом)
+- [Переключение этажей](#переключение-этажей)
+- [Zoom + фокус на элементе + кнопка сброса](#zoom--фокус-на-элементе--кнопка-сброса)
+- [Попап с кнопкой внутри](#попап-с-кнопкой-внутри)
+- [Детальная панель вместо попапа](#детальная-панель-вместо-попапа)
+- [Кастомный плагин](#кастомный-плагин)
+- [Vue: реактивные данные и подсветка](#vue-реактивные-данные-и-подсветка)
 
 ---
 
-## Office Map with Color Status
+## Карта офиса с цветовым статусом
 
-A typical scenario: a room map where each room has a status (`free` / `busy`), a popup is shown on hover, and clicking opens a detail page.
+Типовой сценарий: схема комнат, каждая комната имеет статус (`free` / `busy`), при наведении показывается попап, при клике — открывается детальная страница.
 
 ```ts
 import { Svgic } from 'svgic'
@@ -29,9 +29,9 @@ interface Room {
 }
 
 const rooms: Room[] = [
-  { id: 'room-101', title: 'Conference Room A', capacity: 8,  status: 'free' },
-  { id: 'room-102', title: 'Conference Room B', capacity: 4,  status: 'busy' },
-  { id: 'room-201', title: 'Open Space',        capacity: 20, status: 'free' },
+  { id: 'room-101', title: 'Переговорная А', capacity: 8, status: 'free' },
+  { id: 'room-102', title: 'Переговорная Б', capacity: 4, status: 'busy' },
+  { id: 'room-201', title: 'Опен-спейс',    capacity: 20, status: 'free' },
 ]
 
 const client = new Svgic('#map', {
@@ -57,12 +57,12 @@ const client = new Svgic('#map', {
     placement: 'cursor',
     render(item) {
       const room = item as Room
-      const statusLabel = room.status === 'free' ? '🟢 Available' : '🔴 Occupied'
+      const statusLabel = room.status === 'free' ? '🟢 Свободна' : '🔴 Занята'
       return `
         <div style="min-width: 160px">
           <strong>${room.title}</strong>
           <div style="margin-top: 4px; font-size: 13px; color: #64748b">
-            Capacity: ${room.capacity} people
+            Вместимость: ${room.capacity} чел.
           </div>
           <div style="margin-top: 4px; font-size: 13px">${statusLabel}</div>
         </div>
@@ -73,13 +73,13 @@ const client = new Svgic('#map', {
 
 await client.ready
 
-// Apply color scheme from data
+// Применить цветовую схему из данных
 const freeIds = rooms.filter(r => r.status === 'free').map(r => r.id)
 const busyIds = rooms.filter(r => r.status === 'busy').map(r => r.id)
 client.setHighlight('free', freeIds)
 client.setHighlight('busy', busyIds)
 
-// Navigate to room page on click
+// Переход на страницу комнаты по клику
 client.on('click', (id) => {
   if (id) window.location.href = `/rooms/${id}`
 })
@@ -87,9 +87,9 @@ client.on('click', (id) => {
 
 ---
 
-## Floor Switching
+## Переключение этажей
 
-A multi-floor building diagram. The user switches floors — the SVG and data change accordingly.
+Схема здания с несколькими этажами. Пользователь переключает этаж — SVG и данные меняются.
 
 ```ts
 import { Svgic } from 'svgic'
@@ -109,37 +109,37 @@ const options = {
 let client = new Svgic('#map', { ...options, ...floors['1'] })
 await client.ready
 
-// Switch floor
+// Переключение этажа
 async function switchFloor(floor: string) {
   client.destroy()
   client = new Svgic('#map', { ...options, ...floors[floor] })
   await client.ready
 }
 
-// Button handlers
+// Обработчики кнопок
 document.querySelectorAll<HTMLButtonElement>('[data-floor]').forEach(btn => {
   btn.addEventListener('click', () => switchFloor(btn.dataset.floor!))
 })
 ```
 
-> **Tip:** Always call `client.destroy()` before creating a new instance. This removes all listeners and clears the SVG from the DOM.
+> **Совет:** `client.destroy()` перед созданием нового — обязательно. Это снимает все слушатели и удаляет SVG из DOM.
 
 ---
 
-## Zoom + Element Focus + Reset Button
+## Zoom + фокус на элементе + кнопка сброса
 
-ZoomPlugin with auto-focus on the clicked room and a view reset button.
+ZoomPlugin с автофокусом на кликнутой комнате и кнопкой сброса вида.
 
 ```ts
 import { Svgic } from 'svgic'
 import { ZoomPlugin } from 'svgic/plugins/zoom'
 
 const zoom = ZoomPlugin({
-  wheelMode: 'ctrl',    // zoom with wheel only when Ctrl is held
+  wheelMode: 'ctrl',    // zoom колесом только при зажатом Ctrl
   minScale: 0.5,
   maxScale: 6,
-  focusOnClick: true,   // auto-focus on click
-  focusScale: 3,        // scale when focusing
+  focusOnClick: true,   // авто-фокус при клике
+  focusScale: 3,        // масштаб при фокусе
 })
 
 const client = new Svgic('#map', {
@@ -152,12 +152,12 @@ const client = new Svgic('#map', {
 
 await client.ready
 
-// Reset button
+// Кнопка сброса
 document.querySelector('#btn-reset')?.addEventListener('click', () => {
   zoom.reset()
 })
 
-// Focus from an external list
+// Фокус из внешнего списка
 document.querySelectorAll<HTMLElement>('[data-room]').forEach(el => {
   el.addEventListener('click', () => {
     zoom.focusElement(el.dataset.room!, { scale: 3 })
@@ -167,9 +167,9 @@ document.querySelectorAll<HTMLElement>('[data-room]').forEach(el => {
 
 ---
 
-## Popup with a Button Inside
+## Попап с кнопкой внутри
 
-The popup contains a link or button — it must stay visible while the cursor is on it.
+Попап содержит ссылку или кнопку — он должен оставаться видимым, пока курсор находится на нём.
 
 ```ts
 import { Svgic } from 'svgic'
@@ -182,7 +182,7 @@ const client = new Svgic('#map', {
   popup: {
     placement: 'element',
     anchor: 'top-center',
-    interactive: true,   // popup stays open when cursor moves onto it
+    interactive: true,   // попап не закрывается при наезде курсора
 
     render(item) {
       const el = document.createElement('div')
@@ -192,7 +192,7 @@ const client = new Svgic('#map', {
       `
       const link = document.createElement('a')
       link.href = `/rooms/${item.id}`
-      link.textContent = 'Open →'
+      link.textContent = 'Открыть →'
       link.style.cssText = 'font-size: 13px; color: #3b82f6; text-decoration: none'
       el.appendChild(link)
       return el
@@ -201,19 +201,19 @@ const client = new Svgic('#map', {
 })
 ```
 
-> **Important:** `render` returns an `HTMLElement` — links and buttons work natively. When using HTML strings via `innerHTML`, make sure data from `item` does not contain user input (XSS). Use `textContent` for text fields.
+> **Важно:** `render` возвращает `HTMLElement` — ссылки и кнопки работают нативно. При использовании HTML-строки через `innerHTML` убедитесь, что данные из `item` не содержат пользовательского ввода (XSS). Используйте `textContent` для текстовых полей.
 
 ---
 
-## Detail Panel Instead of Popup
+## Детальная панель вместо попапа
 
-On mobile devices, a popup over the diagram is inconvenient. It is better to show information in a fixed panel next to it.
+На мобильных устройствах попап поверх схемы неудобен. Лучше показывать информацию в фиксированной панели рядом.
 
 ```html
 <div id="map-container">
   <div id="map"></div>
   <aside id="info-panel">
-    <p>Select an element on the diagram</p>
+    <p>Выберите элемент на схеме</p>
   </aside>
 </div>
 ```
@@ -239,7 +239,7 @@ const client = new Svgic('#map', {
       return `
         <h3>${item.title ?? item.id}</h3>
         <p>${item.description ?? '—'}</p>
-        <a href="/rooms/${item.id}">Details →</a>
+        <a href="/rooms/${item.id}">Подробнее →</a>
       `
     },
   },
@@ -248,9 +248,9 @@ const client = new Svgic('#map', {
 
 ---
 
-## Custom Plugin
+## Кастомный плагин
 
-A plugin that outlines the active (clicked) room and removes the outline when another room is clicked.
+Плагин, который обводит активную (кликнутую) комнату и снимает обводку при клике на другую.
 
 ```ts
 import type { SvgicPlugin, ISvgic, SvgicItem } from 'svgic'
@@ -262,19 +262,19 @@ function ActiveRoomPlugin(): SvgicPlugin {
     name: 'active-room',
 
     onElementClick(element: SVGElement, item: SvgicItem | null): void {
-      // Remove outline from previous element
+      // Снять обводку с предыдущего
       if (activeEl) {
         activeEl.style.outline = ''
         activeEl.style.filter = ''
       }
 
-      // If the same element was clicked — reset
+      // Если кликнули на тот же — сбросить
       if (activeEl === element) {
         activeEl = null
         return
       }
 
-      // Highlight the new element
+      // Выделить новый
       element.style.filter = 'drop-shadow(0 0 6px rgba(59, 130, 246, 0.8))'
       activeEl = element
     },
@@ -285,7 +285,7 @@ function ActiveRoomPlugin(): SvgicPlugin {
   }
 }
 
-// Usage
+// Использование
 const client = new Svgic('#map', {
   src: '/map.svg',
   layers: { rooms: { role: 'interactive' } },
@@ -294,13 +294,13 @@ const client = new Svgic('#map', {
 })
 ```
 
-> **Tip:** Returning `false` from a hook cancels the default behavior (hover style, popup, event). Use this when you want to fully replace the behavior with your own logic.
+> **Совет:** `return false` из хука отменяет дефолтное поведение (hover-стиль, попап, событие). Используйте это когда хотите полностью заменить поведение своей логикой.
 
 ---
 
-## Vue: Reactive Data and Highlighting
+## Vue: реактивные данные и подсветка
 
-An office map in Vue 3 with reactive data and highlight control via a composable.
+Схема офиса в Vue 3 с реактивными данными и управлением подсветкой через composable.
 
 ```vue
 <template>
@@ -317,7 +317,7 @@ An office map in Vue 3 with reactive data and highlight control via a composable
       <div v-if="selected">
         <h3>{{ selected.title }}</h3>
         <p>{{ selected.description }}</p>
-        <button @click="closeRoom">Close</button>
+        <button @click="closeRoom">Закрыть</button>
       </div>
     </aside>
   </div>
@@ -333,8 +333,8 @@ interface Room extends SvgicItem {
 }
 
 const rooms = ref<Room[]>([
-  { id: 'room-101', title: 'Conference Room A', description: 'Capacity: 8 people', status: 'free' },
-  { id: 'room-102', title: 'Conference Room B', description: 'Capacity: 4 people', status: 'busy' },
+  { id: 'room-101', title: 'Переговорная А', description: 'Вместимость 8 чел.', status: 'free' },
+  { id: 'room-102', title: 'Переговорная Б', description: 'Вместимость 4 чел.', status: 'busy' },
 ])
 
 const selected = ref<Room | null>(null)
@@ -368,11 +368,11 @@ function closeRoom() {
   selected.value = null
 }
 
-// Highlight via data — reacts to rooms changes.
-// The color scheme is managed through style.states;
-// highlights are recalculated externally and passed via :data
-// (SvgicVue reactively calls setData when :data changes)
+// Подсветка через данные — реакция на изменение rooms
+// Цветовая схема управляется через style.states,
+// подсветка пересчитывается снаружи и передаётся компоненту через :data
+// (SvgicVue реактивно вызывает setData при изменении :data)
 </script>
 ```
 
-> **Tip:** If you need access to `client.setHighlight()` from a Vue component — use the `useSvgic()` composable instead of `<SvgicVue>`. It returns `client` as a `shallowRef`, available after mount.
+> **Совет:** Если нужен доступ к `client.setHighlight()` из Vue-компонента — используйте `useSvgic()` composable вместо `<SvgicVue>`. Он возвращает `client` как `shallowRef`, доступный после монтирования.

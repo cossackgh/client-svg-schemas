@@ -15,7 +15,7 @@ describe('parseLayers', () => {
     vi.restoreAllMocks()
   })
 
-  it('находит <g> по id и сохраняет роль', () => {
+  it('finds <g> by id and stores role', () => {
     const svg = makeSvg(`
       <g id="rooms"></g>
       <g id="background"></g>
@@ -32,7 +32,7 @@ describe('parseLayers', () => {
     expect(result.get('rooms')?.element.tagName.toLowerCase()).toBe('g')
   })
 
-  it('пропускает отсутствующий слой с предупреждением', () => {
+  it('skips missing layer with a warning', () => {
     const svg = makeSvg(`<g id="rooms"></g>`)
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
@@ -46,7 +46,7 @@ describe('parseLayers', () => {
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('"missing"'))
   })
 
-  it('пропускает элемент не-<g> с предупреждением', () => {
+  it('skips non-<g> element with a warning', () => {
     const svg = makeSvg(`<rect id="background" x="0" y="0" width="10" height="10"/>`)
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
@@ -58,19 +58,19 @@ describe('parseLayers', () => {
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('"background"'))
   })
 
-  it('возвращает пустой Map при пустом конфиге', () => {
+  it('returns empty Map for empty config', () => {
     const svg = makeSvg(`<g id="rooms"></g>`)
     const result = parseLayers(svg, {})
     expect(result.size).toBe(0)
   })
 
-  it('возвращает пустой Map без второго аргумента', () => {
+  it('returns empty Map without second argument', () => {
     const svg = makeSvg(`<g id="rooms"></g>`)
     const result = parseLayers(svg)
     expect(result.size).toBe(0)
   })
 
-  it('корректно обрабатывает id со спецсимволами', () => {
+  it('correctly handles ids with special characters', () => {
     const svg = makeSvg(`<g id="layer.1"></g>`)
 
     const result = parseLayers(svg, {

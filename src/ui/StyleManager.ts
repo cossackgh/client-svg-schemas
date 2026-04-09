@@ -2,6 +2,10 @@ import type { SvgicStyleConfig, SvgicStyleProperties } from '../types'
 import type { ParsedLayer } from '../core/layerParser'
 import type { BoundElement } from '../core/dataMapper'
 
+/**
+ * Manages CSS classes and injected styles for interactive SVG elements.
+ * Handles hover state, highlight states, and style injection into the document.
+ */
 export class StyleManager {
   private styleEl: HTMLStyleElement | null = null
   private hoveredId: string | null = null
@@ -33,8 +37,14 @@ export class StyleManager {
     this.hoveredId = null
   }
 
+  /**
+   * Applies a named highlight state to the given element ids.
+   * Replaces any previously highlighted ids for the same state.
+   * @param state - Highlight state name (e.g. `'free'`, `'busy'`)
+   * @param ids - Element ids to highlight
+   */
   setHighlight(state: string, ids: string[]): void {
-    // Снимаем старые id этого состояния
+    // Remove old ids for this state
     const oldIds = this.highlightStates.get(state) ?? new Set<string>()
     for (const id of oldIds) {
       const el = this.getElement(id)
@@ -45,7 +55,7 @@ export class StyleManager {
       }
     }
 
-    // Применяем новые id
+    // Apply new ids
     const newSet = new Set(ids)
     this.highlightStates.set(state, newSet)
     for (const id of ids) {
@@ -55,6 +65,10 @@ export class StyleManager {
     }
   }
 
+  /**
+   * Removes highlight state(s) from all affected elements.
+   * @param state - State name to clear. If omitted, clears all states.
+   */
   clearHighlight(state?: string): void {
     if (state !== undefined) {
       const ids = this.highlightStates.get(state) ?? new Set<string>()

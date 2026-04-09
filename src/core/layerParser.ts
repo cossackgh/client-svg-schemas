@@ -6,9 +6,9 @@ export interface ParsedLayer {
 }
 
 /**
- * Ищет <g id="..."> элементы в SVG по конфигу слоёв.
- * Возвращает Map: layerId → { element, role }.
- * Слои, отсутствующие в SVG, пропускаются с предупреждением.
+ * Finds <g id="..."> elements in SVG by layer config.
+ * Returns Map: layerId → { element, role }.
+ * Layers not found in SVG are skipped with a warning.
  */
 export function parseLayers(
   svg: SVGSVGElement,
