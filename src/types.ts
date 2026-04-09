@@ -47,6 +47,12 @@ export interface ISvgic {
    */
   on(event: SvgicEventType, handler: SvgicEventHandler): ISvgic
   /**
+   * Replaces the SVG source. Unloads the current SVG, loads the new one,
+   * clears all data and highlight states. Resolves when the new SVG is ready.
+   * @param src - URL or raw SVG string
+   */
+  setSrc(src: string): Promise<void>
+  /**
    * Updates bound data. Call after `await client.ready`.
    * @param data - Array of data elements. Each `id` must match the `id` attribute in SVG.
    */

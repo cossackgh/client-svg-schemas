@@ -258,6 +258,114 @@ describe('Svgic — getLayer()', () => {
   })
 })
 
+// ---- setSrc() ----
+
+describe('Svgic — setSrc()', () => {
+  it('replaces SVG in DOM', async () => {
+    const svg1 = makeSvgEl('<g id="rooms"><rect id="r1"/></g>')
+    const svg2 = makeSvgEl('<g id="floors"><rect id="f1"/></g>')
+    vi.mocked(loadSvg).mockResolvedValueOnce(svg1).mockResolvedValueOnce(svg2)
+
+    const client = new Svgic(container, { src: '/floor-1.svg', layers: { rooms: { role: 'interactive' } } })
+    await client.ready
+    expect(container.contains(svg1)).toBe(true)
+
+    await client.setSrc('/floor-2.svg')
+    expect(container.contains(svg1)).toBe(false)
+    expect(container.contains(svg2)).toBe(true)
+    client.destroy()
+  })
+
+  it('passes new src to loadSvg', async () => {
+    vi.mocked(loadSvg)
+      .mockResolvedValueOnce(makeSvgEl())
+      .mockResolvedValueOnce(makeSvgEl())
+
+    const client = new Svgic(container, { src: '/old.svg' })
+    await client.ready
+    await client.setSrc('/new.svg')
+
+    expect(vi.mocked(loadSvg)).toHaveBeenNthCalledWith(2, '/new.svg')
+    client.destroy()
+  })
+
+  it('getElement() returns new SVG after setSrc', async () => {
+    const svg1 = makeSvgEl()
+    const svg2 = makeSvgEl('<g id="rooms"></g>')
+    vi.mocked(loadSvg).mockResolvedValueOnce(svg1).mockResolvedValueOnce(svg2)
+
+    const client = new Svgic(container, { src: '' })
+    await client.ready
+    expect(client.getElement()).toBe(svg1)
+
+    await client.setSrc('/new.svg')
+    expect(client.getElement()).toBe(svg2)
+    client.destroy()
+  })
+
+  it('preserves on() subscriptions across setSrc', async () => {
+    const svg1 = makeSvgEl('<g id="rooms"><rect id="r1"/></g>')
+    const svg2 = makeSvgEl('<g id="rooms"><rect id="r1"/></g>')
+    vi.mocked(loadSvg).mockResolvedValueOnce(svg1).mockResolvedValueOnce(svg2)
+
+    const client = new Svgic(container, {
+      src: '',
+      layers: { rooms: { role: 'interactive' } },
+      data: [{ id: 'r1', title: 'Room 1' }],
+    })
+    await client.ready
+
+    const handler = vi.fn()
+    client.on('click', handler)
+
+    await client.setSrc('/new.svg')
+    client.setData([{ id: 'r1', title: 'Room 1 new' }])
+
+    svg2.getElementById('r1')!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    expect(handler).toHaveBeenCalledWith('r1', expect.objectContaining({ id: 'r1' }))
+    client.destroy()
+  })
+
+  it('clears data — old bound elements do not fire after setSrc', async () => {
+    const svg1 = makeSvgEl('<g id="rooms"><rect id="r1"/></g>')
+    const svg2 = makeSvgEl('<g id="rooms"><rect id="r1"/></g>')
+    vi.mocked(loadSvg).mockResolvedValueOnce(svg1).mockResolvedValueOnce(svg2)
+
+    const client = new Svgic(container, {
+      src: '',
+      layers: { rooms: { role: 'interactive' } },
+      data: [{ id: 'r1', title: 'Room 1' }],
+    })
+    await client.ready
+
+    const handler = vi.fn()
+    client.on('click', handler)
+
+    // setSrc without setData — r1 should be unbound
+    await client.setSrc('/new.svg')
+    svg2.getElementById('r1')!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+
+    // click fires but with null item — element is not bound
+    expect(handler).not.toHaveBeenCalledWith('r1', expect.objectContaining({ id: 'r1' }))
+    client.destroy()
+  })
+
+  it('calls plugin onInit again after setSrc', async () => {
+    vi.mocked(loadSvg)
+      .mockResolvedValueOnce(makeSvgEl())
+      .mockResolvedValueOnce(makeSvgEl())
+
+    const plugin: SvgicPlugin = { name: 'p', onInit: vi.fn() }
+    const client = new Svgic(container, { src: '', plugins: [plugin] })
+    await client.ready
+    expect(plugin.onInit).toHaveBeenCalledOnce()
+
+    await client.setSrc('/new.svg')
+    expect(plugin.onInit).toHaveBeenCalledTimes(2)
+    client.destroy()
+  })
+})
+
 // ---- destroy() ----
 
 describe('Svgic — destroy()', () => {

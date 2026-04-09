@@ -93,6 +93,26 @@ export class Svgic implements ISvgic {
   }
 
   /**
+   * Replaces the SVG source. Unloads the current SVG, loads the new one,
+   * clears all data and highlight states. Resolves when the new SVG is ready.
+   * Event subscriptions registered via `on()` are preserved.
+   * @param src - URL or raw SVG string
+   */
+  async setSrc(src: string): Promise<void> {
+    this.eventManager.destroy()
+    this.popupManager?.destroy()
+    this.popupManager = null
+    this.styleManager?.destroy()
+    this.styleManager = null
+    this.svgEl?.remove()
+    this.svgEl = null
+    this.layers = new Map()
+    this.boundElements = new Map()
+    this.options = { ...this.options, src, data: undefined }
+    await this.init()
+  }
+
+  /**
    * Updates bound data. Call after `await client.ready`.
    * @param data - Array of data elements. Each `id` must match the `id` attribute in SVG.
    */

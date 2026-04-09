@@ -13,6 +13,13 @@ const rooms: SvgicItem[] = [
   { id: 'room-203', title: 'Server Room', description: 'Server hardware and network infrastructure', status: 'restricted', capacity: 2 },
 ]
 
+// Alternative dataset — used in setSrc() reload demo
+const roomsAlt: SvgicItem[] = rooms.map(r => ({
+  ...r,
+  status: r.status === 'free' ? 'busy' : r.status === 'busy' ? 'free' : r.status,
+  title: r.title + ' (reloaded)',
+}))
+
 // --- popup modes ---
 
 type PopupMode = 'element' | 'cursor' | 'target' | 'template' | 'click' | 'interactive' | 'off'
@@ -235,4 +242,18 @@ client = createClient(currentMode)
 
 modeButtons.forEach(btn => {
   btn.addEventListener('click', () => switchMode(btn.dataset.mode as PopupMode))
+})
+
+// --- setSrc() demo ---
+
+let reloadToggle = false
+
+document.getElementById('reload-btn')!.addEventListener('click', async () => {
+  reloadToggle = !reloadToggle
+  const data = reloadToggle ? roomsAlt : rooms
+  await client.setSrc('/demo.svg')
+  client.setData(data)
+  addLog('click', '', null)
+  const entry = eventLog.querySelector('.log-entry')!
+  entry.textContent = `setSrc  demo.svg (${reloadToggle ? 'alt data' : 'original data'})`
 })
