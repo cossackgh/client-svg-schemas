@@ -19,8 +19,7 @@ import { StyleManager } from '../ui/StyleManager'
  * const client = new Svgic('#container', {
  *   src: '/map.svg',
  *   layers: {
- *     rooms:      { role: 'interactive' },
- *     background: { role: 'decorative' },
+ *     rooms: { role: 'interactive' },
  *   },
  *   data: [
  *     { id: 'room-101', title: 'Conference Room' },

@@ -72,24 +72,25 @@ interface SvgicOptions {
 
 ```ts
 interface SvgicLayer {
-  role: 'interactive' | 'decorative' | 'data' | string
+  role: 'interactive' | 'data' | string
 }
 ```
 
 Layer role is set in config (not in the SVG file). Layers are identified by the `id` attribute of `<g>` elements.
 
 - `interactive` — layer elements respond to hover/click and participate in data binding
-- `decorative` — layer is ignored for event handling
-- `data` — read-only layer for plugins (e.g. waypoints, corridors); completely ignored by the core
+- `data` — read-only layer for plugins (e.g. waypoints, corridors); ignored by the core
 - Any other string — custom role for plugin use
+
+Layers **not listed** in `layers` config are treated as static — the core ignores them entirely.
 
 ```ts
 new Svgic('#container', {
   src: '/map.svg',
   layers: {
-    'rooms':      { role: 'interactive' },
-    'background': { role: 'decorative' },
-    'waypoints':  { role: 'data' },
+    'rooms':     { role: 'interactive' },
+    'waypoints': { role: 'data' },
+    // background, labels, etc. — just omit them, they render as static SVG
   },
 })
 ```

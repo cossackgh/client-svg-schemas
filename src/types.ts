@@ -14,11 +14,12 @@ export interface SvgicItem {
 /**
  * Layer role in the SVG file.
  * - `interactive` — elements respond to hover/click and participate in data binding
- * - `decorative` — layer is ignored for event handling
  * - `data` — read-only layer for plugins (e.g. waypoints, corridors); ignored by the core
  * - Any other string — custom role for plugin use
+ *
+ * Layers not listed in config are treated as static and are completely invisible to the core.
  */
-export type SvgicLayerRole = 'interactive' | 'decorative' | 'data' | (string & {})
+export type SvgicLayerRole = 'interactive' | 'data' | (string & {})
 
 export interface SvgicLayer {
   role: SvgicLayerRole
@@ -206,7 +207,7 @@ export interface SvgicOptions {
    * ```ts
    * layers: {
    *   rooms:      { role: 'interactive' },
-   *   background: { role: 'decorative' },
+   *   background: { role: 'data' },
    * }
    * ```
    */

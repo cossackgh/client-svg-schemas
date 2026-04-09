@@ -18,17 +18,17 @@ describe('parseLayers', () => {
   it('finds <g> by id and stores role', () => {
     const svg = makeSvg(`
       <g id="rooms"></g>
-      <g id="background"></g>
+      <g id="waypoints"></g>
     `)
 
     const result = parseLayers(svg, {
-      rooms: { role: 'interactive' },
-      background: { role: 'decorative' },
+      rooms:     { role: 'interactive' },
+      waypoints: { role: 'data' },
     })
 
     expect(result.size).toBe(2)
     expect(result.get('rooms')?.role).toBe('interactive')
-    expect(result.get('background')?.role).toBe('decorative')
+    expect(result.get('waypoints')?.role).toBe('data')
     expect(result.get('rooms')?.element.tagName.toLowerCase()).toBe('g')
   })
 
@@ -37,8 +37,8 @@ describe('parseLayers', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
     const result = parseLayers(svg, {
-      rooms: { role: 'interactive' },
-      missing: { role: 'decorative' },
+      rooms:   { role: 'interactive' },
+      missing: { role: 'data' },
     })
 
     expect(result.size).toBe(1)
@@ -51,7 +51,7 @@ describe('parseLayers', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
     const result = parseLayers(svg, {
-      background: { role: 'decorative' },
+      background: { role: 'data' },
     })
 
     expect(result.size).toBe(0)

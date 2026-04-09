@@ -72,24 +72,25 @@ interface SvgicOptions {
 
 ```ts
 interface SvgicLayer {
-  role: 'interactive' | 'decorative' | 'data' | string
+  role: 'interactive' | 'data' | string
 }
 ```
 
 Роль слоя задаётся в конфиге (не в SVG-файле). Слои идентифицируются по `id` атрибуту `<g>`-элементов.
 
 - `interactive` — элементы слоя реагируют на hover/click и участвуют в привязке данных
-- `decorative` — слой игнорируется при обработке событий
-- `data` — слой только для чтения плагинами (например, waypoints, коридоры); полностью игнорируется ядром
+- `data` — слой только для чтения плагинами (например, waypoints, коридоры); игнорируется ядром
 - Любая другая строка — произвольная роль для использования плагинами
+
+Слои, **не указанные** в конфиге `layers`, считаются статическими — ядро их полностью игнорирует.
 
 ```ts
 new Svgic('#container', {
   src: '/map.svg',
   layers: {
-    'rooms':      { role: 'interactive' },
-    'background': { role: 'decorative' },
-    'waypoints':  { role: 'data' },
+    'rooms':     { role: 'interactive' },
+    'waypoints': { role: 'data' },
+    // background, labels и т.п. — просто не указывать, они рендерятся как статичный SVG
   },
 })
 ```
