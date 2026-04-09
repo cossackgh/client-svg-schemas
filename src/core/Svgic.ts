@@ -1,4 +1,4 @@
-import type { SvgicOptions, SvgicPlugin, SvgicItem, ISvgic, SvgicEventType, SvgicEventHandler } from '../types'
+import type { SvgicOptions, SvgicPlugin, SvgicItem, ISvgic, SvgicEventType, SvgicEventHandler, SvgicLayerRole } from '../types'
 import { loadSvg } from './loader'
 import { parseLayers, type ParsedLayer } from './layerParser'
 import { mapData, type BoundElement } from './dataMapper'
@@ -144,6 +144,18 @@ export class Svgic implements ISvgic {
   /** Returns the root `<svg>` element after loading, otherwise `null` */
   getElement(): SVGSVGElement | null {
     return this.svgEl
+  }
+
+  /**
+   * Returns a parsed layer by its id.
+   * Useful for plugins that need direct access to SVG layer elements
+   * (e.g. a navigation plugin reading waypoints from a `'data'` layer).
+   * Returns `null` if the layer is not found or SVG is not yet loaded.
+   * @param id - The `id` attribute of the `<g>` element in the SVG file
+   */
+  getLayer(id: string): { element: SVGGElement; role: SvgicLayerRole } | null {
+    if (!this.svgEl) return null
+    return this.layers.get(id) ?? null
   }
 
   /** Removes SVG from DOM, unsubscribes all handlers, calls `onDestroy` on plugins */

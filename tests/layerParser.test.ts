@@ -80,4 +80,26 @@ describe('parseLayers', () => {
     expect(result.size).toBe(1)
     expect(result.get('layer.1')?.role).toBe('interactive')
   })
+
+  it('accepts "data" role for plugin-only layers', () => {
+    const svg = makeSvg(`<g id="waypoints"></g>`)
+
+    const result = parseLayers(svg, {
+      waypoints: { role: 'data' },
+    })
+
+    expect(result.size).toBe(1)
+    expect(result.get('waypoints')?.role).toBe('data')
+  })
+
+  it('accepts arbitrary string role for custom plugin use', () => {
+    const svg = makeSvg(`<g id="corridors"></g>`)
+
+    const result = parseLayers(svg, {
+      corridors: { role: 'navigation' },
+    })
+
+    expect(result.size).toBe(1)
+    expect(result.get('corridors')?.role).toBe('navigation')
+  })
 })

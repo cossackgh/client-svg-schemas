@@ -175,6 +175,89 @@ describe('Svgic — setData()', () => {
   })
 })
 
+// ---- getLayer() ----
+
+describe('Svgic — getLayer()', () => {
+  it('returns null before ready', () => {
+    vi.mocked(loadSvg).mockResolvedValue(makeSvgEl('<g id="waypoints"></g>'))
+    const client = new Svgic(container, {
+      src: '',
+      layers: { waypoints: { role: 'data' } },
+    })
+    expect(client.getLayer('waypoints')).toBeNull()
+    client.destroy()
+  })
+
+  it('returns layer element and role after ready', async () => {
+    vi.mocked(loadSvg).mockResolvedValue(makeSvgEl('<g id="waypoints"></g>'))
+    const client = new Svgic(container, {
+      src: '',
+      layers: { waypoints: { role: 'data' } },
+    })
+    await client.ready
+
+    const layer = client.getLayer('waypoints')
+    expect(layer).not.toBeNull()
+    expect(layer!.role).toBe('data')
+    expect(layer!.element.tagName.toLowerCase()).toBe('g')
+    client.destroy()
+  })
+
+  it('returns null for unknown layer id', async () => {
+    vi.mocked(loadSvg).mockResolvedValue(makeSvgEl('<g id="rooms"></g>'))
+    const client = new Svgic(container, {
+      src: '',
+      layers: { rooms: { role: 'interactive' } },
+    })
+    await client.ready
+
+    expect(client.getLayer('nonexistent')).toBeNull()
+    client.destroy()
+  })
+
+  it('returns null after destroy', async () => {
+    vi.mocked(loadSvg).mockResolvedValue(makeSvgEl('<g id="waypoints"></g>'))
+    const client = new Svgic(container, {
+      src: '',
+      layers: { waypoints: { role: 'data' } },
+    })
+    await client.ready
+    client.destroy()
+
+    expect(client.getLayer('waypoints')).toBeNull()
+    client.destroy()
+  })
+
+  it('plugin can access layer elements via getLayer() in onInit', async () => {
+    const svgEl = makeSvgEl(`
+      <g id="waypoints">
+        <circle id="wp-1" cx="10" cy="10" r="5"/>
+        <circle id="wp-2" cx="20" cy="20" r="5"/>
+      </g>
+    `)
+    vi.mocked(loadSvg).mockResolvedValue(svgEl)
+
+    let nodeCount = 0
+    const navPlugin: SvgicPlugin = {
+      name: 'nav',
+      onInit(client) {
+        const layer = client.getLayer('waypoints')
+        nodeCount = layer?.element.querySelectorAll('circle').length ?? 0
+      },
+    }
+
+    const client = new Svgic(container, {
+      src: '',
+      layers: { waypoints: { role: 'data' } },
+      plugins: [navPlugin],
+    })
+    await client.ready
+
+    expect(nodeCount).toBe(2)
+    client.destroy()
+  })
+})
+
 // ---- destroy() ----
 
 describe('Svgic — destroy()', () => {
