@@ -130,6 +130,7 @@ export class PopupManager {
     }
 
     this.popupEl?.remove()
+    this.popupEl = null
     this.currentTarget = null
   }
 
@@ -216,5 +217,11 @@ export class PopupManager {
 function htmlStringToElement(html: string): HTMLElement {
   const d = document.createElement('div')
   d.innerHTML = html
-  return d
+  d.querySelectorAll('script').forEach(el => el.remove())
+  for (const el of d.querySelectorAll('*')) {
+    for (const attr of [...el.attributes]) {
+      if (attr.name.startsWith('on')) el.removeAttribute(attr.name)
+    }
+  }
+  return (d.firstElementChild as HTMLElement | null) ?? d
 }
