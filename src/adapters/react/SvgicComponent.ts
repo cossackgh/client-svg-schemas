@@ -1,4 +1,4 @@
-import { createElement, useRef, useEffect, type CSSProperties } from 'react'
+import { createElement, useRef, useEffect, useLayoutEffect, type CSSProperties } from 'react'
 import { Svgic } from '../../core/Svgic'
 import type { SvgicItem, SvgicLayer, SvgicPlugin, PopupOption, SvgicStyleConfig } from '../../types'
 
@@ -33,6 +33,18 @@ export function SvgicReact({
   const containerRef = useRef<HTMLDivElement | null>(null)
   const clientRef = useRef<Svgic | null>(null)
 
+  // Keep refs to latest callbacks to avoid stale closures.
+  // useLayoutEffect (no deps) syncs them synchronously after every render,
+  // before any events can fire.
+  const onClickRef = useRef(onClick)
+  const onHoverRef = useRef(onHover)
+  const onLeaveRef = useRef(onLeave)
+  useLayoutEffect(() => {
+    onClickRef.current = onClick
+    onHoverRef.current = onHover
+    onLeaveRef.current = onLeave
+  })
+
   // Initialize and clean up when src changes
   useEffect(() => {
     if (!containerRef.current) return
@@ -41,9 +53,10 @@ export function SvgicReact({
     clientRef.current = client
 
     client.ready.then(() => {
-      if (onClick) client.on('click', onClick)
-      if (onHover) client.on('hover', onHover)
-      if (onLeave) client.on('leave', onLeave)
+      // Stable wrappers always invoke the latest callback ref
+      client.on('click', (id, item) => onClickRef.current?.(id, item))
+      client.on('hover', (id, item) => onHoverRef.current?.(id, item))
+      client.on('leave', (id, item) => onLeaveRef.current?.(id, item))
     })
 
     return () => {
