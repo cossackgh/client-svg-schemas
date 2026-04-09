@@ -112,6 +112,24 @@ await client.ready
 client.setData(newData)
 ```
 
+### `client.setSrc(src)`
+
+```ts
+setSrc(src: string): Promise<void>
+```
+
+Заменяет источник SVG. Выгружает текущий SVG, загружает новый, сбрасывает все данные и состояния подсветки. Резолвится когда новый SVG готов.
+
+Подписки через `on()` сохраняются — повторная подписка после `setSrc()` не нужна.
+
+```ts
+// Пример переключения этажей
+async function switchFloor(floorId: number) {
+  await client.setSrc(`/floor-${floorId}.svg`)
+  client.setData(await api.getFloor(floorId))
+}
+```
+
 ### `client.setData(data)`
 
 ```ts

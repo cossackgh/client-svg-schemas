@@ -33,7 +33,10 @@ export type SvgicEventHandler = (id: string, item: SvgicItem | null) => void
  * Full implementation — the `Svgic` class.
  */
 export interface ISvgic {
-  /** Promise that resolves after SVG is loaded and initialized */
+  /**
+   * Promise that resolves after the initial SVG is loaded and initialized.
+   * For subsequent source changes use `await client.setSrc()` instead.
+   */
   readonly ready: Promise<void>
   /**
    * Registers a plugin. Can be called before or after initialization.
@@ -46,6 +49,12 @@ export interface ISvgic {
    * @param handler - Callback with the element `id` and its data (`null` if no data)
    */
   on(event: SvgicEventType, handler: SvgicEventHandler): ISvgic
+  /**
+   * Replaces the SVG source. Unloads the current SVG, loads the new one,
+   * clears all data and highlight states. Resolves when the new SVG is ready.
+   * @param src - URL or raw SVG string
+   */
+  setSrc(src: string): Promise<void>
   /**
    * Updates bound data. Call after `await client.ready`.
    * @param data - Array of data elements. Each `id` must match the `id` attribute in SVG.
