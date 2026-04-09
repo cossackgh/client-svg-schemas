@@ -420,7 +420,7 @@ const rooms = ref<SvgicItem[]>([
   { id: 'room-101', title: 'Conference Room' },
 ])
 
-function onRoomClick(id: string, item: SvgicItem | null) {
+function onRoomClick(id: string | null, item: SvgicItem | null) {
   console.log(id, item)
 }
 </script>
@@ -454,9 +454,9 @@ The component reactively responds to changes in the `:data` prop.
 
 | Event | Signature |
 |---|---|
-| `@click` | `(id: string, item: SvgicItem \| null) => void` |
-| `@hover` | `(id: string, item: SvgicItem \| null) => void` |
-| `@leave` | `(id: string, item: SvgicItem \| null) => void` |
+| `@click` | `(id: string \| null, item: SvgicItem \| null) => void` |
+| `@hover` | `(id: string \| null, item: SvgicItem \| null) => void` |
+| `@leave` | `(id: string \| null, item: SvgicItem \| null) => void` |
 
 ### Composable
 
