@@ -69,8 +69,7 @@ function createClient(mode: ShowOnMode): Svgic {
   const instance = new Svgic('#schema-container', {
     src: '/demo.svg',
     layers: {
-      rooms:      { role: 'interactive' },
-      background: { role: 'decorative' },
+      rooms: { role: 'interactive' },
     },
     data: rooms,
     style: {

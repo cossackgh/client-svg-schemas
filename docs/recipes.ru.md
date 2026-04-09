@@ -37,9 +37,8 @@ const rooms: Room[] = [
 const client = new Svgic('#map', {
   src: '/office.svg',
   layers: {
-    rooms:      { role: 'interactive' },
-    background: { role: 'decorative' },
-    labels:     { role: 'decorative' },
+    rooms: { role: 'interactive' },
+    // background, labels — не указываем, они рендерятся как статичный SVG
   },
   data: rooms,
 
@@ -101,7 +100,7 @@ const floors: Record<string, { src: string; data: SvgicItem[] }> = {
 }
 
 const options = {
-  layers: { rooms: { role: 'interactive' }, walls: { role: 'decorative' } },
+  layers: { rooms: { role: 'interactive' } },
   style:  { default: { fill: '#e2e8f0', cursor: 'pointer' }, hover: { fill: '#93c5fd' } },
   popup:  true,
 }
@@ -340,8 +339,7 @@ const rooms = ref<Room[]>([
 const selected = ref<Room | null>(null)
 
 const layers: Record<string, SvgicLayer> = {
-  rooms:      { role: 'interactive' },
-  background: { role: 'decorative' },
+  rooms: { role: 'interactive' },
 }
 
 const styleConfig: SvgicStyleConfig = {

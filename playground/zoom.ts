@@ -63,8 +63,7 @@ function createClient() {
   client = new Svgic('#schema-container', {
     src: '/demo.svg',
     layers: {
-      rooms:      { role: 'interactive' },
-      background: { role: 'decorative' },
+      rooms: { role: 'interactive' },
     },
     data: rooms,
     style: {

@@ -1,4 +1,4 @@
-import type { SvgicOptions, SvgicPlugin, SvgicItem, ISvgic, SvgicEventType, SvgicEventHandler } from '../types'
+import type { SvgicOptions, SvgicPlugin, SvgicItem, ISvgic, SvgicEventType, SvgicEventHandler, SvgicLayerRole } from '../types'
 import { loadSvg } from './loader'
 import { parseLayers, type ParsedLayer } from './layerParser'
 import { mapData, type BoundElement } from './dataMapper'
@@ -19,8 +19,7 @@ import { StyleManager } from '../ui/StyleManager'
  * const client = new Svgic('#container', {
  *   src: '/map.svg',
  *   layers: {
- *     rooms:      { role: 'interactive' },
- *     background: { role: 'decorative' },
+ *     rooms: { role: 'interactive' },
  *   },
  *   data: [
  *     { id: 'room-101', title: 'Conference Room' },
@@ -102,7 +101,7 @@ export class Svgic implements ISvgic {
       console.warn('[svgic] setData() called before SVG is ready — call after awaiting client.ready')
       return
     }
-    this.boundElements = mapData(this.svgEl, data)
+    this.boundElements = mapData(this.layers, data)
   }
 
   /**
@@ -146,6 +145,18 @@ export class Svgic implements ISvgic {
     return this.svgEl
   }
 
+  /**
+   * Returns a parsed layer by its id.
+   * Useful for plugins that need direct access to SVG layer elements
+   * (e.g. a navigation plugin reading waypoints from a `'data'` layer).
+   * Returns `null` if the layer is not found or SVG is not yet loaded.
+   * @param id - The `id` attribute of the `<g>` element in the SVG file
+   */
+  getLayer(id: string): { element: SVGGElement; role: SvgicLayerRole } | null {
+    if (!this.svgEl) return null
+    return this.layers.get(id) ?? null
+  }
+
   /** Removes SVG from DOM, unsubscribes all handlers, calls `onDestroy` on plugins */
   destroy(): void {
     this.eventManager.destroy()
@@ -164,7 +175,7 @@ export class Svgic implements ISvgic {
     this.container.appendChild(this.svgEl)
     this.layers = parseLayers(this.svgEl, this.options.layers)
     if (this.options.data) {
-      this.boundElements = mapData(this.svgEl, this.options.data)
+      this.boundElements = mapData(this.layers, this.options.data)
     }
     this.eventManager.attach()
 

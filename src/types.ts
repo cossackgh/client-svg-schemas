@@ -11,15 +11,17 @@ export interface SvgicItem {
   [key: string]: unknown
 }
 
-/** Layer role in the SVG file */
-export type SvgicLayerRole = 'interactive' | 'decorative'
+/**
+ * Layer role in the SVG file.
+ * - `interactive` — elements respond to hover/click and participate in data binding
+ * - `data` — read-only layer for plugins (e.g. waypoints, corridors); ignored by the core
+ * - Any other string — custom role for plugin use
+ *
+ * Layers not listed in config are treated as static and are completely invisible to the core.
+ */
+export type SvgicLayerRole = 'interactive' | 'data' | (string & {})
 
 export interface SvgicLayer {
-  /**
-   * Layer role:
-   * - `interactive` — elements respond to hover/click and participate in data binding
-   * - `decorative` — layer is ignored for event handling
-   */
   role: SvgicLayerRole
 }
 
@@ -64,6 +66,14 @@ export interface ISvgic {
   clearHighlight(state?: string): void
   /** Returns the root `<svg>` element after loading, otherwise `null` */
   getElement(): SVGSVGElement | null
+  /**
+   * Returns a parsed layer by its id.
+   * Useful for plugins that need direct access to SVG layer elements
+   * (e.g. a navigation plugin reading waypoints from a `'data'` layer).
+   * Returns `null` if the layer is not found or SVG is not yet loaded.
+   * @param id - The `id` attribute of the `<g>` element in the SVG file
+   */
+  getLayer(id: string): { element: SVGGElement; role: SvgicLayerRole } | null
   /** Removes SVG from DOM, unsubscribes all handlers, calls `onDestroy` on plugins */
   destroy(): void
 }
@@ -197,7 +207,7 @@ export interface SvgicOptions {
    * ```ts
    * layers: {
    *   rooms:      { role: 'interactive' },
-   *   background: { role: 'decorative' },
+   *   background: { role: 'data' },
    * }
    * ```
    */
