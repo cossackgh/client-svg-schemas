@@ -141,14 +141,19 @@ setData(data: SvgicItem[]): void
 ### `client.on(event, handler)`
 
 ```ts
-on(event: 'click' | 'hover' | 'leave', handler: (id: string, item: SvgicItem | null) => void): this
+on(event: 'click' | 'hover' | 'leave', handler: (id: string | null, item: SvgicItem | null) => void): this
 ```
 
 Подписка на события. Возвращает `this` для чейнинга.
 
+`id` равен `null`, когда событие произошло в пустой области интерактивного слоя (нет привязанного элемента). Используйте это для сброса состояния по клику на фон:
+
 ```ts
 client
-  .on('click', (id, item) => console.log('clicked', id, item))
+  .on('click', (id, item) => {
+    if (id === null) { client.clearHighlight(); return }
+    console.log('clicked', id, item)
+  })
   .on('hover', (id, item) => console.log('hovered', id))
 ```
 
@@ -582,9 +587,9 @@ import { SvgicVue } from 'svgic/vue'
 
 | Событие | Аргументы |
 |---------|-----------|
-| `@click` | `(id: string, item: SvgicItem \| null)` |
-| `@hover` | `(id: string, item: SvgicItem \| null)` |
-| `@leave` | `(id: string, item: SvgicItem \| null)` |
+| `@click` | `(id: string \| null, item: SvgicItem \| null)` |
+| `@hover` | `(id: string \| null, item: SvgicItem \| null)` |
+| `@leave` | `(id: string \| null, item: SvgicItem \| null)` |
 
 Компонент автоматически пересоздаёт клиент при смене `src` и реактивно обновляет данные при смене `data`.
 
@@ -605,7 +610,7 @@ import type { SvgicItem } from 'svgic'
 
 const rooms = ref<SvgicItem[]>([...])
 
-function onRoomClick(id: string, item: SvgicItem | null) {
+function onRoomClick(id: string | null, item: SvgicItem | null) {
   console.log('clicked', id, item)
 }
 </script>
@@ -635,9 +640,9 @@ import { SvgicReact } from 'svgic/react'
 
 | Prop | Тип | Описание |
 |------|-----|----------|
-| `onClick` | `(id: string, item: SvgicItem \| null) => void` | Клик по элементу |
-| `onHover` | `(id: string, item: SvgicItem \| null) => void` | Наведение |
-| `onLeave` | `(id: string, item: SvgicItem \| null) => void` | Уход курсора |
+| `onClick` | `(id: string \| null, item: SvgicItem \| null) => void` | Клик по элементу |
+| `onHover` | `(id: string \| null, item: SvgicItem \| null) => void` | Наведение |
+| `onLeave` | `(id: string \| null, item: SvgicItem \| null) => void` | Уход курсора |
 
 ```tsx
 import { SvgicReact } from 'svgic/react'
