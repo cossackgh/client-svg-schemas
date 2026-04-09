@@ -5,6 +5,10 @@ import { getCursorPosition } from './placement/CursorPlacement'
 
 const DEFAULT_INTERACTIVE_DELAY = 120
 
+/**
+ * Manages the lifecycle of popups: rendering, positioning, and cleanup.
+ * Supports element-anchored, cursor-following, target, and interactive placement modes.
+ */
 export class PopupManager {
   private popupEl: HTMLElement | null = null
   private styleEl: HTMLStyleElement | null = null
@@ -20,7 +24,12 @@ export class PopupManager {
       : option as Exclude<PopupOption, boolean>
   }
 
-  // Called on hover / click on an element
+  /**
+   * Shows the popup for the given element and item.
+   * @param targetEl - The SVG element that triggered the popup
+   * @param item - Data item associated with the element
+   * @param event - Mouse event used for cursor-based positioning
+   */
   show(targetEl: SVGElement, item: SvgicItem, event: MouseEvent): void {
     this.cancelHideTimer()
 
@@ -69,7 +78,7 @@ export class PopupManager {
     }
   }
 
-  // Called on mouseleave / second click to hide
+  /** Hides the popup. Respects `hideDelay` for interactive mode. */
   hide(): void {
     const delay = this.effectiveHideDelay
     if (delay > 0) {

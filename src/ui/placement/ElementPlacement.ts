@@ -5,6 +5,10 @@ const DEFAULTS = {
   offset: { x: 0, y: -8 },
 }
 
+/**
+ * Calculates popup position anchored to an SVG element's bounding rect.
+ * Optionally flips the popup when it would overflow the viewport.
+ */
 export function getElementPosition(
   popupEl: HTMLElement,
   targetEl: SVGElement,

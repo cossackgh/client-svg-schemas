@@ -2,6 +2,9 @@ import type { PopupOffset } from '../../types'
 
 const DEFAULTS: Required<PopupOffset> = { x: 16, y: 16 }
 
+/**
+ * Calculates popup position relative to the cursor, keeping it inside the viewport.
+ */
 export function getCursorPosition(
   popupEl: HTMLElement,
   event: MouseEvent,
