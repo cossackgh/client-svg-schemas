@@ -15,15 +15,15 @@ export function getCursorPosition(
   const vh = window.innerHeight
 
   let x = event.clientX + ox
-  // По умолчанию попап выше курсора
+  // By default popup is above the cursor
   let y = event.clientY - popupRect.height - oy
 
-  // Не выходим за края viewport
+  // Don't go out of viewport bounds
   if (x + popupRect.width > vw) x = event.clientX - popupRect.width - ox
   if (x < 0) x = event.clientX + Math.abs(ox)
-  // Уходит выше viewport — переворачиваем вниз
+  // Goes above viewport — flip downward
   if (y < 0) y = event.clientY + Math.abs(oy)
-  // После переворота уходит ниже viewport — прижимаем к нижнему краю
+  // After flip goes below viewport — clamp to bottom edge
   if (y + popupRect.height > vh) y = vh - popupRect.height
 
   return { x: x + window.scrollX, y: y + window.scrollY }

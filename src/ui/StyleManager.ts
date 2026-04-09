@@ -34,7 +34,7 @@ export class StyleManager {
   }
 
   setHighlight(state: string, ids: string[]): void {
-    // Снимаем старые id этого состояния
+    // Remove old ids for this state
     const oldIds = this.highlightStates.get(state) ?? new Set<string>()
     for (const id of oldIds) {
       const el = this.getElement(id)
@@ -45,7 +45,7 @@ export class StyleManager {
       }
     }
 
-    // Применяем новые id
+    // Apply new ids
     const newSet = new Set(ids)
     this.highlightStates.set(state, newSet)
     for (const id of ids) {
