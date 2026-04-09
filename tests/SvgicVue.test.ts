@@ -19,7 +19,7 @@ function makeSvgEl(inner = '<g id="rooms"><rect id="room-1"/></g>'): SVGSVGEleme
   return doc.documentElement as unknown as SVGSVGElement
 }
 
-/** Ждём завершения async init(): несколько микротасков (loadSvg + .catch() + createClient) */
+/** Wait for async init() to complete: several microtasks (loadSvg + .catch() + createClient) */
 async function waitForReady() {
   await nextTick()
   await Promise.resolve()
@@ -41,10 +41,10 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
-// ---- монтирование ----
+// ---- mount ----
 
-describe('SvgicVue — монтирование', () => {
-  it('монтируется без ошибок и рендерит обёртку div', async () => {
+describe('SvgicVue — mount', () => {
+  it('mounts without errors and renders wrapper div', async () => {
     const app = createApp(SvgicVue, { src: '' })
     app.mount(container)
     await nextTick()
@@ -53,7 +53,7 @@ describe('SvgicVue — монтирование', () => {
     app.unmount()
   })
 
-  it('после ready вставляет SVG в DOM', async () => {
+  it('inserts SVG into DOM after ready', async () => {
     const app = createApp(SvgicVue, { src: '' })
     app.mount(container)
     await waitForReady()
@@ -61,7 +61,7 @@ describe('SvgicVue — монтирование', () => {
     app.unmount()
   })
 
-  it('при монтировании вызывает loadSvg с переданным src', async () => {
+  it('calls loadSvg with provided src on mount', async () => {
     const app = createApp(SvgicVue, { src: '/my-map.svg' })
     app.mount(container)
     await waitForReady()
@@ -73,7 +73,7 @@ describe('SvgicVue — монтирование', () => {
 // ---- unmount ----
 
 describe('SvgicVue — unmount', () => {
-  it('при unmount SVG удаляется из DOM', async () => {
+  it('removes SVG from DOM on unmount', async () => {
     const app = createApp(SvgicVue, { src: '' })
     app.mount(container)
     await waitForReady()
@@ -82,7 +82,7 @@ describe('SvgicVue — unmount', () => {
     expect(container.querySelector('svg')).toBeNull()
   })
 
-  it('при unmount вызывается client.destroy()', async () => {
+  it('calls client.destroy() on unmount', async () => {
     const destroySpy = vi.spyOn(Svgic.prototype, 'destroy')
     const app = createApp(SvgicVue, { src: '' })
     app.mount(container)
@@ -96,12 +96,12 @@ describe('SvgicVue — unmount', () => {
 // ---- watch data ----
 
 describe('SvgicVue — watch data', () => {
-  it('вызывает client.setData при изменении prop data', async () => {
+  it('calls client.setData when prop data changes', async () => {
     const setDataSpy = vi.spyOn(Svgic.prototype, 'setData')
 
     const data = ref<SvgicItem[]>([{ id: 'r1', title: 'R1' }])
 
-    // Wrapper-компонент с реактивным data
+    // Wrapper component with reactive data
     const Wrapper = defineComponent({
       setup: () => ({ data }),
       render() {
@@ -124,7 +124,7 @@ describe('SvgicVue — watch data', () => {
     setDataSpy.mockRestore()
   })
 
-  it('не вызывает setData если data не задан', async () => {
+  it('does not call setData if data is not provided', async () => {
     const setDataSpy = vi.spyOn(Svgic.prototype, 'setData')
 
     const app = createApp(SvgicVue, { src: '' })
@@ -140,7 +140,7 @@ describe('SvgicVue — watch data', () => {
 // ---- watch src ----
 
 describe('SvgicVue — watch src', () => {
-  it('при смене src пересоздаёт клиент и вызывает loadSvg с новым src', async () => {
+  it('recreates client and calls loadSvg with new src when src changes', async () => {
     const src = ref('/map-a.svg')
 
     const Wrapper = defineComponent({
@@ -164,7 +164,7 @@ describe('SvgicVue — watch src', () => {
     app.unmount()
   })
 
-  it('при смене src уничтожает старый клиент', async () => {
+  it('destroys old client when src changes', async () => {
     const destroySpy = vi.spyOn(Svgic.prototype, 'destroy')
     const src = ref('/map-a.svg')
 
@@ -189,10 +189,10 @@ describe('SvgicVue — watch src', () => {
   })
 })
 
-// ---- события ----
+// ---- events ----
 
-describe('SvgicVue — события', () => {
-  it('эмитит click при клике на bound-элемент', async () => {
+describe('SvgicVue — events', () => {
+  it('emits click on click on bound element', async () => {
     const svgEl = makeSvgEl('<g id="rooms"><rect id="room-1"/></g>')
     vi.mocked(loadSvg).mockResolvedValue(svgEl)
 

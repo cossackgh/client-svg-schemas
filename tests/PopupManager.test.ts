@@ -42,14 +42,14 @@ afterEach(() => {
 // ---- show / hide ----
 
 describe('PopupManager — show/hide (placement: element)', () => {
-  it('show() добавляет .svgic-popup в document.body', () => {
+  it('show() appends .svgic-popup to document.body', () => {
     const pm = new PopupManager({ placement: 'element', anchor: 'top-center' })
     pm.show(target, ITEM, makeEvent())
     expect(document.body.querySelector('.svgic-popup')).not.toBeNull()
     pm.destroy()
   })
 
-  it('show() с item без title и без render — попап не создаётся', () => {
+  it('show() with item without title and no render — popup is not created', () => {
     const pm = new PopupManager({ placement: 'element' })
     const before = document.body.querySelectorAll('.svgic-popup').length
     pm.show(target, ITEM_NO_TITLE, makeEvent())
@@ -57,14 +57,14 @@ describe('PopupManager — show/hide (placement: element)', () => {
     pm.destroy()
   })
 
-  it('show() инжектирует #svgic-popup-styles в head', () => {
+  it('show() injects #svgic-popup-styles into head', () => {
     const pm = new PopupManager({ placement: 'element' })
     pm.show(target, ITEM, makeEvent())
     expect(document.head.querySelector('#svgic-popup-styles')).not.toBeNull()
     pm.destroy()
   })
 
-  it('hide() немедленно убирает попап из body', () => {
+  it('hide() immediately removes popup from body', () => {
     const pm = new PopupManager({ placement: 'element' })
     pm.show(target, ITEM, makeEvent())
     pm.hide()
@@ -72,7 +72,7 @@ describe('PopupManager — show/hide (placement: element)', () => {
     pm.destroy()
   })
 
-  it('повторный show() на другой элемент заменяет предыдущий попап', () => {
+  it('repeated show() on another element replaces previous popup', () => {
     const svg2 = makeSvgEl()
     document.body.appendChild(svg2)
     const target2 = svg2.getElementById('room-1') as SVGElement
@@ -92,7 +92,7 @@ describe('PopupManager — show/hide (placement: element)', () => {
 // ---- hideDelay ----
 
 describe('PopupManager — hideDelay', () => {
-  it('с hideDelay > 0 попап не скрывается сразу', () => {
+  it('with hideDelay > 0 popup is not hidden immediately', () => {
     vi.useFakeTimers()
     const pm = new PopupManager({ placement: 'element', hideDelay: 300 } as never)
     pm.show(target, ITEM, makeEvent())
@@ -104,12 +104,12 @@ describe('PopupManager — hideDelay', () => {
     pm.destroy()
   })
 
-  it('повторный show() отменяет pending hide', () => {
+  it('repeated show() cancels pending hide', () => {
     vi.useFakeTimers()
     const pm = new PopupManager({ placement: 'element', hideDelay: 300 } as never)
     pm.show(target, ITEM, makeEvent())
     pm.hide()
-    pm.show(target, ITEM, makeEvent()) // отменяет таймер
+    pm.show(target, ITEM, makeEvent()) // cancels timer
     vi.runAllTimers()
     expect(document.body.querySelector('.svgic-popup')).not.toBeNull()
     vi.useRealTimers()
@@ -120,21 +120,21 @@ describe('PopupManager — hideDelay', () => {
 // ---- interactive ----
 
 describe('PopupManager — interactive mode', () => {
-  it('mouseenter на попапе отменяет hide-таймер', () => {
+  it('mouseenter on popup cancels hide timer', () => {
     vi.useFakeTimers()
     const pm = new PopupManager({ placement: 'element', interactive: true } as never)
     pm.show(target, ITEM, makeEvent())
     const popup = document.body.querySelector('.svgic-popup') as HTMLElement
-    pm.hide() // запускает таймер DEFAULT_INTERACTIVE_DELAY
+    pm.hide() // starts DEFAULT_INTERACTIVE_DELAY timer
     popup.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }))
     vi.runAllTimers()
-    // таймер был отменён — попап остался
+    // timer was cancelled — popup remains
     expect(document.body.querySelector('.svgic-popup')).not.toBeNull()
     vi.useRealTimers()
     pm.destroy()
   })
 
-  it('mouseleave с попапа скрывает попап', () => {
+  it('mouseleave from popup hides popup', () => {
     vi.useFakeTimers()
     const pm = new PopupManager({ placement: 'element', interactive: true } as never)
     pm.show(target, ITEM, makeEvent())
@@ -150,7 +150,7 @@ describe('PopupManager — interactive mode', () => {
 // ---- placement: cursor ----
 
 describe('PopupManager — placement: cursor', () => {
-  it('show() навешивает mousemove listener на document', () => {
+  it('show() attaches mousemove listener to document', () => {
     const addSpy = vi.spyOn(document, 'addEventListener')
     const pm = new PopupManager({ placement: 'cursor' })
     pm.show(target, ITEM, makeEvent())
@@ -159,7 +159,7 @@ describe('PopupManager — placement: cursor', () => {
     addSpy.mockRestore()
   })
 
-  it('hide() снимает mousemove listener', () => {
+  it('hide() removes mousemove listener', () => {
     const removeSpy = vi.spyOn(document, 'removeEventListener')
     const pm = new PopupManager({ placement: 'cursor' })
     pm.show(target, ITEM, makeEvent())
@@ -185,14 +185,14 @@ describe('PopupManager — placement: target', () => {
     targetEl.remove()
   })
 
-  it('show() рендерит контент в указанный target-элемент', () => {
+  it('show() renders content into the target element', () => {
     const pm = new PopupManager({ placement: 'target', target: '#sidebar' })
     pm.show(target, ITEM, makeEvent())
     expect(targetEl.innerHTML).not.toBe('')
     pm.destroy()
   })
 
-  it('hide() очищает target-элемент', () => {
+  it('hide() clears target element', () => {
     const pm = new PopupManager({ placement: 'target', target: '#sidebar' })
     pm.show(target, ITEM, makeEvent())
     pm.hide()
@@ -200,10 +200,10 @@ describe('PopupManager — placement: target', () => {
     pm.destroy()
   })
 
-  it('show() рендерит попап внутри target, а не напрямую в body', () => {
+  it('show() renders popup inside target, not directly in body', () => {
     const pm = new PopupManager({ placement: 'target', target: '#sidebar' })
     pm.show(target, ITEM, makeEvent())
-    // .svgic-popup должен быть внутри targetEl, а не прямым дочерним body
+    // .svgic-popup should be inside targetEl, not a direct child of body
     const popup = document.body.querySelector('.svgic-popup')
     expect(popup).not.toBeNull()
     expect(popup!.parentElement).toBe(targetEl)
@@ -214,21 +214,21 @@ describe('PopupManager — placement: target', () => {
 // ---- destroy ----
 
 describe('PopupManager — destroy()', () => {
-  it('удаляет #svgic-popup-styles из head', () => {
+  it('removes #svgic-popup-styles from head', () => {
     const pm = new PopupManager({ placement: 'element' })
     pm.show(target, ITEM, makeEvent())
     pm.destroy()
     expect(document.head.querySelector('#svgic-popup-styles')).toBeNull()
   })
 
-  it('удаляет попап из body', () => {
+  it('removes popup from body', () => {
     const pm = new PopupManager({ placement: 'element' })
     pm.show(target, ITEM, makeEvent())
     pm.destroy()
     expect(document.body.querySelector('.svgic-popup')).toBeNull()
   })
 
-  it('destroy() с cursor — снимает mousemove listener', () => {
+  it('destroy() with cursor — removes mousemove listener', () => {
     const removeSpy = vi.spyOn(document, 'removeEventListener')
     const pm = new PopupManager({ placement: 'cursor' })
     pm.show(target, ITEM, makeEvent())
@@ -241,7 +241,7 @@ describe('PopupManager — destroy()', () => {
 // ---- custom render ----
 
 describe('PopupManager — custom render', () => {
-  it('render() используется вместо дефолтного попапа', () => {
+  it('render() is used instead of the default popup', () => {
     const customEl = document.createElement('div')
     customEl.className = 'custom-popup'
     customEl.textContent = 'custom'
@@ -249,7 +249,7 @@ describe('PopupManager — custom render', () => {
       placement: 'element',
       render: () => customEl,
     })
-    pm.show(target, ITEM_NO_TITLE, makeEvent()) // item без title, но render задан
+    pm.show(target, ITEM_NO_TITLE, makeEvent()) // item without title, but render is set
     expect(document.body.querySelector('.custom-popup')).not.toBeNull()
     pm.destroy()
   })

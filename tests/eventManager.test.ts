@@ -49,7 +49,7 @@ function setup(svgInner: string, boundIds: string[]) {
 // ---- tests ----
 
 describe('EventManager — click', () => {
-  it('вызывает handler с id и item при клике на bound-элемент', () => {
+  it('calls handler with id and item on click on bound element', () => {
     const { svg, em } = setup(
       `<g id="rooms"><rect id="room-1"/></g>`,
       ['room-1'],
@@ -63,7 +63,7 @@ describe('EventManager — click', () => {
     expect(handler).toHaveBeenCalledWith('room-1', expect.objectContaining({ id: 'room-1' }))
   })
 
-  it('не вызывает handler если плагин вернул false', () => {
+  it('does not call handler if plugin returned false', () => {
     const { svg, em, plugins } = setup(
       `<g id="rooms"><rect id="room-1"/></g>`,
       ['room-1'],
@@ -77,7 +77,7 @@ describe('EventManager — click', () => {
     expect(handler).not.toHaveBeenCalled()
   })
 
-  it('вызывает handler с пустым id и null item при клике на неизвестный элемент', () => {
+  it('calls handler with empty id and null item on click on unknown element', () => {
     const { svg, em } = setup(
       `<g id="rooms"><rect id="room-1"/><rect id="unknown"/></g>`,
       ['room-1'],
@@ -90,7 +90,7 @@ describe('EventManager — click', () => {
     expect(handler).toHaveBeenCalledWith('', null)
   })
 
-  it('находит id при клике на дочерний элемент bound-группы', () => {
+  it('finds id when clicking child element of bound group', () => {
     const { svg, em } = setup(
       `<g id="rooms"><g id="room-1"><rect id="inner"/></g></g>`,
       ['room-1'],
@@ -116,7 +116,7 @@ describe('EventManager — hover/leave', () => {
     ))
   })
 
-  it('вызывает hover при наведении', () => {
+  it('fires hover on mouseover', () => {
     const handler = vi.fn()
     em.on('hover', handler)
 
@@ -126,7 +126,7 @@ describe('EventManager — hover/leave', () => {
     expect(handler).toHaveBeenCalledWith('room-1', expect.objectContaining({ id: 'room-1' }))
   })
 
-  it('не дублирует hover при повторном mouseover на тот же элемент', () => {
+  it('does not duplicate hover on repeated mouseover on same element', () => {
     const handler = vi.fn()
     em.on('hover', handler)
 
@@ -136,7 +136,7 @@ describe('EventManager — hover/leave', () => {
     expect(handler).toHaveBeenCalledOnce()
   })
 
-  it('вызывает leave и новый hover при смене элемента', () => {
+  it('fires leave and new hover when switching elements', () => {
     const hoverHandler = vi.fn()
     const leaveHandler = vi.fn()
     em.on('hover', hoverHandler)
@@ -150,23 +150,23 @@ describe('EventManager — hover/leave', () => {
     expect(hoverHandler).toHaveBeenLastCalledWith('room-2', expect.objectContaining({ id: 'room-2' }))
   })
 
-  it('вызывает leave при выходе за пределы слоя', () => {
+  it('fires leave when moving outside the layer', () => {
     const leaveHandler = vi.fn()
     em.on('leave', leaveHandler)
 
     fireMouseEvent(svg.getElementById('room-1')!, 'mouseover')
-    // mouseout с relatedTarget вне слоя
+    // mouseout with relatedTarget outside the layer
     fireMouseEvent(layerEl, 'mouseout', svg as unknown as Element)
 
     expect(leaveHandler).toHaveBeenCalledWith('room-1', expect.objectContaining({ id: 'room-1' }))
   })
 
-  it('не вызывает leave при переходе между дочерними элементами слоя', () => {
+  it('does not fire leave when moving between child elements of the layer', () => {
     const leaveHandler = vi.fn()
     em.on('leave', leaveHandler)
 
     fireMouseEvent(svg.getElementById('room-1')!, 'mouseover')
-    // mouseout с relatedTarget внутри слоя
+    // mouseout with relatedTarget inside the layer
     fireMouseEvent(layerEl, 'mouseout', svg.getElementById('room-2')!)
 
     expect(leaveHandler).not.toHaveBeenCalled()
@@ -174,7 +174,7 @@ describe('EventManager — hover/leave', () => {
 })
 
 describe('EventManager — destroy', () => {
-  it('не вызывает handlers после destroy', () => {
+  it('does not call handlers after destroy', () => {
     const { svg, em } = setup(
       `<g id="rooms"><rect id="room-1"/></g>`,
       ['room-1'],

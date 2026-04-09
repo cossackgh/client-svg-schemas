@@ -49,14 +49,14 @@ afterEach(() => {
 // ---- init ----
 
 describe('StyleManager — init()', () => {
-  it('вставляет <style data-svgic> в head', () => {
+  it('injects <style data-svgic> into head', () => {
     const { sm } = setup('<g id="rooms"><g id="room-1"/></g>', ['room-1'])
     sm.init()
     expect(document.head.querySelector('style[data-svgic]')).not.toBeNull()
     sm.destroy()
   })
 
-  it('style содержит CSS для дефолтного состояния', () => {
+  it('style contains CSS for default state', () => {
     const { sm } = setup('<g id="rooms"><g id="room-1"/></g>', ['room-1'])
     sm.init()
     const css = document.head.querySelector('style[data-svgic]')!.textContent ?? ''
@@ -65,7 +65,7 @@ describe('StyleManager — init()', () => {
     sm.destroy()
   })
 
-  it('добавляет svgic-interactive к дочерним <g> интерактивного слоя', () => {
+  it('adds svgic-interactive to child <g> elements of interactive layer', () => {
     const { svg, sm } = setup(
       '<g id="rooms"><g id="r1"/><g id="r2"/></g>',
       [],
@@ -76,7 +76,7 @@ describe('StyleManager — init()', () => {
     sm.destroy()
   })
 
-  it('не добавляет svgic-interactive к не-g дочерним элементам', () => {
+  it('does not add svgic-interactive to non-<g> child elements', () => {
     const { svg, sm } = setup(
       '<g id="rooms"><rect id="r1"/><g id="r2"/></g>',
       [],
@@ -103,29 +103,29 @@ describe('StyleManager — applyHover / removeHover', () => {
     sm.destroy()
   })
 
-  it('applyHover добавляет svgic-hover к элементу', () => {
+  it('applyHover adds svgic-hover to element', () => {
     sm.applyHover('r1')
     expect(svg.getElementById('r1')!.classList.contains('svgic-hover')).toBe(true)
   })
 
-  it('applyHover снимает hover с предыдущего элемента', () => {
+  it('applyHover removes hover from previous element', () => {
     sm.applyHover('r1')
     sm.applyHover('r2')
     expect(svg.getElementById('r1')!.classList.contains('svgic-hover')).toBe(false)
     expect(svg.getElementById('r2')!.classList.contains('svgic-hover')).toBe(true)
   })
 
-  it('removeHover снимает svgic-hover', () => {
+  it('removeHover removes svgic-hover', () => {
     sm.applyHover('r1')
     sm.removeHover()
     expect(svg.getElementById('r1')!.classList.contains('svgic-hover')).toBe(false)
   })
 
-  it('removeHover на пустом состоянии не бросает', () => {
+  it('removeHover on empty state does not throw', () => {
     expect(() => sm.removeHover()).not.toThrow()
   })
 
-  it('applyHover на несуществующем id не бросает', () => {
+  it('applyHover on nonexistent id does not throw', () => {
     expect(() => sm.applyHover('nonexistent')).not.toThrow()
   })
 })
@@ -145,13 +145,13 @@ describe('StyleManager — setHighlight()', () => {
     sm.destroy()
   })
 
-  it('добавляет svgic-state-free и svgic-is-highlighted', () => {
+  it('adds svgic-state-free and svgic-is-highlighted', () => {
     sm.setHighlight('free', ['r1'])
     expect(svg.getElementById('r1')!.classList.contains('svgic-state-free')).toBe(true)
     expect(svg.getElementById('r1')!.classList.contains('svgic-is-highlighted')).toBe(true)
   })
 
-  it('заменяет предыдущие ids того же состояния', () => {
+  it('replaces previous ids of the same state', () => {
     sm.setHighlight('free', ['r1'])
     sm.setHighlight('free', ['r2'])
     expect(svg.getElementById('r1')!.classList.contains('svgic-state-free')).toBe(false)
@@ -159,7 +159,7 @@ describe('StyleManager — setHighlight()', () => {
     expect(svg.getElementById('r2')!.classList.contains('svgic-state-free')).toBe(true)
   })
 
-  it('несколько состояний на одном элементе — оба класса присутствуют', () => {
+  it('multiple states on same element — both classes are present', () => {
     sm.setHighlight('free', ['r1'])
     sm.setHighlight('busy', ['r1'])
     const el = svg.getElementById('r1')!
@@ -184,23 +184,23 @@ describe('StyleManager — clearHighlight()', () => {
     sm.destroy()
   })
 
-  it('clearHighlight(state) снимает классы конкретного состояния', () => {
+  it('clearHighlight(state) removes classes for specific state', () => {
     sm.setHighlight('free', ['r1'])
     sm.clearHighlight('free')
     expect(svg.getElementById('r1')!.classList.contains('svgic-state-free')).toBe(false)
     expect(svg.getElementById('r1')!.classList.contains('svgic-is-highlighted')).toBe(false)
   })
 
-  it('clearHighlight(state) не снимает svgic-is-highlighted если элемент подсвечен другим state', () => {
+  it('clearHighlight(state) does not remove svgic-is-highlighted if element is highlighted by another state', () => {
     sm.setHighlight('free', ['r1'])
     sm.setHighlight('busy', ['r1'])
     sm.clearHighlight('free')
     const el = svg.getElementById('r1')!
     expect(el.classList.contains('svgic-state-free')).toBe(false)
-    expect(el.classList.contains('svgic-is-highlighted')).toBe(true) // busy ещё активен
+    expect(el.classList.contains('svgic-is-highlighted')).toBe(true) // busy is still active
   })
 
-  it('clearHighlight() без аргументов снимает все состояния со всех элементов', () => {
+  it('clearHighlight() without arguments removes all states from all elements', () => {
     sm.setHighlight('free', ['r1'])
     sm.setHighlight('busy', ['r2'])
     sm.clearHighlight()
@@ -210,7 +210,7 @@ describe('StyleManager — clearHighlight()', () => {
     expect(svg.getElementById('r2')!.classList.contains('svgic-state-busy')).toBe(false)
   })
 
-  it('clearHighlight() на пустом состоянии не бросает', () => {
+  it('clearHighlight() on empty state does not throw', () => {
     expect(() => sm.clearHighlight()).not.toThrow()
     expect(() => sm.clearHighlight('free')).not.toThrow()
   })
@@ -219,7 +219,7 @@ describe('StyleManager — clearHighlight()', () => {
 // ---- destroy ----
 
 describe('StyleManager — destroy()', () => {
-  it('удаляет <style data-svgic> из head', () => {
+  it('removes <style data-svgic> from head', () => {
     const { sm } = setup('<g id="rooms"><g id="r1"/></g>', ['r1'])
     sm.init()
     expect(document.head.querySelector('style[data-svgic]')).not.toBeNull()
@@ -227,7 +227,7 @@ describe('StyleManager — destroy()', () => {
     expect(document.head.querySelector('style[data-svgic]')).toBeNull()
   })
 
-  it('снимает все svgic-классы с bound-элементов', () => {
+  it('removes all svgic-classes from bound elements', () => {
     const { svg, sm } = setup('<g id="rooms"><g id="r1"/></g>', ['r1'])
     sm.init()
     sm.applyHover('r1')
@@ -238,7 +238,7 @@ describe('StyleManager — destroy()', () => {
     expect(svgicClasses).toHaveLength(0)
   })
 
-  it('destroy() повторно не бросает', () => {
+  it('destroy() does not throw when called again', () => {
     const { sm } = setup('<g id="rooms"><g id="r1"/></g>', ['r1'])
     sm.init()
     sm.destroy()

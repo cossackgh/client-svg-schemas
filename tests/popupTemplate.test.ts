@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { PopupManager } from '../src/ui/PopupManager'
 import type { SvgicItem } from '../src/types'
 
-const item: SvgicItem = { id: 'room-1', title: 'Переговорная', description: 'Этаж 2' }
+const item: SvgicItem = { id: 'room-1', title: 'Conference Room', description: 'Floor 2' }
 
 function makeMouseEvent(): MouseEvent {
   return new MouseEvent('mousemove', { clientX: 100, clientY: 100 })
@@ -10,8 +10,7 @@ function makeMouseEvent(): MouseEvent {
 
 function makeSvgElement(): SVGElement {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-  const rect = svg.getBoundingClientRect
-  // заглушка для getBoundingClientRect
+  // stub for getBoundingClientRect
   svg.getBoundingClientRect = () => ({ top: 50, left: 50, bottom: 100, right: 100, width: 50, height: 50, x: 50, y: 50, toJSON: () => ({}) })
   document.body.appendChild(svg)
   return svg
@@ -37,7 +36,7 @@ describe('PopupManager — template + bind', () => {
     document.head.querySelectorAll('#svgic-popup-styles').forEach(el => el.remove())
   })
 
-  it('клонирует <template> по селектору и вставляет в DOM', () => {
+  it('clones <template> by selector and inserts into DOM', () => {
     makeTemplate('<div class="popup"><span class="title"></span></div>', 'my-popup')
 
     const manager = new PopupManager({
@@ -53,10 +52,10 @@ describe('PopupManager — template + bind', () => {
 
     const popup = document.body.querySelector('.title')
     expect(popup).not.toBeNull()
-    expect(popup!.textContent).toBe('Переговорная')
+    expect(popup!.textContent).toBe('Conference Room')
   })
 
-  it('принимает HTMLTemplateElement напрямую', () => {
+  it('accepts HTMLTemplateElement directly', () => {
     const tpl = makeTemplate('<div><span class="popup-body"></span></div>', 'direct-tpl')
 
     const manager = new PopupManager({
@@ -72,10 +71,10 @@ describe('PopupManager — template + bind', () => {
 
     const body = document.body.querySelector('.popup-body')
     expect(body).not.toBeNull()
-    expect(body!.textContent).toBe('Этаж 2')
+    expect(body!.textContent).toBe('Floor 2')
   })
 
-  it('bind вызывается с клоном и правильным item', () => {
+  it('bind is called with the clone and correct item', () => {
     makeTemplate('<p></p>', 'bind-test')
 
     let receivedItem: SvgicItem | null = null
@@ -97,7 +96,7 @@ describe('PopupManager — template + bind', () => {
     expect(receivedEl).toBeInstanceOf(HTMLElement)
   })
 
-  it('бросает ошибку если селектор не найден', () => {
+  it('throws if selector is not found', () => {
     const manager = new PopupManager({
       placement: 'element',
       anchor: 'top-center',
@@ -108,7 +107,7 @@ describe('PopupManager — template + bind', () => {
       .toThrow('[svgic] popup template not found')
   })
 
-  it('render работает как раньше если template не задан', () => {
+  it('render works as usual if template is not set', () => {
     const manager = new PopupManager({
       placement: 'element',
       anchor: 'top-center',
@@ -124,6 +123,6 @@ describe('PopupManager — template + bind', () => {
 
     const popup = document.body.querySelector('.custom-render')
     expect(popup).not.toBeNull()
-    expect(popup!.textContent).toBe('Переговорная')
+    expect(popup!.textContent).toBe('Conference Room')
   })
 })

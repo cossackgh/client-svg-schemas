@@ -30,7 +30,7 @@ function mockBCR(svg: SVGSVGElement, w = 800, h = 600, left = 0, top = 0): void 
   } as DOMRect)
 }
 
-/** Читает viewBox из атрибута в виде числового массива [x, y, w, h] */
+/** Reads viewBox from attribute as numeric array [x, y, w, h] */
 function vbAttr(svg: SVGSVGElement): number[] {
   return svg.getAttribute('viewBox')!.split(' ').map(Number)
 }
@@ -90,7 +90,7 @@ afterEach(() => {
 // ─── ZoomController — init ───────────────────────────────────────────────────
 
 describe('ZoomController — init', () => {
-  it('читает viewBox из SVG-атрибута', () => {
+  it('reads viewBox from SVG attribute', () => {
     ctrl = new ZoomController(svg, {})
     const state = ctrl.getState()
     expect(state.scale).toBe(1)
@@ -98,17 +98,17 @@ describe('ZoomController — init', () => {
     expect(state.y).toBe(0)
   })
 
-  it('выставляет cursor: grab при pan: true', () => {
+  it('sets cursor: grab when pan: true', () => {
     ctrl = new ZoomController(svg, { pan: true })
     expect(svg.style.cursor).toBe('grab')
   })
 
-  it('не выставляет cursor при pan: false', () => {
+  it('does not set cursor when pan: false', () => {
     ctrl = new ZoomController(svg, { pan: false })
     expect(svg.style.cursor).toBe('')
   })
 
-  it('выставляет userSelect: none', () => {
+  it('sets userSelect: none', () => {
     ctrl = new ZoomController(svg, {})
     expect(svg.style.userSelect).toBe('none')
   })
@@ -117,7 +117,7 @@ describe('ZoomController — init', () => {
 // ─── ZoomController — zoomTo ─────────────────────────────────────────────────
 
 describe('ZoomController — zoomTo', () => {
-  it('zoomTo(2) устанавливает scale=2 и обновляет viewBox', () => {
+  it('zoomTo(2) sets scale=2 and updates viewBox', () => {
     ctrl = new ZoomController(svg, { animate: false })
     ctrl.zoomTo(2, { animate: false })
     const [, , w, h] = vbAttr(svg)
@@ -126,19 +126,19 @@ describe('ZoomController — zoomTo', () => {
     expect(h).toBeCloseTo(300) // 600/2
   })
 
-  it('zoomTo clamp снизу по minScale', () => {
+  it('zoomTo clamps to minScale from below', () => {
     ctrl = new ZoomController(svg, { minScale: 1, animate: false })
     ctrl.zoomTo(0.1, { animate: false })
     expect(ctrl.getState().scale).toBe(1)
   })
 
-  it('zoomTo clamp сверху по maxScale', () => {
+  it('zoomTo clamps to maxScale from above', () => {
     ctrl = new ZoomController(svg, { maxScale: 5, animate: false })
     ctrl.zoomTo(20, { animate: false })
     expect(ctrl.getState().scale).toBe(5)
   })
 
-  it('getState() возвращает копию — мутация не влияет на внутреннее состояние', () => {
+  it('getState() returns a copy — mutation does not affect internal state', () => {
     ctrl = new ZoomController(svg, { animate: false })
     const state = ctrl.getState()
     state.scale = 999
@@ -149,7 +149,7 @@ describe('ZoomController — zoomTo', () => {
 // ─── ZoomController — panTo ──────────────────────────────────────────────────
 
 describe('ZoomController — panTo', () => {
-  it('panTo перемещает viewBox когда zoomed in', () => {
+  it('panTo moves viewBox when zoomed in', () => {
     ctrl = new ZoomController(svg, { animate: false })
     ctrl.zoomTo(2, { animate: false }) // x=200, y=150
     ctrl.panTo(250, 200, { animate: false })
@@ -158,12 +158,12 @@ describe('ZoomController — panTo', () => {
     expect(state.y).toBe(200)
   })
 
-  it('panTo ограничивает pan границами SVG', () => {
+  it('panTo constrains pan to SVG bounds', () => {
     ctrl = new ZoomController(svg, { animate: false })
     ctrl.zoomTo(2, { animate: false })
     ctrl.panTo(9999, 9999, { animate: false })
     const state = ctrl.getState()
-    // максимум x = ovb.x + ovb.width - viewBox.width = 0+800-400 = 400
+    // max x = ovb.x + ovb.width - viewBox.width = 0+800-400 = 400
     expect(state.x).toBe(400)
     expect(state.y).toBe(300)
   })
@@ -172,7 +172,7 @@ describe('ZoomController — panTo', () => {
 // ─── ZoomController — reset ──────────────────────────────────────────────────
 
 describe('ZoomController — reset', () => {
-  it('reset возвращает к scale=1 и исходному viewBox', () => {
+  it('reset returns to scale=1 and original viewBox', () => {
     ctrl = new ZoomController(svg, { animate: false })
     ctrl.zoomTo(3, { animate: false })
     ctrl.reset({ animate: false })
@@ -187,25 +187,25 @@ describe('ZoomController — reset', () => {
 // ─── ZoomController — wheel ──────────────────────────────────────────────────
 
 describe('ZoomController — wheel', () => {
-  it('wheelMode:ctrl + Ctrl зажат → зум', () => {
+  it('wheelMode:ctrl + Ctrl held → zoom', () => {
     ctrl = new ZoomController(svg, { wheelMode: 'ctrl', animate: false })
     fireWheel(svg, -100, true) // deltaY<0 → zoom in
     expect(ctrl.getState().scale).toBeGreaterThan(1)
   })
 
-  it('wheelMode:ctrl без Ctrl → игнорируется', () => {
+  it('wheelMode:ctrl without Ctrl → ignored', () => {
     ctrl = new ZoomController(svg, { wheelMode: 'ctrl', animate: false })
     fireWheel(svg, -100, false)
     expect(ctrl.getState().scale).toBe(1)
   })
 
-  it('wheelMode:always без Ctrl → зум', () => {
+  it('wheelMode:always without Ctrl → zoom', () => {
     ctrl = new ZoomController(svg, { wheelMode: 'always', animate: false })
     fireWheel(svg, -100, false)
     expect(ctrl.getState().scale).toBeGreaterThan(1)
   })
 
-  it('deltaY > 0 → zoom out (scale уменьшается)', () => {
+  it('deltaY > 0 → zoom out (scale decreases)', () => {
     ctrl = new ZoomController(svg, { wheelMode: 'always', animate: false })
     fireWheel(svg, 100, false)
     expect(ctrl.getState().scale).toBeLessThan(1)
@@ -215,11 +215,11 @@ describe('ZoomController — wheel', () => {
 // ─── ZoomController — drag ───────────────────────────────────────────────────
 
 describe('ZoomController — drag (mouse pan)', () => {
-  it('drag перемещает viewBox когда zoomed in', () => {
+  it('drag moves viewBox when zoomed in', () => {
     ctrl = new ZoomController(svg, { animate: false })
     ctrl.zoomTo(2, { animate: false }) // x=200, y=150, viewBox 400×300
 
-    // Drag: начало (400, 300), движение на (+50, +10)
+    // Drag: start (400, 300), move by (+50, +10)
     svg.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300, bubbles: true }))
     window.dispatchEvent(new MouseEvent('mousemove', { clientX: 450, clientY: 310, bubbles: true }))
 
@@ -229,18 +229,18 @@ describe('ZoomController — drag (mouse pan)', () => {
     expect(state.y).toBeCloseTo(145)
   })
 
-  it('drag не срабатывает при движении < 3px', () => {
+  it('drag does not activate for movement < 3px', () => {
     ctrl = new ZoomController(svg, { animate: false })
     ctrl.zoomTo(2, { animate: false })
 
     svg.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300, bubbles: true }))
     window.dispatchEvent(new MouseEvent('mousemove', { clientX: 401, clientY: 300, bubbles: true }))
 
-    // 1px движение — hasDragged=false, viewBox не меняется
+    // 1px movement — hasDragged=false, viewBox does not change
     expect(ctrl.getState().x).toBeCloseTo(200)
   })
 
-  it('mouseup завершает drag, cursor возвращается к grab', () => {
+  it('mouseup ends drag, cursor returns to grab', () => {
     ctrl = new ZoomController(svg, { animate: false })
     svg.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300, bubbles: true }))
     expect(svg.style.cursor).toBe('grabbing')
@@ -248,7 +248,7 @@ describe('ZoomController — drag (mouse pan)', () => {
     expect(svg.style.cursor).toBe('grab')
   })
 
-  it('pan: false — mousedown не меняет cursor', () => {
+  it('pan: false — mousedown does not change cursor', () => {
     ctrl = new ZoomController(svg, { pan: false, animate: false })
     svg.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300, bubbles: true }))
     expect(svg.style.cursor).not.toBe('grabbing')
@@ -258,15 +258,15 @@ describe('ZoomController — drag (mouse pan)', () => {
 // ─── ZoomController — touch ──────────────────────────────────────────────────
 
 describe('ZoomController — touch', () => {
-  it('pinch-zoom увеличивает масштаб пропорционально расстоянию', () => {
+  it('pinch-zoom scales proportionally to distance', () => {
     ctrl = new ZoomController(svg, { animate: false })
 
-    // два пальца на расстоянии 200px
+    // two fingers at distance 200px
     const t1 = makeTouch(0, 200, 200, svg)
     const t2 = makeTouch(1, 400, 200, svg)
     fireTouchStart(svg, t1, t2) // lastPinchDist = 200
 
-    // разводим до 300px
+    // spread to 300px
     const t1b = makeTouch(0, 150, 200, svg)
     const t2b = makeTouch(1, 450, 200, svg)
     fireTouchMove(svg, t1b, t2b)
@@ -275,19 +275,19 @@ describe('ZoomController — touch', () => {
     expect(ctrl.getState().scale).toBeCloseTo(1.5)
   })
 
-  it('двойной тап zoom — удваивает масштаб', () => {
+  it('double tap zoom — doubles scale', () => {
     vi.useFakeTimers()
     ctrl = new ZoomController(svg, { doubleTapScale: 2, animate: false })
 
     const t = makeTouch(0, 200, 150, svg)
-    fireTouchStart(svg, t) // первый тап
+    fireTouchStart(svg, t) // first tap
     fireTouchEnd(svg)
-    fireTouchStart(svg, t) // второй тап сразу (< 300ms, < 20px)
+    fireTouchStart(svg, t) // second tap immediately (< 300ms, < 20px)
 
     expect(ctrl.getState().scale).toBe(2)
   })
 
-  it('двойной тап сброс — если уже на maxScale*0.9', () => {
+  it('double tap reset — when already at maxScale*0.9', () => {
     vi.useFakeTimers()
     ctrl = new ZoomController(svg, { doubleTapScale: 2, animate: false })
     ctrl.zoomTo(2, { animate: false }) // scale=2 >= 2*0.9=1.8
@@ -295,12 +295,12 @@ describe('ZoomController — touch', () => {
     const t = makeTouch(0, 400, 300, svg)
     fireTouchStart(svg, t)
     fireTouchEnd(svg)
-    fireTouchStart(svg, t) // двойной тап → reset
+    fireTouchStart(svg, t) // double tap → reset
 
     expect(ctrl.getState().scale).toBe(1)
   })
 
-  it('pan одним пальцем работает как drag', () => {
+  it('single finger pan works like drag', () => {
     ctrl = new ZoomController(svg, { animate: false })
     ctrl.zoomTo(2, { animate: false }) // x=200, y=150
 
@@ -320,18 +320,18 @@ describe('ZoomController — touch', () => {
 // ─── ZoomController — focusElement ───────────────────────────────────────────
 
 describe('ZoomController — focusElement', () => {
-  // CSS.escape и getBBox не реализованы в jsdom — мокаем
+  // CSS.escape and getBBox are not implemented in jsdom — mocking
   beforeEach(() => {
     vi.stubGlobal('CSS', { escape: (s: string) => s })
   })
 
   function mockGetBBox(el: Element, bbox = { x: 100, y: 100, width: 200, height: 150 }) {
-    // jsdom не расширяет SVGGraphicsElement правильно — патчим прототип и добавляем getBBox
+    // jsdom does not extend SVGGraphicsElement correctly — patching prototype and adding getBBox
     Object.setPrototypeOf(el, SVGGraphicsElement.prototype)
     ;(el as unknown as Record<string, unknown>)['getBBox'] = () => bbox
   }
 
-  it('focusElement(id) центрирует viewBox на элементе', () => {
+  it('focusElement(id) centers viewBox on element', () => {
     ctrl = new ZoomController(svg, { focusScale: 2, animate: false })
     mockGetBBox(svg.querySelector('#room-1')!)
 
@@ -345,14 +345,14 @@ describe('ZoomController — focusElement', () => {
     expect(state.y).toBeCloseTo(25)
   })
 
-  it('focusElement игнорирует несуществующий id', () => {
+  it('focusElement ignores nonexistent id', () => {
     ctrl = new ZoomController(svg, { animate: false })
-    // querySelector вернёт null → instanceof SVGGraphicsElement = false → return early
+    // querySelector returns null → instanceof SVGGraphicsElement = false → return early
     expect(() => ctrl.focusElement('nonexistent', { animate: false })).not.toThrow()
     expect(ctrl.getState().scale).toBe(1)
   })
 
-  it('focusElement принимает SVGElement напрямую', () => {
+  it('focusElement accepts SVGElement directly', () => {
     ctrl = new ZoomController(svg, { focusScale: 2, animate: false })
     const el = svg.querySelector('#room-1') as SVGGraphicsElement
     mockGetBBox(el)
@@ -364,7 +364,7 @@ describe('ZoomController — focusElement', () => {
 // ─── ZoomController — svgic:viewchange ───────────────────────────────────────
 
 describe('ZoomController — svgic:viewchange', () => {
-  it('диспатчит svgic:viewchange при zoomTo', () => {
+  it('dispatches svgic:viewchange on zoomTo', () => {
     ctrl = new ZoomController(svg, { animate: false })
     const spy = vi.fn()
     svg.addEventListener('svgic:viewchange', spy)
@@ -372,7 +372,7 @@ describe('ZoomController — svgic:viewchange', () => {
     expect(spy).toHaveBeenCalled()
   })
 
-  it('диспатчит svgic:viewchange при panTo', () => {
+  it('dispatches svgic:viewchange on panTo', () => {
     ctrl = new ZoomController(svg, { animate: false })
     ctrl.zoomTo(2, { animate: false })
     const spy = vi.fn()
@@ -385,7 +385,7 @@ describe('ZoomController — svgic:viewchange', () => {
 // ─── ZoomController — panBounds ──────────────────────────────────────────────
 
 describe('ZoomController — panBounds', () => {
-  it('panBounds:true — pan не выходит за границы SVG', () => {
+  it('panBounds:true — pan stays within SVG bounds', () => {
     ctrl = new ZoomController(svg, { panBounds: true, animate: false })
     ctrl.zoomTo(2, { animate: false })
     ctrl.panTo(-9999, -9999, { animate: false })
@@ -394,7 +394,7 @@ describe('ZoomController — panBounds', () => {
     expect(state.y).toBeGreaterThanOrEqual(0)
   })
 
-  it('panBounds:false — pan не ограничен', () => {
+  it('panBounds:false — pan is not constrained', () => {
     ctrl = new ZoomController(svg, { panBounds: false, animate: false })
     ctrl.zoomTo(2, { animate: false })
     ctrl.panTo(-500, -300, { animate: false })
@@ -407,8 +407,8 @@ describe('ZoomController — panBounds', () => {
 // ─── ZoomController — animateTo ──────────────────────────────────────────────
 
 describe('ZoomController — animateTo', () => {
-  // performance.now() не фейкается vi.useFakeTimers() по умолчанию.
-  // Мокаем requestAnimationFrame и performance.now() вручную.
+  // performance.now() is not faked by vi.useFakeTimers() by default.
+  // Mocking requestAnimationFrame and performance.now() manually.
 
   let fakeTime = 0
   let rafQueue: Array<{ id: number; cb: FrameRequestCallback }> = []
@@ -432,14 +432,14 @@ describe('ZoomController — animateTo', () => {
     })
   })
 
-  /** Запустить один батч RAF-коллбэков с указанным временем */
+  /** Run one batch of RAF callbacks at the given time */
   function driveAnimation(toMs: number): void {
     fakeTime = toMs
     const batch = rafQueue.splice(0)
     batch.forEach(({ cb }) => cb(fakeTime))
   }
 
-  it('анимация к zoomTo(2) завершается корректно', () => {
+  it('animation to zoomTo(2) completes correctly', () => {
     ctrl = new ZoomController(svg, { animate: true, animationDuration: 300 })
     ctrl.zoomTo(2) // schedules first RAF
 
@@ -448,24 +448,24 @@ describe('ZoomController — animateTo', () => {
     expect(ctrl.getState().scale).toBeCloseTo(2)
   })
 
-  it('новая анимация отменяет предыдущую', () => {
+  it('new animation cancels previous one', () => {
     ctrl = new ZoomController(svg, { animate: true, animationDuration: 300 })
     ctrl.zoomTo(3)
-    driveAnimation(100) // t=0.33 → промежуточный кадр, ставит следующий RAF
+    driveAnimation(100) // t=0.33 → intermediate frame, schedules next RAF
 
-    ctrl.zoomTo(2)     // cancelAnimationFrame + новая анимация
-    driveAnimation(600) // t=(600-100)/300 > 1 → завершает анимацию к 2
+    ctrl.zoomTo(2)      // cancelAnimationFrame + new animation
+    driveAnimation(600) // t=(600-100)/300 > 1 → completes animation to 2
 
     expect(ctrl.getState().scale).toBeCloseTo(2)
   })
 
-  it('диспатчит svgic:viewchange во время анимации', () => {
+  it('dispatches svgic:viewchange during animation', () => {
     ctrl = new ZoomController(svg, { animate: true, animationDuration: 300 })
     const spy = vi.fn()
     svg.addEventListener('svgic:viewchange', spy)
 
     ctrl.zoomTo(2)
-    driveAnimation(150) // промежуточный кадр
+    driveAnimation(150) // intermediate frame
 
     expect(spy).toHaveBeenCalled()
   })
@@ -474,25 +474,25 @@ describe('ZoomController — animateTo', () => {
 // ─── ZoomController — destroy ────────────────────────────────────────────────
 
 describe('ZoomController — destroy', () => {
-  it('после destroy wheel-события игнорируются', () => {
+  it('after destroy wheel events are ignored', () => {
     ctrl = new ZoomController(svg, { wheelMode: 'always', animate: false })
     ctrl.destroy()
     fireWheel(svg, -100, false)
     expect(ctrl.getState().scale).toBe(1)
   })
 
-  it('destroy отменяет запущенную анимацию', () => {
+  it('destroy cancels ongoing animation', () => {
     vi.useFakeTimers()
     ctrl = new ZoomController(svg, { animate: true })
     ctrl.zoomTo(5)
-    ctrl.destroy() // должен вызвать cancelAnimationFrame
+    ctrl.destroy() // should call cancelAnimationFrame
     const scaleBefore = ctrl.getState().scale
     vi.advanceTimersByTime(400)
-    // шкала не меняется после destroy
+    // scale does not change after destroy
     expect(ctrl.getState().scale).toBe(scaleBefore)
   })
 
-  it('destroy снимает mousemove/mouseup с window', () => {
+  it('destroy removes mousemove/mouseup from window', () => {
     ctrl = new ZoomController(svg, { animate: false })
     ctrl.zoomTo(2, { animate: false })
     ctrl.destroy()
@@ -500,20 +500,20 @@ describe('ZoomController — destroy', () => {
     svg.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300, bubbles: true }))
     window.dispatchEvent(new MouseEvent('mousemove', { clientX: 500, clientY: 350, bubbles: true }))
 
-    // drag не должен был сработать (mousemove listener удалён)
+    // drag should not have activated (mousemove listener removed)
     expect(ctrl.getState().x).toBeCloseTo(200)
   })
 })
 
 // ─── ZoomPlugin ──────────────────────────────────────────────────────────────
 
-describe('ZoomPlugin — фабрика и жизненный цикл', () => {
-  it('ZoomPlugin() возвращает плагин с name: svgic:zoom', () => {
+describe('ZoomPlugin — factory and lifecycle', () => {
+  it('ZoomPlugin() returns plugin with name: svgic:zoom', () => {
     const plugin = ZoomPlugin()
     expect(plugin.name).toBe('svgic:zoom')
   })
 
-  it('API методы бросают до onInit', () => {
+  it('API methods throw before onInit', () => {
     const plugin = ZoomPlugin()
     expect(() => plugin.zoomTo(2)).toThrow('[ZoomPlugin]')
     expect(() => plugin.panTo(0, 0)).toThrow('[ZoomPlugin]')
@@ -522,7 +522,7 @@ describe('ZoomPlugin — фабрика и жизненный цикл', () => {
     expect(() => plugin.focusElement('x')).toThrow('[ZoomPlugin]')
   })
 
-  it('onInit создаёт ZoomController', () => {
+  it('onInit creates ZoomController', () => {
     const plugin = ZoomPlugin({ animate: false })
     const client = makeFakeClient(svg)
     plugin.onInit!(client)
@@ -530,7 +530,7 @@ describe('ZoomPlugin — фабрика и жизненный цикл', () => {
     plugin.onDestroy!(client)
   })
 
-  it('onDestroy уничтожает контроллер, API снова бросают', () => {
+  it('onDestroy destroys controller, API throws again', () => {
     const plugin = ZoomPlugin({ animate: false })
     const client = makeFakeClient(svg)
     plugin.onInit!(client)
@@ -539,7 +539,7 @@ describe('ZoomPlugin — фабрика и жизненный цикл', () => {
   })
 })
 
-describe('ZoomPlugin — API делегирование', () => {
+describe('ZoomPlugin — API delegation', () => {
   let plugin: ReturnType<typeof ZoomPlugin>
   let client: ISvgic
 
@@ -553,12 +553,12 @@ describe('ZoomPlugin — API делегирование', () => {
     plugin.onDestroy!(client)
   })
 
-  it('zoomTo делегирует в ZoomController', () => {
+  it('zoomTo delegates to ZoomController', () => {
     plugin.zoomTo(3, { animate: false })
     expect(plugin.getState().scale).toBe(3)
   })
 
-  it('panTo делегирует в ZoomController', () => {
+  it('panTo delegates to ZoomController', () => {
     plugin.zoomTo(2, { animate: false })
     plugin.panTo(250, 200, { animate: false })
     const state = plugin.getState()
@@ -566,20 +566,20 @@ describe('ZoomPlugin — API делегирование', () => {
     expect(state.y).toBe(200)
   })
 
-  it('reset делегирует в ZoomController', () => {
+  it('reset delegates to ZoomController', () => {
     plugin.zoomTo(3, { animate: false })
     plugin.reset({ animate: false })
     expect(plugin.getState().scale).toBe(1)
   })
 
-  it('getState возвращает текущее состояние', () => {
+  it('getState returns current state', () => {
     const state = plugin.getState()
     expect(state).toMatchObject({ scale: 1, x: 0, y: 0 })
   })
 })
 
 describe('ZoomPlugin — focusOnClick', () => {
-  it('focusOnClick:true регистрирует click-обработчик', () => {
+  it('focusOnClick:true registers click handler', () => {
     const plugin = ZoomPlugin({ focusOnClick: true, animate: false })
     const client = makeFakeClient(svg)
     plugin.onInit!(client)
@@ -587,7 +587,7 @@ describe('ZoomPlugin — focusOnClick', () => {
     plugin.onDestroy!(client)
   })
 
-  it('focusOnClick:false — click-обработчик не регистрируется', () => {
+  it('focusOnClick:false — click handler is not registered', () => {
     const plugin = ZoomPlugin({ focusOnClick: false, animate: false })
     const client = makeFakeClient(svg)
     plugin.onInit!(client)
@@ -595,7 +595,7 @@ describe('ZoomPlugin — focusOnClick', () => {
     plugin.onDestroy!(client)
   })
 
-  it('focusOnClick — не фокусирует если scale уже >= focusScale*0.9', () => {
+  it('focusOnClick — does not focus if scale is already >= focusScale*0.9', () => {
     let clickHandler: ((id: string, item: SvgicItem | null) => void) | null = null
     const client: ISvgic = {
       ...makeFakeClient(svg),
@@ -605,13 +605,13 @@ describe('ZoomPlugin — focusOnClick', () => {
     const plugin = ZoomPlugin({ focusOnClick: true, focusScale: 2, animate: false })
     plugin.onInit!(client)
 
-    // Сначала зумируем до focusScale
+    // First zoom to focusScale
     plugin.zoomTo(2, { animate: false })
 
     const focusSpy = vi.spyOn(plugin as never, 'focusElement' as never)
     clickHandler!('room-1', { id: 'room-1' })
 
-    // scale=2 >= 2*0.9=1.8 → focusElement НЕ должен был вызваться
+    // scale=2 >= 2*0.9=1.8 → focusElement should NOT have been called
     expect(focusSpy).not.toHaveBeenCalled()
     plugin.onDestroy!(client)
   })
