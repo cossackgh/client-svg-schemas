@@ -350,18 +350,22 @@ describe('Svgic — setSrc()', () => {
     client.destroy()
   })
 
-  it('calls plugin onInit again after setSrc', async () => {
+  it('calls plugin onDestroy then onInit again after setSrc', async () => {
     vi.mocked(loadSvg)
       .mockResolvedValueOnce(makeSvgEl())
       .mockResolvedValueOnce(makeSvgEl())
 
-    const plugin: SvgicPlugin = { name: 'p', onInit: vi.fn() }
+    const order: string[] = []
+    const plugin: SvgicPlugin = {
+      name: 'p',
+      onInit: vi.fn(() => order.push('init')),
+      onDestroy: vi.fn(() => order.push('destroy')),
+    }
     const client = new Svgic(container, { src: '', plugins: [plugin] })
     await client.ready
-    expect(plugin.onInit).toHaveBeenCalledOnce()
 
     await client.setSrc('/new.svg')
-    expect(plugin.onInit).toHaveBeenCalledTimes(2)
+    expect(order).toEqual(['init', 'destroy', 'init'])
     client.destroy()
   })
 })

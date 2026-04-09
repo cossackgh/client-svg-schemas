@@ -33,7 +33,10 @@ export type SvgicEventHandler = (id: string, item: SvgicItem | null) => void
  * Full implementation — the `Svgic` class.
  */
 export interface ISvgic {
-  /** Promise that resolves after SVG is loaded and initialized */
+  /**
+   * Promise that resolves after the initial SVG is loaded and initialized.
+   * For subsequent source changes use `await client.setSrc()` instead.
+   */
   readonly ready: Promise<void>
   /**
    * Registers a plugin. Can be called before or after initialization.

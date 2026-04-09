@@ -39,6 +39,8 @@ export class Svgic implements ISvgic {
   private options: SvgicOptions
   private plugins: SvgicPlugin[] = []
   private svgEl: SVGSVGElement | null = null
+  /** Tracks the active init promise — used by setSrc() to wait for pending initialization */
+  private initPromise: Promise<void> = Promise.resolve()
   private layers: Map<string, ParsedLayer> = new Map()
   private boundElements: Map<string, BoundElement> = new Map()
   private eventManager: EventManager
@@ -72,10 +74,11 @@ export class Svgic implements ISvgic {
       options.plugins.forEach(p => this.use(p))
     }
 
-    this.ready = this.init().catch(err => {
+    this.initPromise = this.init().catch(err => {
       console.error('[svgic] Initialization failed:', err)
       throw err
     })
+    this.ready = this.initPromise
   }
 
   /**
@@ -99,17 +102,22 @@ export class Svgic implements ISvgic {
    * @param src - URL or raw SVG string
    */
   async setSrc(src: string): Promise<void> {
-    this.eventManager.destroy()
-    this.popupManager?.destroy()
-    this.popupManager = null
-    this.styleManager?.destroy()
-    this.styleManager = null
-    this.svgEl?.remove()
-    this.svgEl = null
-    this.layers = new Map()
-    this.boundElements = new Map()
-    this.options = { ...this.options, src, data: undefined }
-    await this.init()
+    // Chain onto the current promise so concurrent calls are serialized
+    this.initPromise = this.initPromise.catch(() => {}).then(async () => {
+      this.eventManager.destroy()
+      this.popupManager?.destroy()
+      this.popupManager = null
+      this.styleManager?.destroy()
+      this.styleManager = null
+      this.svgEl?.remove()
+      this.svgEl = null
+      this.layers = new Map()
+      this.boundElements = new Map()
+      this.plugins.forEach(p => p.onDestroy?.(this))
+      this.options = { ...this.options, src, data: undefined }
+      await this.init()
+    })
+    await this.initPromise
   }
 
   /**
