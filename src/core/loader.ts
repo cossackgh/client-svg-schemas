@@ -8,7 +8,9 @@ export async function loadSvg(src: string): Promise<SVGSVGElement> {
 }
 
 function isSvgString(src: string): boolean {
-  return /^<svg[\s>]/i.test(src.trimStart())
+  // Any string starting with '<' is treated as inline SVG, not a URL.
+  // No valid URL begins with '<', so this is a safe and simple heuristic.
+  return src.trimStart().startsWith('<')
 }
 
 async function fetchSvg(url: string, timeoutMs = 30_000): Promise<string> {
