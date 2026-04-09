@@ -141,14 +141,19 @@ Updates bound data. Call after `await client.ready`.
 ### `client.on(event, handler)`
 
 ```ts
-on(event: 'click' | 'hover' | 'leave', handler: (id: string, item: SvgicItem | null) => void): this
+on(event: 'click' | 'hover' | 'leave', handler: (id: string | null, item: SvgicItem | null) => void): this
 ```
 
 Subscribe to events. Returns `this` for chaining.
 
+`id` is `null` when the event fires on an empty area inside an interactive layer (no bound element). Use this to reset state on background clicks:
+
 ```ts
 client
-  .on('click', (id, item) => console.log('clicked', id, item))
+  .on('click', (id, item) => {
+    if (id === null) { client.clearHighlight(); return }
+    console.log('clicked', id, item)
+  })
   .on('hover', (id, item) => console.log('hovered', id))
 ```
 
@@ -582,9 +587,9 @@ import { SvgicVue } from 'svgic/vue'
 
 | Event | Arguments |
 |-------|-----------|
-| `@click` | `(id: string, item: SvgicItem \| null)` |
-| `@hover` | `(id: string, item: SvgicItem \| null)` |
-| `@leave` | `(id: string, item: SvgicItem \| null)` |
+| `@click` | `(id: string \| null, item: SvgicItem \| null)` |
+| `@hover` | `(id: string \| null, item: SvgicItem \| null)` |
+| `@leave` | `(id: string \| null, item: SvgicItem \| null)` |
 
 The component automatically recreates the client when `src` changes and reactively updates data when `data` changes.
 
@@ -605,7 +610,7 @@ import type { SvgicItem } from 'svgic'
 
 const rooms = ref<SvgicItem[]>([...])
 
-function onRoomClick(id: string, item: SvgicItem | null) {
+function onRoomClick(id: string | null, item: SvgicItem | null) {
   console.log('clicked', id, item)
 }
 </script>
@@ -635,9 +640,9 @@ Same as the Vue adapter: `src`, `data`, `layers`, `plugins`, `popup`, `style`, p
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `onClick` | `(id: string, item: SvgicItem \| null) => void` | Click on element |
-| `onHover` | `(id: string, item: SvgicItem \| null) => void` | Hover |
-| `onLeave` | `(id: string, item: SvgicItem \| null) => void` | Cursor leave |
+| `onClick` | `(id: string \| null, item: SvgicItem \| null) => void` | Click on element |
+| `onHover` | `(id: string \| null, item: SvgicItem \| null) => void` | Hover |
+| `onLeave` | `(id: string \| null, item: SvgicItem \| null) => void` | Cursor leave |
 
 ```tsx
 import { SvgicReact } from 'svgic/react'
