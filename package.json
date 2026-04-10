@@ -1,6 +1,6 @@
 {
-  "name": "svgic",
-  "version": "0.0.1",
+  "name": "@svgic/core",
+  "version": "0.1.0",
   "description": "Interactive SVG schema client — embed, bind data, and handle events on SVG layers",
   "type": "module",
   "main": "./dist/svgic.umd.cjs",
@@ -29,6 +29,7 @@
       "types": "./dist/plugins/debug/index.d.ts"
     }
   },
+  "sideEffects": false,
   "files": [
     "dist"
   ],
@@ -46,15 +47,20 @@
     "viewer",
     "layers"
   ],
-  "author": "",
+  "author": "Dmitry Yagupov",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cossackgh/client-svg-schemas.git"
+  },
+  "homepage": "https://github.com/cossackgh/client-svg-schemas#readme",
   "license": "MIT",
   "peerDependencies": {
     "react": ">=17.0.0",
     "vue": ">=3.0.0"
   },
-  "peerDependenciesOptional": {
-    "react": true,
-    "vue": true
+  "peerDependenciesMeta": {
+    "react": { "optional": true },
+    "vue": { "optional": true }
   },
   "devDependencies": {
     "@types/jsdom": "^28.0.1",

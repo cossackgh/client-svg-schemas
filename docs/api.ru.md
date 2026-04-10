@@ -33,7 +33,7 @@ new Svgic(selector, options)
 Бросает `Error` если контейнер не найден.
 
 ```ts
-import { Svgic } from 'svgic'
+import { Svgic } from '@svgic/core'
 
 const client = new Svgic('#container', {
   src: '/map.svg',
@@ -668,7 +668,7 @@ import { SvgicVue } from 'svgic/vue'
 
 <script setup lang="ts">
 import { SvgicVue } from 'svgic/vue'
-import type { SvgicItem } from 'svgic'
+import type { SvgicItem } from '@svgic/core'
 
 const rooms = ref<SvgicItem[]>([...])
 
