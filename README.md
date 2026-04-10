@@ -443,7 +443,7 @@ client.clearHighlight()
 
 ```vue
 <script setup lang="ts">
-import { SvgicVue } from 'svgic/vue'
+import { SvgicVue } from '@svgic/core/vue'
 import type { SvgicItem } from '@svgic/core'
 
 const rooms = ref<SvgicItem[]>([
@@ -491,7 +491,7 @@ The component reactively responds to changes in the `:data` prop.
 ### Composable
 
 ```ts
-import { useSvgic } from 'svgic/vue'
+import { useSvgic } from '@svgic/core/vue'
 
 const { containerRef, client } = useSvgic({
   src: '/map.svg',
@@ -514,7 +514,7 @@ const { containerRef, client } = useSvgic({
 ### Component
 
 ```tsx
-import { SvgicReact } from 'svgic/react'
+import { SvgicReact } from '@svgic/core/react'
 import type { SvgicItem } from '@svgic/core'
 
 const rooms: SvgicItem[] = [
@@ -562,8 +562,8 @@ The component recreates the client when `src` changes, and reactively updates da
 
 ```tsx
 import { useRef } from 'react'
-import { useSvgic } from 'svgic/react'
-import { ZoomPlugin } from 'svgic/plugins/zoom'
+import { useSvgic } from '@svgic/core/react'
+import { ZoomPlugin } from '@svgic/core/plugins/zoom'
 
 const zoom = ZoomPlugin({ wheelMode: 'ctrl' })
 
@@ -598,7 +598,7 @@ Official plugin for zooming and panning SVG diagrams.
 Bundled with the library, no external dependencies.
 
 ```ts
-import { ZoomPlugin } from 'svgic/plugins/zoom'
+import { ZoomPlugin } from '@svgic/core/plugins/zoom'
 
 const zoom = ZoomPlugin({
   wheelMode: 'ctrl',  // zoom with wheel only when Ctrl is held
@@ -660,7 +660,7 @@ zoom.zoomTo(2, { animate: true })
 Development plugin: shows SVG element `id`s directly on the diagram on hover or click. Useful during setup — to find the needed `id`s without opening DevTools.
 
 ```ts
-import { DebugPlugin } from 'svgic/plugins/debug'
+import { DebugPlugin } from '@svgic/core/plugins/debug'
 
 const client = new Svgic('#container', {
   src: '/map.svg',

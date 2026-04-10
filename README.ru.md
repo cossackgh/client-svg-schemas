@@ -441,7 +441,7 @@ client.clearHighlight()
 
 ```vue
 <script setup lang="ts">
-import { SvgicVue } from 'svgic/vue'
+import { SvgicVue } from '@svgic/core/vue'
 import type { SvgicItem } from '@svgic/core'
 
 const rooms = ref<SvgicItem[]>([
@@ -489,7 +489,7 @@ function onRoomClick(id: string | null, item: SvgicItem | null) {
 ### Composable
 
 ```ts
-import { useSvgic } from 'svgic/vue'
+import { useSvgic } from '@svgic/core/vue'
 
 const { containerRef, client } = useSvgic({
   src: '/map.svg',
@@ -512,7 +512,7 @@ const { containerRef, client } = useSvgic({
 ### Компонент
 
 ```tsx
-import { SvgicReact } from 'svgic/react'
+import { SvgicReact } from '@svgic/core/react'
 import type { SvgicItem } from '@svgic/core'
 
 const rooms: SvgicItem[] = [
@@ -560,8 +560,8 @@ function Map() {
 
 ```tsx
 import { useRef } from 'react'
-import { useSvgic } from 'svgic/react'
-import { ZoomPlugin } from 'svgic/plugins/zoom'
+import { useSvgic } from '@svgic/core/react'
+import { ZoomPlugin } from '@svgic/core/plugins/zoom'
 
 const zoom = ZoomPlugin({ wheelMode: 'ctrl' })
 
@@ -596,7 +596,7 @@ function Map() {
 Поставляется в комплекте с библиотекой, без внешних зависимостей.
 
 ```ts
-import { ZoomPlugin } from 'svgic/plugins/zoom'
+import { ZoomPlugin } from '@svgic/core/plugins/zoom'
 
 const zoom = ZoomPlugin({
   wheelMode: 'ctrl',  // zoom колесом только при зажатом Ctrl
@@ -658,7 +658,7 @@ zoom.zoomTo(2, { animate: true })
 Плагин для разработки: показывает `id` SVG-элементов прямо на схеме при наведении или клике. Удобен на этапе настройки — чтобы узнать нужные `id` без открытия DevTools.
 
 ```ts
-import { DebugPlugin } from 'svgic/plugins/debug'
+import { DebugPlugin } from '@svgic/core/plugins/debug'
 
 const client = new Svgic('#container', {
   src: '/map.svg',
