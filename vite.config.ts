@@ -37,7 +37,11 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      svgic: resolve(__dirname, 'src/index.ts'),
+      '@svgic/core/plugins/zoom': resolve(__dirname, 'src/plugins/zoom/index.ts'),
+      '@svgic/core/plugins/debug': resolve(__dirname, 'src/plugins/debug/index.ts'),
+      '@svgic/core/vue': resolve(__dirname, 'src/adapters/vue/index.ts'),
+      '@svgic/core/react': resolve(__dirname, 'src/adapters/react/index.ts'),
+      '@svgic/core': resolve(__dirname, 'src/index.ts'),
     },
   },
 })

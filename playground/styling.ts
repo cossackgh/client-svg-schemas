@@ -1,5 +1,5 @@
-import { Svgic } from 'svgic'
-import type { SvgicItem, SvgicStyleConfig } from 'svgic'
+import { Svgic } from '@svgic/core'
+import type { SvgicItem, SvgicStyleConfig } from '@svgic/core'
 
 // --- data ---
 
@@ -71,7 +71,7 @@ function showInfo(item: SvgicItem | null) {
   infoCap.textContent = item.capacity ? `${item.capacity} people` : '—'
 }
 
-function addLog(type: 'click' | 'hover' | 'leave', id: string, item: SvgicItem | null) {
+function addLog(type: 'click' | 'hover' | 'leave', id: string | null, item: SvgicItem | null) {
   const el = document.createElement('div')
   el.className = `log-entry ${type}`
   el.textContent = `${type.padEnd(5)}  ${item?.title ?? (id || 'empty')}`

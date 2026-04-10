@@ -61,7 +61,7 @@ client.setHighlight('busy', ['room-101'])
 </template>
 
 <script setup lang="ts">
-import { SvgicVue } from 'svgic/vue'
+import { SvgicVue } from '@svgic/core/vue'
 import type { SvgicItem } from '@svgic/core'
 
 const rooms = ref<SvgicItem[]>([{ id: 'room-101', title: 'Conference Room' }])
@@ -72,7 +72,7 @@ const onRoomClick = (id: string, item: SvgicItem | null) => console.log(id, item
 ## React
 
 ```tsx
-import { SvgicReact } from 'svgic/react'
+import { SvgicReact } from '@svgic/core/react'
 
 <SvgicReact
   src="/map.svg"
@@ -108,8 +108,8 @@ client.destroy()
 ## Plugins
 
 ```ts
-import { ZoomPlugin } from 'svgic/plugins/zoom'
-import { DebugPlugin } from 'svgic/plugins/debug'
+import { ZoomPlugin } from '@svgic/core/plugins/zoom'
+import { DebugPlugin } from '@svgic/core/plugins/debug'
 
 // ZoomPlugin — zoom/pan via wheel, drag, touch
 const zoom = ZoomPlugin({ wheelMode: 'ctrl', focusOnClick: true })

@@ -1,7 +1,7 @@
-import { Svgic } from 'svgic'
-import type { SvgicItem } from 'svgic'
-import { DebugPlugin } from 'svgic/plugins/debug'
-import type { DebugPluginOptions } from 'svgic/plugins/debug'
+import { Svgic } from '@svgic/core'
+import type { SvgicItem } from '@svgic/core'
+import { DebugPlugin } from '@svgic/core/plugins/debug'
+import type { DebugPluginOptions } from '@svgic/core/plugins/debug'
 
 // --- data (room-203 intentionally missing — demo for "no data") ---
 
@@ -31,7 +31,7 @@ const modeButtons = document.querySelectorAll<HTMLButtonElement>('.mode-btn[data
 const renderBtns  = document.querySelectorAll<HTMLButtonElement>('.mode-btn[data-render]')
 const modeHint    = document.getElementById('debug-mode-hint')!
 
-function addLog(type: 'click' | 'hover' | 'leave', id: string, item: SvgicItem | null) {
+function addLog(type: 'click' | 'hover' | 'leave', id: string | null, item: SvgicItem | null) {
   const el = document.createElement('div')
   el.className = `log-entry ${type}`
   el.textContent = `${type.padEnd(5)}  ${item?.title ?? (id || 'empty')}`

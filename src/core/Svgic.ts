@@ -14,7 +14,7 @@ import { StyleManager } from '../ui/StyleManager'
  *
  * @example
  * ```ts
- * import { Svgic } from 'svgic'
+ * import { Svgic } from '@svgic/core'
  *
  * const client = new Svgic('#container', {
  *   src: '/map.svg',
