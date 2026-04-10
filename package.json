@@ -1,6 +1,6 @@
 {
   "name": "@svgic/core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Interactive SVG schema client — embed, bind data, and handle events on SVG layers",
   "type": "module",
   "main": "./dist/svgic.cjs",
