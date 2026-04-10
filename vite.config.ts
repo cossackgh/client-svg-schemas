@@ -16,7 +16,7 @@ export default defineConfig({
   build: {
     lib: {
       entry: {
-        index: resolve(__dirname, 'src/index.ts'),
+        svgic: resolve(__dirname, 'src/index.ts'),
         vue: resolve(__dirname, 'src/adapters/vue/index.ts'),
         react: resolve(__dirname, 'src/adapters/react/index.ts'),
         'plugins/zoom': resolve(__dirname, 'src/plugins/zoom/index.ts'),
