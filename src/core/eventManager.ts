@@ -106,6 +106,13 @@ export class EventManager {
     const id = this.findBoundId(e.target, layerEl)
 
     if (id === null) {
+      // No bound element — notify plugins for unbound elements (e.g. DebugPlugin)
+      const unboundId = this.findElementId(e.target, layerEl)
+      if (unboundId !== null) {
+        const element = e.target as SVGElement
+        this.getPlugins().forEach(p => p.onElementClick?.(element, null))
+      }
+
       if (this.popupTrigger === 'click') {
         this.currentPopupId = null
         this.popupHide?.()
