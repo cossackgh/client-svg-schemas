@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Interactive SVG schema client — embed, bind data, and handle events on SVG layers",
   "type": "module",
-  "main": "./dist/svgic.umd.cjs",
+  "main": "./dist/svgic.cjs",
   "module": "./dist/svgic.js",
   "types": "./dist/index.d.ts",
   "exports": {
