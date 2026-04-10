@@ -53,6 +53,8 @@ interface SvgicOptions {
   src: string
   data?: SvgicItem[]
   layers?: Record<string, SvgicLayer>
+  idAttribute?: string
+  idMatch?: 'exact' | 'suffix' | ((svgId: string) => string)
   plugins?: SvgicPlugin[]
   popup?: PopupOption
   style?: SvgicStyleConfig
@@ -64,9 +66,69 @@ interface SvgicOptions {
 | `src` | `string` | ✅ | SVG file URL or SVG string (`<svg>...</svg>`) |
 | `data` | `SvgicItem[]` | — | Data array bound to elements by `id` |
 | `layers` | `Record<string, SvgicLayer>` | — | SVG layer configuration |
+| `idAttribute` | `string` | — | SVG attribute used to identify elements. Default: `'id'`. See [ID Matching](#id-matching) |
+| `idMatch` | `'exact' \| 'suffix' \| fn` | — | How SVG attribute values are matched against data `id`s. Default: `'exact'`. See [ID Matching](#id-matching) |
 | `plugins` | `SvgicPlugin[]` | — | Plugin list |
 | `popup` | `PopupOption` | — | Popup configuration (see [Popup](#popup--popup-configuration)) |
 | `style` | `SvgicStyleConfig` | — | Style configuration (see [Style](#style--style-configuration)) |
+
+### ID Matching
+
+By default, SVG elements are matched to data items by exact equality of the `id` attribute and `item.id`. The `idAttribute` and `idMatch` options let you adjust this when SVG files come from vector editors that modify element IDs.
+
+#### `idAttribute`
+
+Specifies which SVG attribute to use as the binding key. Useful when the SVG contains a dedicated `data-svgic-id` attribute added by the team:
+
+```xml
+<g id="shop-034_2" data-svgic-id="shop-034" />
+```
+
+```ts
+new Svgic('#container', {
+  idAttribute: 'data-svgic-id',
+})
+```
+
+If the specified attribute is absent on an element, falls back to `id`.
+
+#### `idMatch`
+
+Controls how SVG attribute values are compared to data item `id`s.
+
+| Value | Behavior |
+|-------|----------|
+| `'exact'` (default) | Strict equality |
+| `'suffix'` | Strips editor-appended numeric suffixes (`_2`, `_1_`) before matching. Emits `console.warn` listing all auto-matched elements |
+| `(svgId: string) => string` | Custom normalization function applied to SVG attribute values |
+
+**`'suffix'` mode** is useful when the SVG was edited in Inkscape or Illustrator, which automatically rename duplicate IDs by appending `_2`, `_3`, etc. Exact match is always tried first; suffix stripping is used as a fallback only.
+
+```ts
+new Svgic('#container', {
+  idMatch: 'suffix',
+})
+// [svgic] 2 element(s) matched by suffix stripping:
+//   "shop-034_2" → "shop-034"
+//   "shop-035_1" → "shop-035"
+```
+
+**Custom function:**
+
+```ts
+new Svgic('#container', {
+  idMatch: (svgId) => svgId.toLowerCase(),
+})
+```
+
+`idAttribute` and `idMatch` are independent and can be combined:
+
+```ts
+new Svgic('#container', {
+  idAttribute: 'data-svgic-id',  // which attribute to read
+  idMatch: 'suffix',             // how to compare it
+})
+```
 
 ### SvgicLayer
 
@@ -244,7 +306,7 @@ Removes SVG from the DOM, unsubscribes all handlers, calls `onDestroy` on plugin
 
 ```ts
 interface SvgicItem {
-  id: string           // matches the id attribute of the SVG element
+  id: string           // binding key — matched against SVG element attribute (see idAttribute / idMatch)
   title?: string       // used in the default popup
   description?: string
   image?: string
@@ -253,7 +315,7 @@ interface SvgicItem {
 }
 ```
 
-The `id` in the `data` array must match the `id` attribute of the SVG element (`<g id="room-101">`).
+By default, `id` must match the `id` attribute of the SVG element (`<g id="room-101">`). Use `idAttribute` and `idMatch` options to change the matching strategy.
 
 ---
 

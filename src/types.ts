@@ -1,6 +1,6 @@
 /** Data element — bound to an SVG element by id */
 export interface SvgicItem {
-  /** Matches the `id` attribute of the SVG element (`<g id="room-101">`) */
+  /** Binding key — matched against the SVG element attribute (see `idAttribute` / `idMatch` options) */
   id: string
   /** Title — used in the default popup */
   title?: string
@@ -63,7 +63,7 @@ export interface ISvgic {
   setSrc(src: string): Promise<void>
   /**
    * Updates bound data. Call after `await client.ready`.
-   * @param data - Array of data elements. Each `id` must match the `id` attribute in SVG.
+   * @param data - Array of data elements. Each `id` is matched against SVG elements per `idAttribute` / `idMatch` options.
    */
   setData(data: SvgicItem[]): void
   /**
