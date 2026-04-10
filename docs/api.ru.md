@@ -517,7 +517,7 @@ const client = new Svgic('#container', {
 Официальный плагин zoom/pan. Поддерживает колесо мыши, перетаскивание, touch (pinch-zoom, pan, двойной тап).
 
 ```ts
-import { ZoomPlugin } from 'svgic/plugins/zoom'
+import { ZoomPlugin } from '@svgic/core/plugins/zoom'
 ```
 
 ### Опции
@@ -586,7 +586,7 @@ interface ZoomState {
 Плагин для разработки: показывает `id` и данные SVG-элементов при наведении/клике. Помогает отлаживать привязку данных.
 
 ```ts
-import { DebugPlugin } from 'svgic/plugins/debug'
+import { DebugPlugin } from '@svgic/core/plugins/debug'
 ```
 
 ### Опции
@@ -631,7 +631,7 @@ DebugPlugin({
 ## Vue-адаптер
 
 ```ts
-import { SvgicVue } from 'svgic/vue'
+import { SvgicVue } from '@svgic/core/vue'
 ```
 
 ### Props
@@ -667,7 +667,7 @@ import { SvgicVue } from 'svgic/vue'
 </template>
 
 <script setup lang="ts">
-import { SvgicVue } from 'svgic/vue'
+import { SvgicVue } from '@svgic/core/vue'
 import type { SvgicItem } from '@svgic/core'
 
 const rooms = ref<SvgicItem[]>([...])
@@ -681,7 +681,7 @@ function onRoomClick(id: string | null, item: SvgicItem | null) {
 ### useSvgic (composable)
 
 ```ts
-import { useSvgic } from 'svgic/vue'
+import { useSvgic } from '@svgic/core/vue'
 
 const { client, containerRef } = useSvgic(options)
 ```
@@ -693,7 +693,7 @@ const { client, containerRef } = useSvgic(options)
 ## React-адаптер
 
 ```ts
-import { SvgicReact } from 'svgic/react'
+import { SvgicReact } from '@svgic/core/react'
 ```
 
 ### Props
@@ -707,7 +707,7 @@ import { SvgicReact } from 'svgic/react'
 | `onLeave` | `(id: string \| null, item: SvgicItem \| null) => void` | Уход курсора |
 
 ```tsx
-import { SvgicReact } from 'svgic/react'
+import { SvgicReact } from '@svgic/core/react'
 
 function App() {
   return (
@@ -724,7 +724,7 @@ function App() {
 ### useSvgic (hook)
 
 ```ts
-import { useSvgic } from 'svgic/react'
+import { useSvgic } from '@svgic/core/react'
 
 const { client, containerRef } = useSvgic(options)
 ```

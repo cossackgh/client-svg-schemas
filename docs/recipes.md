@@ -131,7 +131,7 @@ ZoomPlugin with auto-focus on the clicked room and a view reset button.
 
 ```ts
 import { Svgic } from '@svgic/core'
-import { ZoomPlugin } from 'svgic/plugins/zoom'
+import { ZoomPlugin } from '@svgic/core/plugins/zoom'
 
 const zoom = ZoomPlugin({
   wheelMode: 'ctrl',    // zoom with wheel only when Ctrl is held
@@ -324,7 +324,7 @@ An office map in Vue 3 with reactive data and highlight control via a composable
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { SvgicVue } from 'svgic/vue'
+import { SvgicVue } from '@svgic/core/vue'
 import type { SvgicItem, SvgicStyleConfig, PopupOption, SvgicLayer } from '@svgic/core'
 
 interface Room extends SvgicItem {

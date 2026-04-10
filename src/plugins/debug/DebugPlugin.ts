@@ -136,7 +136,7 @@ function positionLabel(label: HTMLElement, target: SVGElement): void {
  *
  * @example
  * ```ts
- * import { DebugPlugin } from 'svgic/plugins/debug'
+ * import { DebugPlugin } from '@svgic/core/plugins/debug'
  *
  * const debug = new URLSearchParams(location.search).has('debug')
  *
