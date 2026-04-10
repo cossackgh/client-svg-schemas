@@ -19,7 +19,7 @@ Practical examples for common usage scenarios.
 A typical scenario: a room map where each room has a status (`free` / `busy`), a popup is shown on hover, and clicking opens a detail page.
 
 ```ts
-import { Svgic } from 'svgic'
+import { Svgic } from '@svgic/core'
 
 interface Room {
   id: string
@@ -91,7 +91,7 @@ client.on('click', (id) => {
 A multi-floor building diagram. The user switches floors — the SVG and data change accordingly.
 
 ```ts
-import { Svgic } from 'svgic'
+import { Svgic } from '@svgic/core'
 
 const floors: Record<string, { src: string; data: SvgicItem[] }> = {
   '1': { src: '/floor-1.svg', data: [...] },
@@ -130,7 +130,7 @@ document.querySelectorAll<HTMLButtonElement>('[data-floor]').forEach(btn => {
 ZoomPlugin with auto-focus on the clicked room and a view reset button.
 
 ```ts
-import { Svgic } from 'svgic'
+import { Svgic } from '@svgic/core'
 import { ZoomPlugin } from 'svgic/plugins/zoom'
 
 const zoom = ZoomPlugin({
@@ -171,7 +171,7 @@ document.querySelectorAll<HTMLElement>('[data-room]').forEach(el => {
 The popup contains a link or button — it must stay visible while the cursor is on it.
 
 ```ts
-import { Svgic } from 'svgic'
+import { Svgic } from '@svgic/core'
 
 const client = new Svgic('#map', {
   src: '/map.svg',
@@ -218,7 +218,7 @@ On mobile devices, a popup over the diagram is inconvenient. It is better to sho
 ```
 
 ```ts
-import { Svgic } from 'svgic'
+import { Svgic } from '@svgic/core'
 
 const client = new Svgic('#map', {
   src: '/map.svg',
@@ -252,7 +252,7 @@ const client = new Svgic('#map', {
 A plugin that outlines the active (clicked) room and removes the outline when another room is clicked.
 
 ```ts
-import type { SvgicPlugin, ISvgic, SvgicItem } from 'svgic'
+import type { SvgicPlugin, ISvgic, SvgicItem } from '@svgic/core'
 
 function ActiveRoomPlugin(): SvgicPlugin {
   let activeEl: SVGElement | null = null
@@ -325,7 +325,7 @@ An office map in Vue 3 with reactive data and highlight control via a composable
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { SvgicVue } from 'svgic/vue'
-import type { SvgicItem, SvgicStyleConfig, PopupOption, SvgicLayer } from 'svgic'
+import type { SvgicItem, SvgicStyleConfig, PopupOption, SvgicLayer } from '@svgic/core'
 
 interface Room extends SvgicItem {
   status: 'free' | 'busy'

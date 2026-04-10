@@ -19,7 +19,7 @@
 Типовой сценарий: схема комнат, каждая комната имеет статус (`free` / `busy`), при наведении показывается попап, при клике — открывается детальная страница.
 
 ```ts
-import { Svgic } from 'svgic'
+import { Svgic } from '@svgic/core'
 
 interface Room {
   id: string
@@ -91,7 +91,7 @@ client.on('click', (id) => {
 Схема здания с несколькими этажами. Пользователь переключает этаж — SVG и данные меняются.
 
 ```ts
-import { Svgic } from 'svgic'
+import { Svgic } from '@svgic/core'
 
 const floors: Record<string, { src: string; data: SvgicItem[] }> = {
   '1': { src: '/floor-1.svg', data: [...] },
@@ -130,7 +130,7 @@ document.querySelectorAll<HTMLButtonElement>('[data-floor]').forEach(btn => {
 ZoomPlugin с автофокусом на кликнутой комнате и кнопкой сброса вида.
 
 ```ts
-import { Svgic } from 'svgic'
+import { Svgic } from '@svgic/core'
 import { ZoomPlugin } from 'svgic/plugins/zoom'
 
 const zoom = ZoomPlugin({
@@ -171,7 +171,7 @@ document.querySelectorAll<HTMLElement>('[data-room]').forEach(el => {
 Попап содержит ссылку или кнопку — он должен оставаться видимым, пока курсор находится на нём.
 
 ```ts
-import { Svgic } from 'svgic'
+import { Svgic } from '@svgic/core'
 
 const client = new Svgic('#map', {
   src: '/map.svg',
@@ -218,7 +218,7 @@ const client = new Svgic('#map', {
 ```
 
 ```ts
-import { Svgic } from 'svgic'
+import { Svgic } from '@svgic/core'
 
 const client = new Svgic('#map', {
   src: '/map.svg',
@@ -252,7 +252,7 @@ const client = new Svgic('#map', {
 Плагин, который обводит активную (кликнутую) комнату и снимает обводку при клике на другую.
 
 ```ts
-import type { SvgicPlugin, ISvgic, SvgicItem } from 'svgic'
+import type { SvgicPlugin, ISvgic, SvgicItem } from '@svgic/core'
 
 function ActiveRoomPlugin(): SvgicPlugin {
   let activeEl: SVGElement | null = null
@@ -325,7 +325,7 @@ const client = new Svgic('#map', {
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { SvgicVue } from 'svgic/vue'
-import type { SvgicItem, SvgicStyleConfig, PopupOption, SvgicLayer } from 'svgic'
+import type { SvgicItem, SvgicStyleConfig, PopupOption, SvgicLayer } from '@svgic/core'
 
 interface Room extends SvgicItem {
   status: 'free' | 'busy'

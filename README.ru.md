@@ -11,7 +11,7 @@
 ## Установка
 
 ```bash
-npm install svgic
+npm install @svgic/core
 ```
 
 ---
@@ -19,7 +19,7 @@ npm install svgic
 ## Быстрый старт
 
 ```ts
-import { Svgic } from 'svgic'
+import { Svgic } from '@svgic/core'
 
 const client = new Svgic('#container', {
   src: '/map.svg',
@@ -442,7 +442,7 @@ client.clearHighlight()
 ```vue
 <script setup lang="ts">
 import { SvgicVue } from 'svgic/vue'
-import type { SvgicItem } from 'svgic'
+import type { SvgicItem } from '@svgic/core'
 
 const rooms = ref<SvgicItem[]>([
   { id: 'room-101', title: 'Переговорная' },
@@ -513,7 +513,7 @@ const { containerRef, client } = useSvgic({
 
 ```tsx
 import { SvgicReact } from 'svgic/react'
-import type { SvgicItem } from 'svgic'
+import type { SvgicItem } from '@svgic/core'
 
 const rooms: SvgicItem[] = [
   { id: 'room-101', title: 'Переговорная' },
