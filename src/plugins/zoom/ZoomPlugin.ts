@@ -31,7 +31,7 @@ export interface ZoomPluginInstance extends SvgicPlugin {
  *
  * @example
  * ```ts
- * import { ZoomPlugin } from 'svgic/plugins/zoom'
+ * import { ZoomPlugin } from '@svgic/core/plugins/zoom'
  *
  * const zoom = ZoomPlugin({ wheelMode: 'ctrl', focusOnClick: true })
  * const client = new Svgic('#container', { src: '/map.svg', plugins: [zoom] })

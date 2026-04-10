@@ -517,7 +517,7 @@ const client = new Svgic('#container', {
 Official zoom/pan plugin. Supports mouse wheel, drag, touch (pinch-zoom, pan, double tap).
 
 ```ts
-import { ZoomPlugin } from 'svgic/plugins/zoom'
+import { ZoomPlugin } from '@svgic/core/plugins/zoom'
 ```
 
 ### Options
@@ -586,7 +586,7 @@ interface ZoomState {
 Development plugin: shows `id` and data of SVG elements on hover/click. Helps debug data binding.
 
 ```ts
-import { DebugPlugin } from 'svgic/plugins/debug'
+import { DebugPlugin } from '@svgic/core/plugins/debug'
 ```
 
 ### Options
@@ -631,7 +631,7 @@ DebugPlugin({
 ## Vue Adapter
 
 ```ts
-import { SvgicVue } from 'svgic/vue'
+import { SvgicVue } from '@svgic/core/vue'
 ```
 
 ### Props
@@ -667,7 +667,7 @@ The component automatically recreates the client when `src` changes and reactive
 </template>
 
 <script setup lang="ts">
-import { SvgicVue } from 'svgic/vue'
+import { SvgicVue } from '@svgic/core/vue'
 import type { SvgicItem } from '@svgic/core'
 
 const rooms = ref<SvgicItem[]>([...])
@@ -681,7 +681,7 @@ function onRoomClick(id: string | null, item: SvgicItem | null) {
 ### useSvgic (composable)
 
 ```ts
-import { useSvgic } from 'svgic/vue'
+import { useSvgic } from '@svgic/core/vue'
 
 const { client, containerRef } = useSvgic(options)
 ```
@@ -693,7 +693,7 @@ Returns `containerRef` (bind to a DOM element) and `client` (the `Svgic` instanc
 ## React Adapter
 
 ```ts
-import { SvgicReact } from 'svgic/react'
+import { SvgicReact } from '@svgic/core/react'
 ```
 
 ### Props
@@ -707,7 +707,7 @@ Same as the Vue adapter: `src`, `data`, `layers`, `plugins`, `popup`, `style`, p
 | `onLeave` | `(id: string \| null, item: SvgicItem \| null) => void` | Cursor leave |
 
 ```tsx
-import { SvgicReact } from 'svgic/react'
+import { SvgicReact } from '@svgic/core/react'
 
 function App() {
   return (
@@ -724,7 +724,7 @@ function App() {
 ### useSvgic (hook)
 
 ```ts
-import { useSvgic } from 'svgic/react'
+import { useSvgic } from '@svgic/core/react'
 
 const { client, containerRef } = useSvgic(options)
 ```
