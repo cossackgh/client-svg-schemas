@@ -1,7 +1,7 @@
-import { Svgic } from 'svgic'
-import type { SvgicItem } from 'svgic'
-import { ZoomPlugin } from 'svgic/plugins/zoom'
-import type { ZoomPluginInstance } from 'svgic/plugins/zoom'
+import { Svgic } from '@svgic/core'
+import type { SvgicItem } from '@svgic/core'
+import { ZoomPlugin } from '@svgic/core/plugins/zoom'
+import type { ZoomPluginInstance } from '@svgic/core/plugins/zoom'
 
 const rooms: SvgicItem[] = [
   { id: 'room-101', title: 'Conference Room A' },
@@ -38,7 +38,7 @@ function updateState() {
   stateY.textContent     = s.y.toFixed(1)
 }
 
-function addLog(type: 'click' | 'hover' | 'leave', id: string, item: SvgicItem | null) {
+function addLog(type: 'click' | 'hover' | 'leave', id: string | null, item: SvgicItem | null) {
   const el = document.createElement('div')
   el.className = `log-entry ${type}`
   el.textContent = `${type.padEnd(5)}  ${item?.title ?? (id || 'empty')}`

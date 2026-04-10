@@ -1,6 +1,6 @@
-import { Svgic } from 'svgic'
-import type { SvgicItem, PopupOption, SvgicStyleConfig } from 'svgic'
-import { ZoomPlugin } from 'svgic/plugins/zoom'
+import { Svgic } from '@svgic/core'
+import type { SvgicItem, PopupOption, SvgicStyleConfig } from '@svgic/core'
+import { ZoomPlugin } from '@svgic/core/plugins/zoom'
 
 // --- data ---
 
