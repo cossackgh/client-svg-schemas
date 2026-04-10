@@ -17,6 +17,7 @@ export class EventManager {
     leave: [],
   }
   private currentHoveredId: string | null = null
+  private currentHoveredElement: SVGElement | null = null
   private attached: AttachedListener[] = []
   private popupShow: ((el: SVGElement, item: SvgicItem, event: MouseEvent) => void) | null = null
   private popupHide: (() => void) | null = null
@@ -92,6 +93,7 @@ export class EventManager {
     }
     this.attached = []
     this.currentHoveredId = null
+    this.currentHoveredElement = null
     if (this.docClickFn) {
       document.removeEventListener('click', this.docClickFn)
       this.docClickFn = null
@@ -133,25 +135,33 @@ export class EventManager {
 
   private handleMouseOver(e: Event, layerEl: SVGGElement): void {
     const id = this.findBoundId(e.target, layerEl)
-    if (id === this.currentHoveredId) return
+
+    // For plugin notification (e.g. DebugPlugin), also consider elements with
+    // an id that have no data binding — use the closest element with any id.
+    const trackId = id ?? this.findElementId(e.target, layerEl)
+
+    if (trackId === this.currentHoveredId) return
 
     // leave previous
     if (this.currentHoveredId !== null) {
       this.fireLeave(this.currentHoveredId)
     }
 
-    this.currentHoveredId = id
+    this.currentHoveredId = trackId
 
-    if (id === null) return
+    if (trackId === null) return
 
-    const bound = this.getBoundElements().get(id)
+    const bound = id !== null ? this.getBoundElements().get(id) : undefined
     const item = bound?.item ?? null
     const element = bound?.element ?? (e.target as SVGElement)
+
+    // Store element reference so fireLeave can notify plugins for unbound elements
+    this.currentHoveredElement = element
 
     const cancelled = this.getPlugins().some(
       p => p.onElementHover?.(element, item) === false,
     )
-    if (!cancelled) {
+    if (!cancelled && id !== null) {
       this.styleHover?.(id)
       if (this.popupTrigger === 'hover') {
         this.popupShow?.(element, item ?? { id }, e as MouseEvent)
@@ -175,7 +185,8 @@ export class EventManager {
   private fireLeave(id: string): void {
     const bound = this.getBoundElements().get(id)
     const item = bound?.item ?? null
-    const element = bound?.element
+    const element = bound?.element ?? this.currentHoveredElement ?? undefined
+    this.currentHoveredElement = null
 
     if (element) {
       const cancelled = this.getPlugins().some(
@@ -186,7 +197,7 @@ export class EventManager {
 
     this.styleLeave?.()
     if (this.popupTrigger === 'hover') this.popupHide?.()
-    this.emit('leave', id, item)
+    if (bound) this.emit('leave', id, item)
   }
 
   private emit(event: SvgicEventType, id: string | null, item: SvgicItem | null): void {
@@ -195,7 +206,19 @@ export class EventManager {
     }
   }
 
+  // Walks up to find the nearest ancestor (within layerEl) that has a data binding.
   private findBoundId(target: EventTarget | null, layerEl: SVGGElement): string | null {
+    let el = target instanceof Element ? target : null
+    while (el && el !== layerEl) {
+      if (el.id && this.getBoundElements().has(el.id)) return el.id
+      el = el.parentElement
+    }
+    return null
+  }
+
+  // Walks up to find the nearest ancestor (within layerEl) that has any id,
+  // regardless of data binding. Used to notify plugins for unbound elements.
+  private findElementId(target: EventTarget | null, layerEl: SVGGElement): string | null {
     let el = target instanceof Element ? target : null
     while (el && el !== layerEl) {
       if (el.id) return el.id
