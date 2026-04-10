@@ -198,7 +198,7 @@ export class EventManager {
   private findBoundId(target: EventTarget | null, layerEl: SVGGElement): string | null {
     let el = target instanceof Element ? target : null
     while (el && el !== layerEl) {
-      if (el.id && this.getBoundElements().has(el.id)) return el.id
+      if (el.id) return el.id
       el = el.parentElement
     }
     return null
