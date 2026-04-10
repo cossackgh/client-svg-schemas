@@ -6,7 +6,7 @@ Works with vanilla JS/TS, Vue 3, and React (adapters included).
 
 > [Русская документация →](README.ru.md)
 
-**[Full API Reference →](docs/api.md)**
+**[Full API Reference →](docs/api.md)** · **[Live Examples →](https://svgic-examples.za-vod.ru/)**
 
 ---
 
