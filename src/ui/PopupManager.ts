@@ -55,6 +55,9 @@ export class PopupManager {
       return
     }
 
+    // Ensure absolute positioning so coordinate calculations (clientX/Y + scrollX/Y) work
+    // correctly for both default and custom (render/template) popups.
+    this.popupEl.style.position = 'absolute'
     document.body.appendChild(this.popupEl)
     this.updatePosition(targetEl, event)
 
