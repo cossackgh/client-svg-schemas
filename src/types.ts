@@ -244,7 +244,10 @@ export interface SvgicOptions {
   idAttribute?: string
   /**
    * Controls how SVG element attribute values are matched against data item ids.
-   * See `IdMatchOption` for details.
+   * - `'exact'` (default) — strict equality
+   * - `'suffix'` — strips editor-appended numeric suffixes (`_2`, `_1_`) as a fallback;
+   *   logs matched pairs via `console.warn`
+   * - `(svgId: string) => string` — custom normalization function
    * @default 'exact'
    */
   idMatch?: IdMatchOption
