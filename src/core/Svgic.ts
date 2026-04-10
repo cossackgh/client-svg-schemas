@@ -122,7 +122,10 @@ export class Svgic implements ISvgic {
       console.warn('[svgic] setData() called before SVG is ready — call after awaiting client.ready')
       return
     }
-    this.boundElements = mapData(this.layers, data)
+    this.boundElements = mapData(this.layers, data, {
+      idAttribute: this.options.idAttribute,
+      idMatch: this.options.idMatch,
+    })
   }
 
   /**
@@ -200,7 +203,10 @@ export class Svgic implements ISvgic {
     this.container.appendChild(this.svgEl)
     this.layers = parseLayers(this.svgEl, this.options.layers)
     if (this.options.data) {
-      this.boundElements = mapData(this.layers, this.options.data)
+      this.boundElements = mapData(this.layers, this.options.data, {
+        idAttribute: this.options.idAttribute,
+        idMatch: this.options.idMatch,
+      })
     }
     this.eventManager.attach()
 

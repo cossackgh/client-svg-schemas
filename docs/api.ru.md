@@ -53,6 +53,8 @@ interface SvgicOptions {
   src: string
   data?: SvgicItem[]
   layers?: Record<string, SvgicLayer>
+  idAttribute?: string
+  idMatch?: 'exact' | 'suffix' | ((svgId: string) => string)
   plugins?: SvgicPlugin[]
   popup?: PopupOption
   style?: SvgicStyleConfig
@@ -64,9 +66,69 @@ interface SvgicOptions {
 | `src` | `string` | ✅ | URL SVG-файла или SVG-строка (`<svg>...</svg>`) |
 | `data` | `SvgicItem[]` | — | Массив данных, привязываемых к элементам по `id` |
 | `layers` | `Record<string, SvgicLayer>` | — | Конфигурация слоёв SVG |
+| `idAttribute` | `string` | — | Атрибут SVG для идентификации элементов. По умолчанию: `'id'`. См. [Сопоставление ID](#сопоставление-id) |
+| `idMatch` | `'exact' \| 'suffix' \| fn` | — | Способ сопоставления значений атрибута с `id` в данных. По умолчанию: `'exact'`. См. [Сопоставление ID](#сопоставление-id) |
 | `plugins` | `SvgicPlugin[]` | — | Список плагинов |
 | `popup` | `PopupOption` | — | Конфигурация попапа (см. [Popup](#popup--конфигурация-попапа)) |
 | `style` | `SvgicStyleConfig` | — | Конфигурация стилей (см. [Style](#style--конфигурация-стилей)) |
+
+### Сопоставление ID
+
+По умолчанию SVG-элементы сопоставляются с элементами данных по точному совпадению атрибута `id` и `item.id`. Опции `idAttribute` и `idMatch` позволяют изменить это поведение, когда SVG-файлы приходят из векторных редакторов, которые модифицируют ID элементов.
+
+#### `idAttribute`
+
+Указывает, какой атрибут SVG использовать как ключ привязки. Полезно, когда в SVG есть специальный атрибут `data-svgic-id`, добавленный командой:
+
+```xml
+<g id="shop-034_2" data-svgic-id="shop-034" />
+```
+
+```ts
+new Svgic('#container', {
+  idAttribute: 'data-svgic-id',
+})
+```
+
+Если указанный атрибут отсутствует на элементе — используется `id` как fallback.
+
+#### `idMatch`
+
+Управляет тем, как значения атрибутов SVG сравниваются с `id` элементов данных.
+
+| Значение | Поведение |
+|----------|-----------|
+| `'exact'` (по умолчанию) | Точное равенство |
+| `'suffix'` | Отрезает числовые суффиксы, добавленные редактором (`_2`, `_1_`), перед сравнением. Выводит `console.warn` со списком авто-сопоставленных элементов |
+| `(svgId: string) => string` | Функция нормализации, применяемая к значениям атрибутов SVG |
+
+**Режим `'suffix'`** полезен, когда SVG редактировался в Inkscape или Illustrator — эти редакторы автоматически переименовывают дублирующиеся ID, добавляя суффикс `_2`, `_3` и т.д. Точное совпадение всегда проверяется первым; суффиксное сопоставление используется только как fallback.
+
+```ts
+new Svgic('#container', {
+  idMatch: 'suffix',
+})
+// [svgic] 2 element(s) matched by suffix stripping:
+//   "shop-034_2" → "shop-034"
+//   "shop-035_1" → "shop-035"
+```
+
+**Произвольная функция:**
+
+```ts
+new Svgic('#container', {
+  idMatch: (svgId) => svgId.toLowerCase(),
+})
+```
+
+`idAttribute` и `idMatch` независимы и могут комбинироваться:
+
+```ts
+new Svgic('#container', {
+  idAttribute: 'data-svgic-id',  // какой атрибут читать
+  idMatch: 'suffix',             // как сравнивать
+})
+```
 
 ### SvgicLayer
 
@@ -244,7 +306,7 @@ destroy(): void
 
 ```ts
 interface SvgicItem {
-  id: string           // совпадает с id атрибутом SVG-элемента
+  id: string           // ключ привязки — сопоставляется с атрибутом SVG-элемента (см. idAttribute / idMatch)
   title?: string       // используется в дефолтном попапе
   description?: string
   image?: string
@@ -253,7 +315,7 @@ interface SvgicItem {
 }
 ```
 
-`id` элемента в массиве `data` должен совпадать с `id` атрибутом SVG-элемента (`<g id="room-101">`).
+По умолчанию `id` должен совпадать с атрибутом `id` SVG-элемента (`<g id="room-101">`). Используйте опции `idAttribute` и `idMatch` для изменения стратегии сопоставления.
 
 ---
 

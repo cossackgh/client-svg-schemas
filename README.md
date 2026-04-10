@@ -78,6 +78,8 @@ new Svgic(selector, {
   src: string,                          // URL or SVG string
   layers?: Record<string, SvgicLayer>,  // layer definitions
   data?:   SvgicItem[],                 // data to bind
+  idAttribute?: string,                 // SVG attribute used for binding (default: 'id')
+  idMatch?: 'exact' | 'suffix' | fn,   // matching strategy (default: 'exact')
   plugins?: SvgicPlugin[],              // plugins
   popup?:   PopupOption,                // hover popup (see section below)
   style?:   SvgicStyleConfig,           // element styling (see section below)
@@ -96,7 +98,7 @@ interface SvgicLayer {
 
 ```ts
 interface SvgicItem {
-  id: string           // matches the element id in SVG
+  id: string           // binding key — matched against SVG element attribute (see idAttribute / idMatch)
   title?: string
   description?: string
   image?: string
@@ -104,6 +106,34 @@ interface SvgicItem {
   [key: string]: unknown  // any custom fields
 }
 ```
+
+---
+
+## ID Matching
+
+By default, elements are matched by exact equality of `item.id` and the SVG `id` attribute. Two options let you change this:
+
+**`idAttribute`** — use a different attribute as the binding key (e.g. `data-svgic-id`):
+
+```xml
+<!-- SVG: editor renamed the id, but data-svgic-id is stable -->
+<g id="shop-034_2" data-svgic-id="shop-034" />
+```
+
+```ts
+new Svgic('#container', { idAttribute: 'data-svgic-id' })
+```
+
+**`idMatch: 'suffix'`** — auto-strip numeric suffixes appended by Inkscape / Illustrator when IDs conflict (`_2`, `_3`, `_1_`…). Exact match is tried first; suffix stripping is a fallback. Logs a `console.warn` listing all auto-matched elements:
+
+```ts
+new Svgic('#container', { idMatch: 'suffix' })
+// [svgic] 2 element(s) matched by suffix stripping:
+//   "shop-034_2" → "shop-034"
+//   "shop-035_1" → "shop-035"
+```
+
+See full details in [docs/api.md](docs/api.md#id-matching).
 
 ---
 
@@ -138,7 +168,7 @@ client.destroy()
 | Event | When | `id` | `item` |
 |-------|------|------|--------|
 | `click` | click on element | element id | data or `null` |
-| `click` | click on empty area | `''` | `null` |
+| `click` | click on empty area | `null` | `null` |
 | `hover` | cursor entered element | element id | data or `null` |
 | `leave` | cursor left element | element id | data or `null` |
 

@@ -1,6 +1,6 @@
 /** Data element — bound to an SVG element by id */
 export interface SvgicItem {
-  /** Matches the `id` attribute of the SVG element (`<g id="room-101">`) */
+  /** Binding key — matched against the SVG element attribute (see `idAttribute` / `idMatch` options) */
   id: string
   /** Title — used in the default popup */
   title?: string
@@ -63,7 +63,7 @@ export interface ISvgic {
   setSrc(src: string): Promise<void>
   /**
    * Updates bound data. Call after `await client.ready`.
-   * @param data - Array of data elements. Each `id` must match the `id` attribute in SVG.
+   * @param data - Array of data elements. Each `id` is matched against SVG elements per `idAttribute` / `idMatch` options.
    */
   setData(data: SvgicItem[]): void
   /**
@@ -210,6 +210,15 @@ export interface SvgicStyleConfig {
   states?: Record<string, SvgicStyleProperties>
 }
 
+/**
+ * Controls how SVG element attribute values are matched against data item ids.
+ * - `'exact'` (default) — strict equality
+ * - `'suffix'` — strips editor-appended numeric suffixes (e.g. `_2`, `_1_`) before matching;
+ *   emits a `console.warn` listing all suffix-matched elements
+ * - `(svgId: string) => string` — custom normalization applied to SVG attribute values before matching
+ */
+export type IdMatchOption = 'exact' | 'suffix' | ((svgId: string) => string)
+
 /** Initialization options */
 export interface SvgicOptions {
   /** SVG file URL or SVG string (`<svg>...</svg>`) */
@@ -227,6 +236,21 @@ export interface SvgicOptions {
    * ```
    */
   layers?: Record<string, SvgicLayer>
+  /**
+   * SVG attribute used to identify elements and match them to data items.
+   * - `'id'` (default) — uses the standard `id` attribute
+   * - any string — uses that attribute (e.g. `'data-svgic-id'`), falls back to `id` if absent
+   */
+  idAttribute?: string
+  /**
+   * Controls how SVG element attribute values are matched against data item ids.
+   * - `'exact'` (default) — strict equality
+   * - `'suffix'` — strips editor-appended numeric suffixes (`_2`, `_1_`) as a fallback;
+   *   logs matched pairs via `console.warn`
+   * - `(svgId: string) => string` — custom normalization function
+   * @default 'exact'
+   */
+  idMatch?: IdMatchOption
   /** Plugin list */
   plugins?: SvgicPlugin[]
   /** Popup configuration */

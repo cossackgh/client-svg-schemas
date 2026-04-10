@@ -76,6 +76,8 @@ new Svgic(selector, {
   src: string,                          // URL или SVG-строка
   layers?: Record<string, SvgicLayer>,  // описание слоёв
   data?:   SvgicItem[],                 // данные для привязки
+  idAttribute?: string,                 // атрибут SVG для привязки (по умолчанию: 'id')
+  idMatch?: 'exact' | 'suffix' | fn,   // стратегия сопоставления (по умолчанию: 'exact')
   plugins?: SvgicPlugin[],              // плагины
   popup?:   PopupOption,                // попап при наведении (см. раздел ниже)
   style?:   SvgicStyleConfig,           // стилизация элементов (см. раздел ниже)
@@ -94,7 +96,7 @@ interface SvgicLayer {
 
 ```ts
 interface SvgicItem {
-  id: string           // совпадает с id элемента в SVG
+  id: string           // ключ привязки — сопоставляется с атрибутом SVG-элемента (см. idAttribute / idMatch)
   title?: string
   description?: string
   image?: string
@@ -102,6 +104,34 @@ interface SvgicItem {
   [key: string]: unknown  // любые кастомные поля
 }
 ```
+
+---
+
+## Сопоставление ID
+
+По умолчанию элементы сопоставляются по точному совпадению `item.id` и атрибута `id` в SVG. Две опции позволяют изменить это:
+
+**`idAttribute`** — использовать другой атрибут как ключ привязки (например, `data-svgic-id`):
+
+```xml
+<!-- SVG: редактор переименовал id, но data-svgic-id остаётся стабильным -->
+<g id="shop-034_2" data-svgic-id="shop-034" />
+```
+
+```ts
+new Svgic('#container', { idAttribute: 'data-svgic-id' })
+```
+
+**`idMatch: 'suffix'`** — автоматически отрезает числовые суффиксы, добавляемые Inkscape / Illustrator при конфликте ID (`_2`, `_3`, `_1_`…). Точное совпадение проверяется первым; суффиксное сопоставление — только fallback. Выводит `console.warn` со списком авто-сопоставленных элементов:
+
+```ts
+new Svgic('#container', { idMatch: 'suffix' })
+// [svgic] 2 element(s) matched by suffix stripping:
+//   "shop-034_2" → "shop-034"
+//   "shop-035_1" → "shop-035"
+```
+
+Подробнее в [docs/api.md](docs/api.md#id-matching).
 
 ---
 
@@ -136,7 +166,7 @@ client.destroy()
 | Событие | Когда | `id` | `item` |
 |---------|-------|------|--------|
 | `click` | клик по элементу | id элемента | данные или `null` |
-| `click` | клик по пустому месту | `''` | `null` |
+| `click` | клик по пустому месту | `null` | `null` |
 | `hover` | курсор вошёл в элемент | id элемента | данные или `null` |
 | `leave` | курсор вышел из элемента | id элемента | данные или `null` |
 
