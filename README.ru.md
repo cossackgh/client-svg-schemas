@@ -4,7 +4,7 @@
 
 Работает с ванильным JS/TS, Vue 3 и React (адаптеры поставляются в комплекте).
 
-**[Полный API Reference →](docs/api.md)**
+**[Полный API Reference →](docs/api.md)** · **[Живые примеры →](https://svgic-examples.za-vod.ru/)**
 
 ---
 
