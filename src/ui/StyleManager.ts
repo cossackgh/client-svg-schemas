@@ -1,4 +1,4 @@
-import type { SvgicStyleConfig, SvgicStyleProperties } from '../types'
+import type { SvgicStyleConfig, SvgicStyleProperties, StripInlineStylesOption } from '../types'
 import type { ParsedLayer } from '../core/layerParser'
 import type { BoundElement } from '../core/dataMapper'
 
@@ -16,11 +16,13 @@ export class StyleManager {
     private readonly config: SvgicStyleConfig,
     private readonly getLayers: () => Map<string, ParsedLayer>,
     private readonly getBoundElements: () => Map<string, BoundElement>,
+    private readonly idAttribute: string = 'id',
   ) {}
 
   init(): void {
     this.injectStyles()
     this.applyDefaultClasses()
+    this.processInlineStyles()
   }
 
   applyHover(id: string): void {
@@ -99,7 +101,10 @@ export class StyleManager {
     this.hoveredId = null
     this.highlightStates.clear()
 
-    for (const [, { element }] of this.getBoundElements()) {
+    const touched = new Set<Element>(this.interactiveElements())
+    for (const [, { element }] of this.getBoundElements()) touched.add(element)
+
+    for (const element of touched) {
       const toRemove = [...element.classList].filter(c => c.startsWith('svgic-'))
       toRemove.forEach(c => element.classList.remove(c))
     }
@@ -118,14 +123,130 @@ export class StyleManager {
     return false
   }
 
-  private applyDefaultClasses(): void {
+  /**
+   * Direct children of interactive layers that svgic treats as interactive elements:
+   * - `<g>` wrappers — their flat children are painted, nested `<g>` is left to the designer
+   * - flat shapes carrying an id key — painted directly
+   *
+   * Flat shapes without an id key are decoration: they cannot be bound to data,
+   * so they are left untouched.
+   */
+  private interactiveElements(): Element[] {
+    const result: Element[] = []
     for (const [, layer] of this.getLayers()) {
       if (layer.role !== 'interactive') continue
       for (const child of layer.element.children) {
-        if (child.tagName.toLowerCase() === 'g') {
-          child.classList.add('svgic-interactive')
+        if (child.tagName.toLowerCase() === 'g' || this.hasIdKey(child)) {
+          result.push(child)
         }
       }
+    }
+    return result
+  }
+
+  /**
+   * Elements the generated CSS actually paints — the same set the selectors match:
+   * a flat interactive element itself, or the flat direct children of a `<g>` wrapper.
+   */
+  private paintTargets(): SVGElement[] {
+    const targets: SVGElement[] = []
+    for (const el of this.interactiveElements()) {
+      if (el.tagName.toLowerCase() !== 'g') {
+        targets.push(el as SVGElement)
+        continue
+      }
+      for (const child of el.children) {
+        if (child.tagName.toLowerCase() !== 'g') targets.push(child as SVGElement)
+      }
+    }
+    return targets
+  }
+
+  private hasIdKey(el: Element): boolean {
+    if (this.idAttribute !== 'id' && el.hasAttribute(this.idAttribute)) return true
+    return !!el.id
+  }
+
+  /** CSS property names (kebab-case) declared anywhere in the style config */
+  private managedProperties(): string[] {
+    const { default: def, hover, highlightedHover, states = {} } = this.config
+    const props = new Set<string>()
+    for (const block of [def, hover, highlightedHover, ...Object.values(states)]) {
+      if (!block) continue
+      for (const key of Object.keys(block)) props.add(camelToKebab(key))
+    }
+    return [...props]
+  }
+
+  /**
+   * Strips inline `style` declarations that would override the configured styles,
+   * or warns about them when stripping is disabled.
+   *
+   * Declarations in a `style` attribute outrank any stylesheet regardless of
+   * specificity, so an SVG exported with `style="fill:…"` silently defeats the
+   * style config.
+   */
+  private processInlineStyles(): void {
+    const mode: StripInlineStylesOption = this.config.stripInlineStyles ?? false
+    const targets = this.paintTargets()
+    if (targets.length === 0) return
+
+    if (mode === false) {
+      this.warnAboutInlineStyles(targets)
+      return
+    }
+
+    if (mode === 'all') {
+      for (const el of targets) el.removeAttribute('style')
+      return
+    }
+
+    const props = Array.isArray(mode) ? mode.map(camelToKebab) : this.managedProperties()
+    if (props.length === 0) return
+
+    for (const el of targets) {
+      if (!el.hasAttribute('style')) continue
+      for (const prop of props) el.style.removeProperty(prop)
+      if (el.style.length === 0) el.removeAttribute('style')
+    }
+  }
+
+  /**
+   * One-shot diagnostic: without it the failure is silent — styles are configured,
+   * nothing changes on screen, and the console stays empty.
+   */
+  private warnAboutInlineStyles(targets: SVGElement[]): void {
+    const props = this.managedProperties()
+    if (props.length === 0) return
+
+    const conflicting = new Set<string>()
+    const ids: string[] = []
+
+    for (const el of targets) {
+      if (!el.hasAttribute('style')) continue
+      let hit = false
+      for (const prop of props) {
+        if (el.style.getPropertyValue(prop)) {
+          conflicting.add(prop)
+          hit = true
+        }
+      }
+      if (hit) ids.push(el.id || el.parentElement?.id || '<no id>')
+    }
+
+    if (ids.length === 0) return
+
+    const sample = ids.slice(0, 5).join(', ') + (ids.length > 5 ? ', …' : '')
+    console.warn(
+      `[svgic] ${ids.length} interactive element(s) have an inline style overriding ` +
+      `configured styles (${[...conflicting].join(', ')}): ${sample}. ` +
+      'Set `style.stripInlineStyles` to strip them.',
+    )
+  }
+
+  private applyDefaultClasses(): void {
+    for (const el of this.interactiveElements()) {
+      el.classList.add('svgic-interactive')
     }
   }
 
@@ -144,13 +265,13 @@ export class StyleManager {
     const lines: string[] = []
 
     if (def) {
-      lines.push(`.svgic-interactive > :not(g) { ${toCSS(def)} }`)
+      lines.push(`${paintSelector('.svgic-interactive')} { ${toCSS(def)} }`)
     }
     if (hover) {
-      lines.push(`.svgic-hover:not(.svgic-is-highlighted) > :not(g) { ${toCSS(hover)} }`)
+      lines.push(`${paintSelector('.svgic-hover:not(.svgic-is-highlighted)')} { ${toCSS(hover)} }`)
     }
     if (highlightedHover) {
-      lines.push(`.svgic-hover.svgic-is-highlighted > :not(g) { ${toCSS(highlightedHover)} }`)
+      lines.push(`${paintSelector('.svgic-hover.svgic-is-highlighted')} { ${toCSS(highlightedHover)} }`)
     }
     for (const [state, stateStyle] of Object.entries(states)) {
       const safeState = state.replace(/[^a-zA-Z0-9_-]/g, '')
@@ -158,11 +279,22 @@ export class StyleManager {
         console.warn(`[svgic] Invalid state name "${state}" — only [a-zA-Z0-9_-] allowed, skipped`)
         continue
       }
-      lines.push(`.svgic-state-${safeState} > :not(g) { ${toCSS(stateStyle)} }`)
+      lines.push(`${paintSelector(`.svgic-state-${safeState}`)} { ${toCSS(stateStyle)} }`)
     }
 
     return lines.join('\n')
   }
+}
+
+/**
+ * Builds the selector pair covering both supported shapes of an interactive element:
+ * - `base:not(g)` — a flat element (rect/path/circle…) carrying the class itself
+ * - `base > :not(g)` — flat children of a `<g>` wrapper; nested `<g>` stays untouched
+ *
+ * Both halves have equal specificity (0,1,1), so neither overrides the other.
+ */
+function paintSelector(base: string): string {
+  return `${base}:not(g), ${base} > :not(g)`
 }
 
 function toCSS(props: SvgicStyleProperties): string {

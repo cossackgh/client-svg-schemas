@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { StyleManager } from '../src/ui/StyleManager'
 import type { ParsedLayer } from '../src/core/layerParser'
 import type { BoundElement } from '../src/core/dataMapper'
+import type { SvgicStyleConfig } from '../src/types'
 
 // ---- helpers ----
 
@@ -76,13 +77,25 @@ describe('StyleManager — init()', () => {
     sm.destroy()
   })
 
-  it('does not add svgic-interactive to non-<g> child elements', () => {
+  it('adds svgic-interactive to flat child elements carrying an id', () => {
     const { svg, sm } = setup(
       '<g id="rooms"><rect id="r1"/><g id="r2"/></g>',
       [],
     )
     sm.init()
-    expect(svg.getElementById('r1')!.classList.contains('svgic-interactive')).toBe(false)
+    expect(svg.getElementById('r1')!.classList.contains('svgic-interactive')).toBe(true)
+    expect(svg.getElementById('r2')!.classList.contains('svgic-interactive')).toBe(true)
+    sm.destroy()
+  })
+
+  it('does not add svgic-interactive to flat child elements without an id', () => {
+    const { svg, sm } = setup(
+      '<g id="rooms"><rect class="deco"/><g id="r2"/></g>',
+      [],
+    )
+    sm.init()
+    const deco = svg.getElementById('rooms')!.querySelector('.deco')!
+    expect(deco.classList.contains('svgic-interactive')).toBe(false)
     expect(svg.getElementById('r2')!.classList.contains('svgic-interactive')).toBe(true)
     sm.destroy()
   })
@@ -243,5 +256,180 @@ describe('StyleManager — destroy()', () => {
     sm.init()
     sm.destroy()
     expect(() => sm.destroy()).not.toThrow()
+  })
+})
+
+// ---- selectors ----
+
+describe('StyleManager — generated selectors', () => {
+  it('paints both a flat element itself and the flat children of a <g> wrapper', () => {
+    const { sm } = setup('<g id="rooms"><rect id="r1"/></g>', [])
+    sm.init()
+    const css = document.head.querySelector('style[data-svgic]')!.textContent!
+    expect(css).toContain('.svgic-interactive:not(g)')
+    expect(css).toContain('.svgic-interactive > :not(g)')
+    expect(css).toContain('.svgic-hover:not(.svgic-is-highlighted):not(g)')
+    expect(css).toContain('.svgic-state-free:not(g)')
+    expect(css).toContain('.svgic-state-free > :not(g)')
+    sm.destroy()
+  })
+})
+
+// ---- stripInlineStyles ----
+
+function setupWithConfig(svgInner: string, config: SvgicStyleConfig) {
+  const svg = makeSvgEl(svgInner)
+  const layerEl = svg.getElementById('rooms') as SVGGElement
+  const layers = new Map<string, ParsedLayer>([
+    ['rooms', { element: layerEl, role: 'interactive' }],
+  ])
+  const boundElements = new Map<string, BoundElement>()
+  const sm = new StyleManager(config, () => layers, () => boundElements)
+  return { svg, sm }
+}
+
+const PAINT_CONFIG: SvgicStyleConfig = {
+  default: { fill: 'gray' },
+  hover: { fill: 'blue', strokeWidth: 2 },
+}
+
+describe('StyleManager — stripInlineStyles', () => {
+  it('is disabled by default and leaves inline styles untouched', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { svg, sm } = setupWithConfig(
+      '<g id="rooms"><rect id="r1" style="fill:none;stroke:#d5c096"/></g>',
+      PAINT_CONFIG,
+    )
+    sm.init()
+    expect(svg.getElementById('r1')!.getAttribute('style')).toBe('fill:none;stroke:#d5c096')
+    sm.destroy()
+    warn.mockRestore()
+  })
+
+  it('warns once about inline styles overriding the config', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { sm } = setupWithConfig(
+      '<g id="rooms"><rect id="r1" style="fill:none"/><rect id="r2" style="fill:red"/></g>',
+      PAINT_CONFIG,
+    )
+    sm.init()
+    expect(warn).toHaveBeenCalledTimes(1)
+    const message = warn.mock.calls[0]![0] as string
+    expect(message).toContain('2 interactive element(s)')
+    expect(message).toContain('fill')
+    expect(message).toContain('r1, r2')
+    sm.destroy()
+    warn.mockRestore()
+  })
+
+  it('does not warn when inline styles do not touch configured properties', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { sm } = setupWithConfig(
+      '<g id="rooms"><rect id="r1" style="opacity:0.5"/></g>',
+      PAINT_CONFIG,
+    )
+    sm.init()
+    expect(warn).not.toHaveBeenCalled()
+    sm.destroy()
+    warn.mockRestore()
+  })
+
+  it('does not warn when the style config declares nothing', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { sm } = setupWithConfig(
+      '<g id="rooms"><rect id="r1" style="fill:none"/></g>',
+      {},
+    )
+    sm.init()
+    expect(warn).not.toHaveBeenCalled()
+    sm.destroy()
+    warn.mockRestore()
+  })
+
+  it("'managed' removes only the properties declared in the config", () => {
+    const { svg, sm } = setupWithConfig(
+      '<g id="rooms"><rect id="r1" style="fill:none;stroke:#d5c096;opacity:0.5"/></g>',
+      { ...PAINT_CONFIG, stripInlineStyles: 'managed' },
+    )
+    sm.init()
+    const el = svg.getElementById('r1') as SVGElement
+    expect(el.style.getPropertyValue('fill')).toBe('')
+    expect(el.style.getPropertyValue('stroke-width')).toBe('')
+    expect(el.style.getPropertyValue('stroke')).not.toBe('')
+    expect(el.style.getPropertyValue('opacity')).toBe('0.5')
+    sm.destroy()
+  })
+
+  it('true behaves like managed', () => {
+    const { svg, sm } = setupWithConfig(
+      '<g id="rooms"><rect id="r1" style="fill:none;stroke:#d5c096"/></g>',
+      { ...PAINT_CONFIG, stripInlineStyles: true },
+    )
+    sm.init()
+    const el = svg.getElementById('r1') as SVGElement
+    expect(el.style.getPropertyValue('fill')).toBe('')
+    expect(el.style.getPropertyValue('stroke')).not.toBe('')
+    sm.destroy()
+  })
+
+  it("'all' removes the whole style attribute", () => {
+    const { svg, sm } = setupWithConfig(
+      '<g id="rooms"><rect id="r1" style="fill:none;stroke:#d5c096;transform:translate(1px,1px)"/></g>',
+      { ...PAINT_CONFIG, stripInlineStyles: 'all' },
+    )
+    sm.init()
+    expect(svg.getElementById('r1')!.hasAttribute('style')).toBe(false)
+    sm.destroy()
+  })
+
+  it('an explicit property list removes exactly those properties', () => {
+    const { svg, sm } = setupWithConfig(
+      '<g id="rooms"><rect id="r1" style="fill:none;stroke:#d5c096;opacity:0.5"/></g>',
+      { ...PAINT_CONFIG, stripInlineStyles: ['stroke', 'opacity'] },
+    )
+    sm.init()
+    const el = svg.getElementById('r1') as SVGElement
+    expect(el.style.getPropertyValue('fill')).toBe('none')
+    expect(el.style.getPropertyValue('stroke')).toBe('')
+    expect(el.style.getPropertyValue('opacity')).toBe('')
+    sm.destroy()
+  })
+
+  it('drops the style attribute when nothing is left in it', () => {
+    const { svg, sm } = setupWithConfig(
+      '<g id="rooms"><rect id="r1" style="fill:none"/></g>',
+      { ...PAINT_CONFIG, stripInlineStyles: 'managed' },
+    )
+    sm.init()
+    expect(svg.getElementById('r1')!.hasAttribute('style')).toBe(false)
+    sm.destroy()
+  })
+
+  it('strips flat children of a <g> wrapper but never nested <g> artwork', () => {
+    const { svg, sm } = setupWithConfig(
+      '<g id="rooms"><g id="r1"><rect id="shape" style="fill:none"/>' +
+      '<g id="icon" style="fill:gold"><path id="ipath" style="fill:gold"/></g></g></g>',
+      { ...PAINT_CONFIG, stripInlineStyles: 'managed' },
+    )
+    sm.init()
+    expect(svg.getElementById('shape')!.hasAttribute('style')).toBe(false)
+    expect(svg.getElementById('icon')!.getAttribute('style')).toBe('fill:gold')
+    expect(svg.getElementById('ipath')!.getAttribute('style')).toBe('fill:gold')
+    sm.destroy()
+  })
+
+  it('ignores layers that are not interactive', () => {
+    const svg = makeSvgEl('<g id="rooms"><rect id="r1" style="fill:none"/></g>')
+    const layers = new Map<string, ParsedLayer>([
+      ['rooms', { element: svg.getElementById('rooms') as SVGGElement, role: 'data' }],
+    ])
+    const sm = new StyleManager(
+      { ...PAINT_CONFIG, stripInlineStyles: 'all' },
+      () => layers,
+      () => new Map<string, BoundElement>(),
+    )
+    sm.init()
+    expect(svg.getElementById('r1')!.getAttribute('style')).toBe('fill:none')
+    sm.destroy()
   })
 })
