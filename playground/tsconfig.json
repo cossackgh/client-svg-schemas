@@ -3,9 +3,11 @@
   "compilerOptions": {
     "rootDir": "..",
     "paths": {
-      "svgic": ["../src/index.ts"],
-      "svgic/vue": ["../src/adapters/vue/index.ts"],
-      "svgic/plugins/zoom": ["../src/plugins/zoom/index.ts"]
+      "@svgic/core": ["../src/index.ts"],
+      "@svgic/core/vue": ["../src/adapters/vue/index.ts"],
+      "@svgic/core/react": ["../src/adapters/react/index.ts"],
+      "@svgic/core/plugins/zoom": ["../src/plugins/zoom/index.ts"],
+      "@svgic/core/plugins/debug": ["../src/plugins/debug/index.ts"]
     }
   },
   "include": ["./**/*", "../src/**/*"],
