@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.5] — 2026-09-03
 
 ### Added
 
@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **CJS entry point**: `exports["."].require` pointed at `dist/svgic.umd.cjs`, a file the build never
+  emits (the library is built as es + cjs, and Vite has no UMD output for multi-entry builds), so
+  `require("@svgic/core")` failed to resolve. Now points at `dist/svgic.cjs`
 - **Element styling**: flat shapes (`<path>`, `<rect>`, `<circle>`…) placed directly in an
   interactive layer are now painted. Previously only `<g>` wrappers received `.svgic-interactive`,
   so SVGs without wrapper groups got events but no styling
