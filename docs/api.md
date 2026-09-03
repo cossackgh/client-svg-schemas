@@ -327,6 +327,7 @@ interface SvgicStyleConfig {
   hover?: SvgicStyleProperties
   highlightedHover?: SvgicStyleProperties
   states?: Record<string, SvgicStyleProperties>
+  stripInlineStyles?: boolean | 'managed' | 'all' | string[]
 }
 ```
 
@@ -336,6 +337,7 @@ interface SvgicStyleConfig {
 | `hover` | Styles on cursor hover |
 | `highlightedHover` | Styles when hovering over a highlighted element (overrides `hover`) |
 | `states` | Named states for `setHighlight()` |
+| `stripInlineStyles` | Removes inline `style` declarations that would override this config. Default `false` |
 
 ### SvgicStyleProperties
 
@@ -364,6 +366,30 @@ new Svgic('#container', {
     },
   },
 })
+```
+
+
+### stripInlineStyles
+
+Declarations in a `style` attribute outrank any stylesheet, so an SVG exported with
+`style="fill:…"` silently defeats the config above. This option removes them.
+
+| Value | Behavior |
+|-------|----------|
+| `false` (default) | Nothing removed; a one-time `console.warn` lists the conflicting elements and properties |
+| `true` / `'managed'` | Removes only the properties declared in this config (union of `default`, `hover`, `highlightedHover`, `states`) |
+| `'all'` | Removes the `style` attribute entirely |
+| `string[]` | Removes exactly the listed CSS properties |
+
+Applies to painted elements only — a flat interactive element itself, or the flat direct
+children of a `<g>` wrapper. Nested `<g>` and non-interactive layers are never touched.
+
+```ts
+style: {
+  default: { fill: '#cfe8ff' },
+  hover:   { fill: '#1e88e5' },
+  stripInlineStyles: 'managed',
+}
 ```
 
 ---

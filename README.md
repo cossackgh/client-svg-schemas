@@ -363,8 +363,14 @@ popup: false // or simply omit the option
 
 The library can manage the appearance of interactive elements via config — without manually writing CSS.
 
-Styles are applied to direct child shapes (`<path>`, `<rect>`, etc.) via CSS classes on the parent `<g>`.  
-Nested `<g>` elements inside an element are not affected.
+An interactive element is a direct child of an interactive layer, in one of two shapes:
+
+- **A flat shape** — `<path>`, `<rect>`, `<circle>`… — carrying an id. Painted directly.
+- **A `<g>` wrapper.** Its flat direct children are painted. A nested `<g>` inside it is the
+  designer's artwork — icons, complex graphics — and is never repainted, while still receiving
+  every event of the interactive layer.
+
+Flat shapes without an id are decoration: they cannot be bound to data, so they are left alone.
 
 ### Basic Example
 
@@ -402,6 +408,10 @@ style: {
   },
 
   // Named states for setHighlight()
+  // Strip inline styles from the SVG that would override the config
+  stripInlineStyles: false,
+
+  // Named states for setHighlight()
   states: {
     free:       { fill: '#1a4731', stroke: '#2d9e5a', strokeWidth: 1.5 },
     busy:       { fill: '#4a1e1e', stroke: '#e03030', strokeWidth: 1.5 },
@@ -409,6 +419,53 @@ style: {
   },
 }
 ```
+
+### Inline Styles in the SVG (`stripInlineStyles`)
+
+Editors export shapes with a `style` attribute:
+
+```xml
+<rect id="room-101" style="fill:none;stroke:#d5c096"/>
+```
+
+A declaration inside a `style` attribute outranks any stylesheet regardless of specificity, so
+`default`, `hover` and `states` end up with no visible effect. To keep that failure from being
+silent, svgic reports it once on init:
+
+```
+[svgic] 45 interactive element(s) have an inline style overriding configured styles (fill):
+sh-31, sh-35, sh-33, sh-32, sh-29, …. Set `style.stripInlineStyles` to strip them.
+```
+
+`stripInlineStyles` removes the conflicting declarations:
+
+```ts
+style: {
+  default: { fill: '#cfe8ff' },
+  hover:   { fill: '#1e88e5' },
+  stripInlineStyles: true,   // strips fill, keeps stroke:#d5c096
+}
+```
+
+| Value | Behavior |
+|---|---|
+| `false` (default) | Nothing is removed; conflicts are reported via `console.warn` |
+| `true` / `'managed'` | Removes only the properties declared in the style config — the union of `default`, `hover`, `highlightedHover` and every `states` entry |
+| `'all'` | Removes the `style` attribute entirely |
+| `string[]` | Removes exactly the listed CSS properties |
+
+Only painted elements are touched: a flat interactive element itself, or the flat children of a
+`<g>` wrapper. Nested `<g>` artwork is never modified, and neither is any other layer.
+
+`'managed'` is the safe choice. Editors often pack `transform`, `display` or `mix-blend-mode`
+into the same attribute, and dropping those would break the drawing — `'all'` is for files where
+the attribute holds paint and nothing else.
+
+Presentation attributes (`fill="#fff"` written as an attribute, not inside `style=`) never
+conflict: they rank below the injected CSS and need no stripping.
+
+> The browser re-serializes what remains of the attribute, so `stroke:#d5c096` reads back as
+> `stroke: rgb(213, 192, 150)`. The rendering is identical.
 
 ### Highlighting a Group of Elements
 

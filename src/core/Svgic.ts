@@ -227,6 +227,7 @@ export class Svgic implements ISvgic {
         this.options.style,
         () => this.layers,
         () => this.boundElements,
+        this.options.idAttribute,
       )
       this.styleManager.init()
       this.eventManager.setStyleCallbacks(

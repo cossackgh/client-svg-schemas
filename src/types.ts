@@ -196,6 +196,27 @@ export interface SvgicStyleProperties {
   [key: string]: unknown
 }
 
+/**
+ * Controls removal of inline `style` declarations from the elements svgic paints.
+ *
+ * Declarations in a `style` attribute outrank any stylesheet regardless of specificity,
+ * so an SVG exported from Figma/Illustrator/Inkscape with `style="fill:…"` silently
+ * defeats the style config. Stripping them lets the config win.
+ *
+ * - `false` (default) — nothing is removed; a one-time `console.warn` reports elements
+ *   whose inline style overrides the config
+ * - `true` / `'managed'` — removes only the properties declared in the style config
+ *   (union of `default`, `hover`, `highlightedHover` and every entry of `states`),
+ *   leaving the rest of the attribute — `transform`, `display`, `mix-blend-mode` survive
+ * - `'all'` — removes the `style` attribute entirely
+ * - `string[]` — removes exactly the listed CSS properties
+ *
+ * Only elements matched by the generated CSS are touched: a flat interactive element
+ * itself, or the flat direct children of a `<g>` wrapper. Nested `<g>` — the designer's
+ * artwork — is never modified.
+ */
+export type StripInlineStylesOption = boolean | 'managed' | 'all' | string[]
+
 export interface SvgicStyleConfig {
   /** Base styles for all interactive elements */
   default?: SvgicStyleProperties
@@ -208,6 +229,12 @@ export interface SvgicStyleConfig {
   highlightedHover?: SvgicStyleProperties
   /** Named states for `setHighlight()` */
   states?: Record<string, SvgicStyleProperties>
+  /**
+   * Removes inline `style` declarations that would override the styles configured here.
+   * Default: `false` — nothing is removed, conflicts are reported via `console.warn`.
+   * @default false
+   */
+  stripInlineStyles?: StripInlineStylesOption
 }
 
 /**
