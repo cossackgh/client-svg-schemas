@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **`style.stripInlineStyles`**: removes inline `style` declarations that would override the
+  style config (`false` | `true`/`'managed'` | `'all'` | `string[]`, default `false`).
+  When disabled, conflicting inline styles are reported once via `console.warn`
+
+### Fixed
+
+- **Element styling**: flat shapes (`<path>`, `<rect>`, `<circle>`…) placed directly in an
+  interactive layer are now painted. Previously only `<g>` wrappers received `.svgic-interactive`,
+  so SVGs without wrapper groups got events but no styling
+
 ## [0.1.0] — 2026-04-10
 
 Initial public release.

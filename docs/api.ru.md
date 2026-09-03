@@ -327,6 +327,7 @@ interface SvgicStyleConfig {
   hover?: SvgicStyleProperties
   highlightedHover?: SvgicStyleProperties
   states?: Record<string, SvgicStyleProperties>
+  stripInlineStyles?: boolean | 'managed' | 'all' | string[]
 }
 ```
 
@@ -336,6 +337,7 @@ interface SvgicStyleConfig {
 | `hover` | Стили при наведении курсора |
 | `highlightedHover` | Стили при наведении на подсвеченный элемент (применяется вместо `hover`) |
 | `states` | Именованные состояния для `setHighlight()` |
+| `stripInlineStyles` | Удаляет инлайн-объявления `style`, перебивающие этот конфиг. По умолчанию `false` |
 
 ### SvgicStyleProperties
 
@@ -364,6 +366,30 @@ new Svgic('#container', {
     },
   },
 })
+```
+
+
+### stripInlineStyles
+
+Объявления в атрибуте `style` по каскаду стоят выше любого стилшита, поэтому SVG, выгруженный
+с `style="fill:…"`, молча перебивает конфиг выше. Опция их удаляет.
+
+| Значение | Поведение |
+|----------|-----------|
+| `false` (по умолчанию) | Ничего не удаляется; один `console.warn` перечисляет конфликтующие элементы и свойства |
+| `true` / `'managed'` | Удаляет только свойства, объявленные в этом конфиге (объединение `default`, `hover`, `highlightedHover`, `states`) |
+| `'all'` | Удаляет атрибут `style` целиком |
+| `string[]` | Удаляет ровно перечисленные CSS-свойства |
+
+Действует только на окрашиваемые элементы — саму плоскую фигуру либо плоских прямых потомков
+обёртки `<g>`. Вложенные `<g>` и неинтерактивные слои не затрагиваются.
+
+```ts
+style: {
+  default: { fill: '#cfe8ff' },
+  hover:   { fill: '#1e88e5' },
+  stripInlineStyles: 'managed',
+}
 ```
 
 ---
