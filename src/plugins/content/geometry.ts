@@ -48,8 +48,8 @@ export interface ShapeMask {
   y: number
 }
 
-/** Shape elements that can answer a point-in-fill test */
-const GEOMETRY_SELECTOR = 'path,rect,circle,ellipse,polygon,polyline'
+/** Shape elements that can answer a point-in-fill test, and that a clipPath accepts */
+export const SHAPE_SELECTOR = 'path,rect,circle,ellipse,polygon,polyline'
 
 /**
  * Builds a point-in-fill test for an element.
@@ -71,7 +71,7 @@ function fillTester(element: SVGGraphicsElement): ((point: DOMPoint) => boolean)
   if (typeof element.querySelectorAll !== 'function') return null
 
   const shapes = Array.from(
-    element.querySelectorAll<SVGGeometryElement>(GEOMETRY_SELECTOR),
+    element.querySelectorAll<SVGGeometryElement>(SHAPE_SELECTOR),
   ).filter(shape => typeof shape.isPointInFill === 'function')
 
   if (!shapes.length) return null
@@ -251,6 +251,11 @@ export function findSpot(mask: ShapeMask, dist = distanceTransform(mask)): Shape
  * shape is contained in some maximal one, and the aspect box inscribed in the
  * container is never smaller.
  *
+ * Ties are broken towards the roomiest container. Once the requested ratio makes
+ * one side the binding constraint, every larger container hosts the very same box
+ * and scores the same — and keeping the first would anchor the box to whichever
+ * edge the sweep happened to reach first instead of centering it.
+ *
  * @param mask - Sampled shape
  * @param aspect - Desired width/height ratio. Omitted — the largest rectangle by area
  */
@@ -260,6 +265,7 @@ export function findRect(mask: ShapeMask, aspect?: number): ShapeRect | null {
 
   let best: ShapeRect | null = null
   let bestScore = 0
+  let bestArea = 0
 
   const consider = (colStart: number, rowStart: number, wCells: number, hCells: number): void => {
     const width = wCells * stepX
@@ -291,8 +297,11 @@ export function findRect(mask: ShapeMask, aspect?: number): ShapeRect | null {
       }
     }
 
-    if (score > bestScore) {
+    const area = width * height
+
+    if (score > bestScore || (score === bestScore && area > bestArea)) {
       bestScore = score
+      bestArea = area
       best = rect
     }
   }

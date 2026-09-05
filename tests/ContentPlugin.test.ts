@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { Svgic } from '../src/core/Svgic'
 import { ContentPlugin } from '../src/plugins/content'
+import { clearRatioCache } from '../src/plugins/content/imageRatio'
 import type { SvgicItem } from '../src/types'
 
 vi.mock('../src/core/loader', () => ({
@@ -421,6 +422,49 @@ describe('ContentPlugin — clipping', () => {
     client.destroy()
   })
 
+  it('flattens a group wrapper into the clip instead of referencing it', async () => {
+    const svg = makeSvgEl('<g id="rooms"><g id="r1"><rect id="r1-a"/><rect id="r1-b"/></g></g>')
+
+    vi.mocked(loadSvg).mockResolvedValue(svg)
+
+    const client = new Svgic(container, {
+      src: '',
+      layers: { rooms: { role: 'interactive' } },
+      plugins: [
+        ContentPlugin({
+          sourceLayer: 'rooms',
+          content: [{ type: 'text', text: ({ id }) => id, fontSize: 10 }],
+        }),
+      ],
+    })
+
+    const wrapper = svg.getElementById('r1') as unknown as SVGGraphicsElement
+
+    Object.defineProperty(svg, 'createSVGPoint', { value: () => ({ x: 0, y: 0 }), configurable: true })
+    Object.defineProperty(wrapper, 'getBBox', {
+      value: () => ({ x: 0, y: 0, width: 200, height: 100 }),
+      configurable: true,
+    })
+    Object.defineProperty(wrapper, 'ownerSVGElement', { value: svg, configurable: true })
+
+    for (const id of ['r1-a', 'r1-b']) {
+      Object.defineProperty(svg.getElementById(id) as unknown as SVGGraphicsElement, 'isPointInFill', {
+        value: () => true,
+        configurable: true,
+      })
+    }
+
+    await client.ready
+
+    const clipPath = svg.querySelector('clipPath')!
+
+    // <use> pointing at a <g> is ignored by clipPath and would hide everything.
+    expect(clipPath.querySelector('use')).toBeNull()
+    expect(clipPath.querySelectorAll('rect')).toHaveLength(2)
+    expect(clipPath.querySelector('rect')!.hasAttribute('id')).toBe(false)
+    client.destroy()
+  })
+
   it('can be turned off', async () => {
     const { client, svg } = await mount(
       '<g id="rooms"><rect id="r1"/></g>',
@@ -435,6 +479,121 @@ describe('ContentPlugin — clipping', () => {
     expect(svg.querySelector('.svgic-content > g')!.hasAttribute('clip-path')).toBe(false)
     expect(svg.querySelector('clipPath')).toBeNull()
     client.destroy()
+  })
+})
+
+
+describe('ContentPlugin — images', () => {
+  const oneRoom = '<g id="rooms"><rect id="r1"/></g>'
+  const box = { r1: { x: 0, y: 0, width: 200, height: 100 } }
+
+  beforeEach(() => {
+    clearRatioCache()
+  })
+
+  it('draws an image into a box of the declared ratio', async () => {
+    const { client, svg } = await mount(
+      oneRoom,
+      box,
+      ContentPlugin({
+        sourceLayer: 'rooms',
+        content: [{ type: 'image', href: () => '/logo.png', ratio: () => 2 }],
+      }),
+    )
+
+    const image = svg.querySelector('.svgic-content image')!
+    const width = Number(image.getAttribute('width'))
+    const height = Number(image.getAttribute('height'))
+
+    expect(image.getAttribute('href')).toBe('/logo.png')
+    expect(image.getAttribute('preserveAspectRatio')).toBe('xMidYMid meet')
+    expect(width / height).toBeCloseTo(2)
+    // 200 x 100 shrunk by the default 8% padding
+    expect(width).toBeCloseTo(184)
+    client.destroy()
+  })
+
+  it('hands the element to the next candidate when the image would be too small', async () => {
+    const { client, svg } = await mount(
+      oneRoom,
+      box,
+      ContentPlugin({
+        sourceLayer: 'rooms',
+        content: [
+          { type: 'image', href: () => '/logo.png', ratio: () => 8, minHeight: 40 },
+          { type: 'text', text: ({ id }) => id, fontSize: 10 },
+        ],
+      }),
+    )
+
+    expect(svg.querySelector('.svgic-content image')).toBeNull()
+    expect(texts(svg)).toEqual(['r1'])
+    client.destroy()
+  })
+
+  it('skips the candidate when there is no image url', async () => {
+    const { client, svg } = await mount(
+      oneRoom,
+      box,
+      ContentPlugin({
+        sourceLayer: 'rooms',
+        content: [
+          { type: 'image', href: () => null },
+          { type: 'text', text: ({ id }) => id, fontSize: 10 },
+        ],
+      }),
+    )
+
+    expect(svg.querySelector('.svgic-content image')).toBeNull()
+    expect(texts(svg)).toEqual(['r1'])
+    client.destroy()
+  })
+
+  it('probes an unknown ratio and redraws with the real proportions', async () => {
+    const originalImage = globalThis.Image
+
+    class FakeImage {
+      naturalWidth = 0
+      naturalHeight = 0
+      onload: (() => void) | null = null
+      onerror: (() => void) | null = null
+
+      set src(_value: string) {
+        queueMicrotask(() => {
+          this.naturalWidth = 400
+          this.naturalHeight = 100
+          this.onload?.()
+        })
+      }
+    }
+
+    globalThis.Image = FakeImage as unknown as typeof Image
+
+    const { client, svg } = await mount(
+      oneRoom,
+      box,
+      ContentPlugin({
+        sourceLayer: 'rooms',
+        content: [{ type: 'image', href: () => '/logo.png' }],
+      }),
+    )
+
+    // Before the probe resolves the image gets the whole slot.
+    const first = svg.querySelector('.svgic-content image')!
+
+    expect(Number(first.getAttribute('height'))).toBeCloseTo(92)
+
+    await new Promise(resolve => setTimeout(resolve, 0))
+
+    const second = svg.querySelector('.svgic-content image')!
+    const width = Number(second.getAttribute('width'))
+    const height = Number(second.getAttribute('height'))
+
+    expect(width / height).toBeCloseTo(4)
+    expect(width).toBeCloseTo(184)
+
+    client.destroy()
+    globalThis.Image = originalImage
   })
 })
 

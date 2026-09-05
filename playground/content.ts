@@ -6,18 +6,18 @@ import type { ContentCandidate, ContentSlot } from '@svgic/core/plugins/content'
 const SVG_NS = 'http://www.w3.org/2000/svg'
 
 const shops: SvgicItem[] = [
-  { id: 'sh-l', title: 'Sportmaster' },
-  { id: 'sh-u', title: 'Bookstore' },
-  { id: 'sh-narrow', title: 'Coffee & Bakery' },
-  { id: 'sh-hole', title: 'Electronics Hypermarket' },
-  { id: 'sh-wide', title: 'Food Court' },
-  { id: 'sh-group', title: 'Pharmacy' },
+  { id: 'sh-l', title: 'Sportmaster', logo: '/logos/wide.svg' },
+  { id: 'sh-u', title: 'Bookstore', logo: '/logos/square.svg' },
+  { id: 'sh-narrow', title: 'Coffee & Bakery', logo: '/logos/square.svg' },
+  { id: 'sh-hole', title: 'Electronics Hypermarket', logo: '/logos/tall.svg' },
+  { id: 'sh-wide', title: 'Food Court', logo: '/logos/wide.svg' },
+  { id: 'sh-group', title: 'Pharmacy', logo: '/logos/square.svg' },
   // sh-small has no data on purpose — it falls back to the id
 ]
 
 // --- UI ---
 
-type Mode = 'name' | 'multiline' | 'card'
+type Mode = 'name' | 'multiline' | 'logo' | 'card'
 
 const modeBtns = document.querySelectorAll<HTMLButtonElement>('[data-mode]')
 const clipBtns = document.querySelectorAll<HTMLButtonElement>('[data-clip]')
@@ -91,6 +91,14 @@ const CHAINS: Record<Mode, ContentCandidate[]> = {
   // The same names broken into lines: a stack of short lines fits where one long line does not
   multiline: [
     { type: 'text', text: ({ item }) => ((item?.title as string) ?? '').split(' '), fill: '#37474f', fontWeight: 600 },
+    { type: 'text', text: ({ id }) => id, fill: '#78909c', opacity: 0.8 },
+  ],
+
+  // Logo where it is large enough to read, name where it is not, id as the last resort.
+  // Ratios are not declared, so the plugin probes the files and redraws once they load.
+  logo: [
+    { type: 'image', href: ({ item }) => item?.logo as string, minHeight: 14 },
+    { type: 'text', text: ({ item }) => item?.title as string, fill: '#37474f', fontWeight: 600 },
     { type: 'text', text: ({ id }) => id, fill: '#78909c', opacity: 0.8 },
   ],
 

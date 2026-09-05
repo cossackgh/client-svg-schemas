@@ -730,7 +730,7 @@ That is how content degrades gracefully as the available space shrinks:
 
 ```ts
 content: [
-  { type: 'custom', render: renderLogoCard, minScale: 0.5 },
+  { type: 'image', href: ({ item }) => item?.logo as string, minHeight: 14 },
   { type: 'text', text: ({ item }) => item?.title as string },
   { type: 'text', text: ({ id }) => id, opacity: 0.5 },
 ]
@@ -778,6 +778,50 @@ labels end up at different angles on a hair of difference.
 
 There is no automatic wrapping: pass an array of lines. Breaking a brand name into lines
 is better done by whoever knows the brand.
+
+### `type: 'image'`
+
+A raster or SVG file referenced by URL — a tenant logo, an icon, a photo.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `href` | `(slot) => string \| null` | — | Image URL. Nothing returned skips the candidate |
+| `ratio` | `(slot) => number \| null` | — | Width/height ratio, when the application already knows it |
+| `probe` | `boolean` | `true` | Load the image to learn its ratio when `ratio` is not given |
+| `minHeight` | `number` | — | Smallest height in SVG units at which the image still counts as placed |
+| `minWidth` | `number` | — | Same for width |
+| `scale` | `number` | `1` | Fraction of the available box the image may occupy |
+| `opacity` | `number` | — | |
+| `className` | `string` | — | Extra class on the generated `<image>` |
+| `when` | `(slot) => boolean` | — | Skips the candidate when it returns `false` |
+
+```ts
+{
+  type: 'image',
+  href: ({ item }) => item?.logo as string,
+  ratio: ({ item }) => item?.logoRatio as number,
+  minHeight: 14,
+}
+```
+
+The image is drawn into the largest rectangle of **its own** aspect ratio that fits the
+shape — not into the largest rectangle by area — so a wide logo gets a wide box and a
+tall one a tall box, each centered in the roomiest place that can host it.
+
+**The ratio decides whether the logo is worth drawing at all.** Supply it from your data
+when you can. Without it the plugin loads the file to measure it: the first render puts
+the image in the whole slot (safe — `preserveAspectRatio="xMidYMid meet"` keeps it inside),
+and the layer is redrawn with the real boxes once the sizes are in. Ratios are cached per
+URL and shared by every plugin instance, so one brand on three floors is fetched once, and
+failures are cached too and not retried on every rebuild.
+
+`minHeight` is what makes the logo-to-name fallback work: an image that would render two
+units tall is not a logo any more, and the element is better off with the next candidate —
+typically its name, rotated if that is the only way it fits.
+
+An external SVG drawn through `<image>` renders in its own isolated context: it cannot be
+recoloured from the schema and scripts inside it never run — which also makes it the safe
+way to display files uploaded by third parties.
 
 ### `type: 'custom'`
 
