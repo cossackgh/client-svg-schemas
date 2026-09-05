@@ -419,3 +419,114 @@ describe('Svgic — destroy()', () => {
     expect(handler).not.toHaveBeenCalled()
   })
 })
+
+// ---- onDataChange ----
+
+describe('Svgic — onDataChange', () => {
+  it('fires on setData() with the data and the client', async () => {
+    vi.mocked(loadSvg).mockResolvedValue(makeSvgEl())
+    const plugin: SvgicPlugin = { name: 'p', onDataChange: vi.fn() }
+    const client = new Svgic(container, {
+      src: '',
+      layers: { rooms: { role: 'interactive' } },
+      plugins: [plugin],
+    })
+    await client.ready
+
+    const data = [{ id: 'room-1', title: 'Room' }]
+    client.setData(data)
+
+    expect(plugin.onDataChange).toHaveBeenCalledOnce()
+    expect(plugin.onDataChange).toHaveBeenCalledWith(data, client)
+    client.destroy()
+  })
+
+  it('fires on init when options.data is provided — after onInit', async () => {
+    vi.mocked(loadSvg).mockResolvedValue(makeSvgEl())
+    const calls: string[] = []
+    const plugin: SvgicPlugin = {
+      name: 'p',
+      onInit: () => { calls.push('init') },
+      onDataChange: () => { calls.push('data') },
+    }
+    const client = new Svgic(container, {
+      src: '',
+      layers: { rooms: { role: 'interactive' } },
+      data: [{ id: 'room-1' }],
+      plugins: [plugin],
+    })
+    await client.ready
+
+    expect(calls).toEqual(['init', 'data'])
+    client.destroy()
+  })
+
+  it('does not fire on init without data', async () => {
+    vi.mocked(loadSvg).mockResolvedValue(makeSvgEl())
+    const plugin: SvgicPlugin = { name: 'p', onDataChange: vi.fn() }
+    const client = new Svgic(container, { src: '', plugins: [plugin] })
+    await client.ready
+
+    expect(plugin.onDataChange).not.toHaveBeenCalled()
+    client.destroy()
+  })
+
+  it('replays current data to a plugin registered via use() after setData', async () => {
+    vi.mocked(loadSvg).mockResolvedValue(makeSvgEl())
+    const client = new Svgic(container, {
+      src: '',
+      layers: { rooms: { role: 'interactive' } },
+    })
+    await client.ready
+
+    const data = [{ id: 'room-1' }]
+    client.setData(data)
+
+    const calls: string[] = []
+    client.use({
+      name: 'late',
+      onInit: () => { calls.push('init') },
+      onDataChange: () => { calls.push('data') },
+    })
+
+    expect(calls).toEqual(['init', 'data'])
+    client.destroy()
+  })
+
+  it('does not fire after setSrc() until new data arrives', async () => {
+    vi.mocked(loadSvg).mockResolvedValue(makeSvgEl())
+    const plugin: SvgicPlugin = { name: 'p', onDataChange: vi.fn() }
+    const client = new Svgic(container, {
+      src: '',
+      layers: { rooms: { role: 'interactive' } },
+      data: [{ id: 'room-1' }],
+      plugins: [plugin],
+    })
+    await client.ready
+    expect(plugin.onDataChange).toHaveBeenCalledOnce()
+
+    vi.mocked(loadSvg).mockResolvedValue(makeSvgEl())
+    await client.setSrc('/other.svg')
+
+    expect(plugin.onDataChange).toHaveBeenCalledOnce()
+    client.destroy()
+  })
+
+  it('does not fire on setData() after destroy', async () => {
+    vi.mocked(loadSvg).mockResolvedValue(makeSvgEl())
+    const plugin: SvgicPlugin = { name: 'p', onDataChange: vi.fn() }
+    const client = new Svgic(container, {
+      src: '',
+      layers: { rooms: { role: 'interactive' } },
+      plugins: [plugin],
+    })
+    await client.ready
+    client.destroy()
+
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    client.setData([{ id: 'room-1' }])
+    warn.mockRestore()
+
+    expect(plugin.onDataChange).not.toHaveBeenCalled()
+  })
+})

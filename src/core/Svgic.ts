@@ -42,6 +42,8 @@ export class Svgic implements ISvgic {
   /** Tracks the active init promise — used by setSrc() to wait for pending initialization */
   private initPromise: Promise<void> = Promise.resolve()
   private layers: Map<string, ParsedLayer> = new Map()
+  /** Last data passed to setData() or options.data — replayed to late-registered plugins */
+  private currentData: SvgicItem[] | null = null
   private boundElements: Map<string, BoundElement> = new Map()
   private eventManager: EventManager
   private popupManager: PopupManager | null = null
@@ -91,6 +93,10 @@ export class Svgic implements ISvgic {
     // If SVG is already loaded — call onInit immediately for late-registered plugins
     if (this.svgEl) {
       plugin.onInit?.(this)
+      // Replay current data so plugin behavior does not depend on registration order
+      if (this.currentData) {
+        plugin.onDataChange?.(this.currentData, this)
+      }
     }
     return this
   }
@@ -122,10 +128,12 @@ export class Svgic implements ISvgic {
       console.warn('[svgic] setData() called before SVG is ready — call after awaiting client.ready')
       return
     }
+    this.currentData = data
     this.boundElements = mapData(this.layers, data, {
       idAttribute: this.options.idAttribute,
       idMatch: this.options.idMatch,
     })
+    this.plugins.forEach(p => p.onDataChange?.(data, this))
   }
 
   /**
@@ -195,6 +203,7 @@ export class Svgic implements ISvgic {
     this.styleManager = null
     this.svgEl?.remove()
     this.svgEl = null
+    this.currentData = null
     this.plugins.forEach(p => p.onDestroy?.(this))
   }
 
@@ -203,6 +212,7 @@ export class Svgic implements ISvgic {
     this.container.appendChild(this.svgEl)
     this.layers = parseLayers(this.svgEl, this.options.layers)
     if (this.options.data) {
+      this.currentData = this.options.data
       this.boundElements = mapData(this.layers, this.options.data, {
         idAttribute: this.options.idAttribute,
         idMatch: this.options.idMatch,
@@ -237,5 +247,10 @@ export class Svgic implements ISvgic {
     }
 
     this.plugins.forEach(p => p.onInit?.(this))
+
+    // After onInit, so a plugin is fully initialized before it receives data
+    if (this.currentData) {
+      this.plugins.forEach(p => p.onDataChange?.(this.currentData!, this))
+    }
   }
 }

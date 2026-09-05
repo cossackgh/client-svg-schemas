@@ -504,6 +504,7 @@ interface SvgicPlugin {
   name: string
   onInit?    (client: ISvgic): void
   onDestroy? (client: ISvgic): void
+  onDataChange? (data: SvgicItem[], client: ISvgic): void
   onElementHover? (element: SVGElement, item: SvgicItem | null): void | false
   onElementLeave? (element: SVGElement, item: SvgicItem | null): void | false
   onElementClick? (element: SVGElement, item: SvgicItem | null): void | false
@@ -514,6 +515,7 @@ interface SvgicPlugin {
 |-----|-----------------|----------------|
 | `onInit` | После загрузки SVG | — |
 | `onDestroy` | При `client.destroy()` | — |
+| `onDataChange` | При `setData()`, при инициализации с `options.data`, а также сразу после `onInit` для плагина, зарегистрированного через `use()`, если данные уже загружены | — |
 | `onElementHover` | Наведение на элемент | Отменяет дефолтное поведение (hover-стиль, попап) |
 | `onElementLeave` | Курсор покинул элемент | Отменяет дефолтное поведение |
 | `onElementClick` | Клик по элементу | Отменяет дефолтное поведение |
@@ -535,6 +537,25 @@ const client = new Svgic('#container', {
   plugins: [myPlugin],
 })
 ```
+
+### `onDataChange`
+
+Плагины, которые рисуют по данным — подписи, логотипы, бейджи, — должны
+перерисовываться, когда данные пришли или изменились. `onDataChange` избавляет
+от публичного `rebuild()`, который прикладной код обязан не забыть вызвать
+после каждого `setData()`:
+
+```ts
+const labelsPlugin: SvgicPlugin = {
+  name: 'labels',
+  onInit(client) { root = client.getElement() },
+  onDataChange(data, client) { render(data, client) },
+}
+```
+
+Хук не зависит от порядка регистрации: плагин, переданный в `use()` уже после
+установки данных, получит их сразу после собственного `onInit`.
+После `setSrc()` данные сбрасываются, и хук не вызывается до прихода новых.
 
 ---
 

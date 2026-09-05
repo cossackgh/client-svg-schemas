@@ -101,6 +101,15 @@ export interface SvgicPlugin {
   onInit?: (client: ISvgic) => void
   /** Called on `client.destroy()` */
   onDestroy?: (client: ISvgic) => void
+  /**
+   * Called whenever the bound data changes: on every `setData()`, once during
+   * initialization if `options.data` was provided, and immediately after `onInit`
+   * for a plugin registered via `use()` when data is already loaded.
+   *
+   * Plugins that render from data (labels, logos) use this instead of exposing
+   * a manual `rebuild()` that the host application must remember to call.
+   */
+  onDataChange?: (data: SvgicItem[], client: ISvgic) => void
   /** Called on cursor hover. `return false` — cancels default behavior */
   onElementHover?: (element: SVGElement, item: SvgicItem | null) => void | false
   /** Called when cursor leaves the element. `return false` — cancels default behavior */
