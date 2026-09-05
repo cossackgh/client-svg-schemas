@@ -27,6 +27,10 @@
     "./plugins/debug": {
       "import": "./dist/plugins/debug.js",
       "types": "./dist/plugins/debug/index.d.ts"
+    },
+    "./plugins/content": {
+      "import": "./dist/plugins/content.js",
+      "types": "./dist/plugins/content/index.d.ts"
     }
   },
   "sideEffects": false,

@@ -14,6 +14,7 @@
 - [Plugin API](#plugin-api)
 - [ZoomPlugin](#zoomplugin)
 - [DebugPlugin](#debugplugin)
+- [ContentPlugin](#contentplugin)
 - [Vue Adapter](#vue-adapter)
 - [React Adapter](#react-adapter)
 
@@ -671,6 +672,162 @@ DebugPlugin({
   },
 })
 ```
+
+---
+
+## ContentPlugin
+
+Places text, images and composite content inside the elements of a layer.
+
+```ts
+import { Svgic } from '@svgic/core'
+import { ContentPlugin } from '@svgic/core/plugins/content'
+
+const content = ContentPlugin({
+  sourceLayer: 'rooms',
+  content: [
+    { type: 'text', text: ({ item }) => item?.title as string },
+    { type: 'text', text: ({ id }) => id, opacity: 0.5 },
+  ],
+})
+
+const client = new Svgic('#container', {
+  src: '/map.svg',
+  layers: { rooms: { role: 'interactive' } },
+  data: shops,
+  plugins: [content],
+})
+```
+
+Positions are computed from the geometry of every shape, so editing the plan never
+requires moving labels by hand. The generated layer ignores pointer events — hover
+and click keep reaching the shapes underneath — and every piece of content is clipped
+to the shape it belongs to.
+
+The plugin redraws itself on every `setData()`; nothing has to be called manually.
+
+### Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `sourceLayer` | `string` | — | Layer id whose direct children get content. Required |
+| `content` | `ContentCandidate[]` | — | Candidates in priority order. Required |
+| `idAttribute` | `string` | `'id'` | SVG attribute holding the element id. Mirrors the core option |
+| `grid` | `number` | `24` | Sampling density: cells along the longer side of the bounding box |
+| `padding` | `number` | `0.08` | Inset of the content box as a fraction of each side |
+| `fontScale` | `number` | `70` | Divider of the viewBox height that yields the font size |
+| `clip` | `boolean` | `true` | Clip content to the shape of its element |
+| `className` | `string` | — | Extra class on the generated layer |
+
+The font size is derived from the schema rather than given as a number: canvases differ
+wildly, and a size that reads on a 1600x800 viewBox disappears on 17000x7000, while a
+divider carries over unchanged.
+
+### The candidate chain
+
+Candidates are tried in order, and the first one that produces content **and fits** wins.
+That is how content degrades gracefully as the available space shrinks:
+
+```ts
+content: [
+  { type: 'custom', render: renderLogoCard, minScale: 0.5 },
+  { type: 'text', text: ({ item }) => item?.title as string },
+  { type: 'text', text: ({ id }) => id, opacity: 0.5 },
+]
+```
+
+A candidate is skipped when its `when()` returns `false` or its content callback returns
+nothing; it is rejected when the rendered result does not fit. An element that exhausts
+the chain gets nothing — the full name is still available in the popup.
+
+Fit is measured differently per type on purpose. Text is thin and can lie along the long
+axis of an L-shaped room, so it is checked against the free run through `spot`; an image
+or a card needs an actual box, so it is checked against `rect`.
+
+### `ContentSlot`
+
+Every callback receives the same object:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Element id, as matched against data |
+| `item` | `SvgicItem \| null` | Bound data item |
+| `element` | `SVGGraphicsElement` | The source element |
+| `rect` | `{ x, y, width, height }` | Largest rectangle that fits inside the shape, already inset by `padding` |
+| `spot` | `{ x, y, runX, runY }` | Point furthest from the boundary, plus the free run through it |
+| `fontSize` | `number` | Font size derived from the viewBox |
+
+### `type: 'text'`
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `text` | `(slot) => string \| string[] \| null` | — | Text to draw. An array renders as several lines |
+| `rotate` | `boolean \| 'auto'` | `'auto'` | Turn by -90° in a shape that is taller than it is wide |
+| `fontSize` | `number` | from `fontScale` | Absolute size in SVG units |
+| `fontFamily` | `string` | — | |
+| `fontWeight` | `string \| number` | — | |
+| `lineHeight` | `number` | `1.15` | Line spacing as a multiple of the font size |
+| `fill` | `string` | — | |
+| `opacity` | `number` | — | |
+| `className` | `string` | — | Extra class on the generated `<text>` |
+| `when` | `(slot) => boolean` | — | Skips the candidate when it returns `false` |
+
+`'auto'` rotates only when the text does not fit horizontally but the shape is clearly
+taller than it is wide — an almost square room is left alone, otherwise neighbouring
+labels end up at different angles on a hair of difference.
+
+There is no automatic wrapping: pass an array of lines. Breaking a brand name into lines
+is better done by whoever knows the brand.
+
+### `type: 'custom'`
+
+Anything the host application draws itself — an image with a caption, a badge, a card.
+The plugin does not interpret the result: it measures it, scales it into `rect` and clips it.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `render` | `(slot) => SVGElement \| null` | — | Returns the element to place, or `null` to skip |
+| `fit` | `'scale' \| 'reject' \| 'none'` | `'scale'` | What to do when the result does not fit `rect` |
+| `minScale` | `number` | `0.5` | Lower bound for `fit: 'scale'`; below it the element goes to the next candidate |
+| `when` | `(slot) => boolean` | — | Skips the candidate when it returns `false` |
+
+```ts
+{
+  type: 'custom',
+  minScale: 0.45,
+  render: ({ item, rect, fontSize }) => {
+    const group = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+    // ...build the card inside rect...
+    return group
+  },
+}
+```
+
+### Geometry helpers
+
+The placement primitives are exported as well, for content the plugin does not cover:
+
+```ts
+import { sampleShape, findSpot, findRect } from '@svgic/core/plugins/content'
+
+const mask = sampleShape(element, 24)          // rasterize the shape
+const spot = mask && findSpot(mask)            // point furthest from the boundary
+const rect = mask && findRect(mask, 16 / 9)    // largest inscribed rectangle, optionally by aspect
+```
+
+`sampleShape` returns `null` where the environment reports no geometry (jsdom, SSR); the
+plugin itself falls back to the bounding box in that case, so it degrades instead of throwing.
+
+### Limitations
+
+- **Grid precision.** The placement point is a cell center, so it can sit up to half a cell
+  away from the ideal one. Raise `grid` for tighter placement at the cost of speed.
+- **Own transforms on shapes.** A `<g>` wrapper is sampled through its geometry children;
+  children carrying their own `transform` are not accounted for.
+- **No collision resolution.** Labels of neighbouring shapes are placed independently and
+  can visually crowd each other on a dense plan.
+- **Zoom.** Content is placed once, in schema units, and scales with the schema. There is
+  no level-of-detail switching yet.
 
 ---
 

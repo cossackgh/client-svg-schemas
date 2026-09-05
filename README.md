@@ -777,6 +777,43 @@ DebugPlugin({
 
 ---
 
+## ContentPlugin — content inside shapes
+
+Places text, images and composite content inside the elements of a layer: positions come
+from the geometry of every shape, so editing the plan never requires moving labels by hand.
+
+```ts
+import { ContentPlugin } from '@svgic/core/plugins/content'
+
+const content = ContentPlugin({
+  sourceLayer: 'rooms',
+  content: [
+    { type: 'text', text: ({ item }) => item?.title as string },
+    { type: 'text', text: ({ id }) => id, opacity: 0.5 },
+  ],
+})
+
+const client = new Svgic('#container', {
+  src: '/map.svg',
+  layers: { rooms: { role: 'interactive' } },
+  data: shops,
+  plugins: [content],
+})
+```
+
+Candidates are tried in order and the first one that produces content **and fits** wins, so
+content degrades gracefully as the available space shrinks: a card gives way to a name, a
+name to a room number. The point is chosen as the spot furthest from the shape boundary —
+the center of a bounding box would land on a wall in any L- or U-shaped room — and a label
+that only fits vertically is turned by -90°.
+
+The generated layer ignores pointer events, everything is clipped to its own shape, and the
+plugin redraws itself on every `setData()`.
+
+Full description: **[docs/api.md — ContentPlugin](docs/api.md#contentplugin)**
+
+---
+
 ## Plugins
 
 ```ts

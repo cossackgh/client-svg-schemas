@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520">
+  <!-- Decorative layer -->
+  <g id="background">
+    <rect x="10" y="10" width="880" height="500" fill="#f8f9fa" stroke="#adb5bd" stroke-width="3" rx="6"/>
+  </g>
+
+  <!-- Interactive layer: deliberately awkward shapes -->
+  <g id="rooms">
+    <!-- L-shape: the bbox center falls outside the fill -->
+    <path id="sh-l" d="M40 40 H300 V180 H170 V300 H40 Z" fill="#e3f2fd" stroke="#90caf9" stroke-width="2"/>
+
+    <!-- U-shape: two narrow arms and a wide base -->
+    <path id="sh-u" d="M340 40 H560 V300 H500 V120 H400 V300 H340 Z" fill="#e8f5e9" stroke="#a5d6a7" stroke-width="2"/>
+
+    <!-- Narrow and tall: only a rotated label fits -->
+    <rect id="sh-narrow" x="600" y="40" width="44" height="260" fill="#fff3e0" stroke="#ffcc80" stroke-width="2"/>
+
+    <!-- Ring: the geometric center is a hole -->
+    <path id="sh-hole" d="M700 40 H860 V300 H700 Z M740 110 H820 V230 H740 Z" fill-rule="evenodd" fill="#ede7f6" stroke="#b39ddb" stroke-width="2"/>
+
+    <!-- Tiny: nothing but the shortest candidate fits -->
+    <rect id="sh-small" x="40" y="340" width="70" height="70" fill="#fce4ec" stroke="#f48fb1" stroke-width="2"/>
+
+    <!-- Wide and roomy -->
+    <rect id="sh-wide" x="140" y="340" width="420" height="140" fill="#f3e5f5" stroke="#ce93d8" stroke-width="2"/>
+
+    <!-- Shapes wrapped in a group instead of laid flat in the layer -->
+    <g id="sh-group">
+      <rect x="600" y="340" width="260" height="60" fill="#e0f7fa" stroke="#80deea" stroke-width="2"/>
+      <rect x="600" y="400" width="120" height="80" fill="#e0f7fa" stroke="#80deea" stroke-width="2"/>
+    </g>
+  </g>
+</svg>

@@ -21,6 +21,7 @@ export default defineConfig({
         react: resolve(__dirname, 'src/adapters/react/index.ts'),
         'plugins/zoom': resolve(__dirname, 'src/plugins/zoom/index.ts'),
         'plugins/debug': resolve(__dirname, 'src/plugins/debug/index.ts'),
+        'plugins/content': resolve(__dirname, 'src/plugins/content/index.ts'),
       },
       formats: ['es', 'cjs'],
       name: 'Svgic',
@@ -39,6 +40,7 @@ export default defineConfig({
     alias: {
       '@svgic/core/plugins/zoom': resolve(__dirname, 'src/plugins/zoom/index.ts'),
       '@svgic/core/plugins/debug': resolve(__dirname, 'src/plugins/debug/index.ts'),
+      '@svgic/core/plugins/content': resolve(__dirname, 'src/plugins/content/index.ts'),
       '@svgic/core/vue': resolve(__dirname, 'src/adapters/vue/index.ts'),
       '@svgic/core/react': resolve(__dirname, 'src/adapters/react/index.ts'),
       '@svgic/core': resolve(__dirname, 'src/index.ts'),

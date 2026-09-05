@@ -3,11 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>svgic — Debug</title>
+  <title>svgic — Content</title>
   <link rel="stylesheet" href="./shared.css" />
   <style>
     .header-controls {
       margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .control-group {
       display: flex;
       align-items: center;
       gap: 0.4rem;
@@ -31,43 +36,33 @@
     .mode-btn:hover  { border-color: #555; color: #aaa; }
     .mode-btn.active { border-color: #4c8aff; color: #4c8aff; background: rgba(76, 138, 255, 0.08); }
 
-    /* ---- Debug info panel ---- */
-    .debug-panel {
+    .content-panel {
       padding: 0.75rem 1rem;
       border-bottom: 1px solid #2a2a4a;
       flex-shrink: 0;
     }
-    .debug-panel h2 {
+    .content-panel h2 {
       font-size: 0.7rem;
       text-transform: uppercase;
       letter-spacing: 1px;
       color: #555;
       margin-bottom: 0.5rem;
     }
-    .debug-desc {
-      font-size: 0.78rem;
-      color: #666;
-      line-height: 1.5;
-      font-family: 'Cascadia Code', 'Fira Code', monospace;
-    }
-    .debug-desc strong {
-      color: #7dd3fc;
-    }
-    .debug-desc em {
-      color: #fbbf24;
-      font-style: normal;
-    }
-    .debug-url {
-      margin-top: 0.5rem;
+    .content-panel p {
       font-size: 0.72rem;
-      color: #444;
+      line-height: 1.5;
+      color: #777;
+      margin-bottom: 0.6rem;
+    }
+    .grid-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.72rem;
+      color: #777;
       font-family: 'Cascadia Code', 'Fira Code', monospace;
     }
-    .debug-url a {
-      color: #4c8aff;
-      text-decoration: none;
-    }
-    .debug-url a:hover { text-decoration: underline; }
+    .grid-row input { flex: 1; }
   </style>
 </head>
 <body>
@@ -77,17 +72,21 @@
       <a href="/"             class="nav-link">Popup</a>
       <a href="/styling.html" class="nav-link">Styling</a>
       <a href="/zoom.html"    class="nav-link">Zoom</a>
-      <a href="/content.html" class="nav-link">Content</a>
-      <a href="/debug.html"   class="nav-link active">Debug</a>
+      <a href="/content.html" class="nav-link active">Content</a>
+      <a href="/debug.html"   class="nav-link">Debug</a>
     </nav>
     <div class="header-controls">
-      <span class="controls-label">render:</span>
-      <button class="mode-btn active" data-render="default">default</button>
-      <button class="mode-btn"        data-render="custom">custom</button>
-      <span class="controls-label" style="margin-left:0.5rem">showOn:</span>
-      <button class="mode-btn active" data-mode="hover">hover</button>
-      <button class="mode-btn"        data-mode="click">click</button>
-      <button class="mode-btn"        data-mode="both">both</button>
+      <div class="control-group">
+        <span class="controls-label">content:</span>
+        <button class="mode-btn active" data-mode="name">name</button>
+        <button class="mode-btn" data-mode="multiline">multiline</button>
+        <button class="mode-btn" data-mode="card">card</button>
+      </div>
+      <div class="control-group">
+        <span class="controls-label">clip:</span>
+        <button class="mode-btn active" data-clip="on">on</button>
+        <button class="mode-btn" data-clip="off">off</button>
+      </div>
     </div>
   </header>
 
@@ -95,15 +94,19 @@
     <div id="schema-container"></div>
 
     <aside class="sidebar">
-      <div class="debug-panel">
-        <h2>DebugPlugin</h2>
-        <div class="debug-desc">
-          <div>hover an element → see <strong>id</strong> and data</div>
-          <div id="debug-mode-hint"></div>
-          <div style="margin-top:0.4rem;color:#f87171">hover <strong style="color:#f87171">Server Room</strong> → no data</div>
-        </div>
-        <div class="debug-url">
-          typical pattern: <a href="?debug" id="debug-url-link">?debug</a>
+      <div class="content-panel">
+        <h2>Shapes</h2>
+        <p>
+          Every shape here is awkward on purpose: an L and a U whose bounding box centers
+          miss the fill, a ring whose center is a hole, a narrow column that only takes a
+          rotated label, a tiny room where nothing but the id fits, and a group wrapper
+          instead of a flat shape. <code>sh-small</code> has no data at all and falls back
+          to the second candidate.
+        </p>
+        <div class="grid-row">
+          <span>grid</span>
+          <input type="range" id="grid-input" min="8" max="64" step="4" value="24" />
+          <span id="grid-value">24</span>
         </div>
       </div>
 
@@ -113,6 +116,6 @@
     </aside>
   </div>
 
-  <script type="module" src="./debug.ts"></script>
+  <script type="module" src="./content.ts"></script>
 </body>
 </html>
