@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] — 2026-09-06
+
+### Fixed
+
+- **ZoomPlugin — taps on touch devices**: `handleTouchStart()` cancelled every `touchstart`,
+  a single finger included. Cancelling `touchstart` suppresses the compatibility mouse events
+  the browser synthesises after a tap — `click` among them — so on a phone or a tablet nothing
+  on a schema could be selected and `on('click')` never fired, while the very same schema
+  worked with a mouse. The cancel is now limited to gestures that belong to the plugin: a
+  second finger starting a pinch, and the second tap of a double tap. Panning no longer relies
+  on it either — `touch-action: none` is set on the `<svg>` and cleared again on `destroy()`
+
 ## [0.2.1] — 2026-09-05
 
 ### Fixed
