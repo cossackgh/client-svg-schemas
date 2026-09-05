@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] — 2026-09-05
+
+### Added
+
+- **ContentPlugin** (`@svgic/core/plugins/content`): places text, images and composite content
+  inside the elements of a layer. Positions are computed from the geometry of every shape — the
+  point furthest from its boundary for text, the largest inscribed rectangle for boxed content —
+  so the L- and U-shaped rooms that make up most of a real plan get their content in the fill
+  rather than on a wall, and editing the plan never requires moving labels by hand
+  - Candidates are tried in priority order and the first one that produces content **and fits**
+    wins, so content degrades gracefully as the available space shrinks: a logo gives way to a
+    name, a name to a room number, and a label is turned by -90° where that is the only way it fits
+  - `type: 'text'` — one line or several, with `rotate: 'auto'`
+  - `type: 'image'` — a raster or SVG file drawn into the largest box of its own aspect ratio.
+    The ratio comes from the data or from probing the file (cached per URL), and `minHeight`
+    decides when a logo would come out too small to be worth drawing
+  - `type: 'custom'` — anything the application draws itself; the plugin does not interpret it,
+    only measures it, scales it into the slot and clips it
+  - Content is clipped to the shape it belongs to, and the generated layer ignores pointer events,
+    so hover and click keep reaching the shapes underneath
+  - The placement primitives (`sampleShape`, `findSpot`, `findRect`) are exported for content
+    the plugin does not cover
+- **`onDataChange` plugin hook**: fires on `setData()`, once on init when `options.data` is given,
+  and right after `onInit` for a plugin registered via `use()` while data is already loaded — so
+  plugin behaviour no longer depends on registration order. Plugins that render from data no longer
+  need to expose a manual `rebuild()` for the host application to remember to call
+
 ## [0.1.5] — 2026-09-03
 
 ### Added
