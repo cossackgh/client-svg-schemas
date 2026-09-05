@@ -504,6 +504,7 @@ interface SvgicPlugin {
   name: string
   onInit?    (client: ISvgic): void
   onDestroy? (client: ISvgic): void
+  onDataChange? (data: SvgicItem[], client: ISvgic): void
   onElementHover? (element: SVGElement, item: SvgicItem | null): void | false
   onElementLeave? (element: SVGElement, item: SvgicItem | null): void | false
   onElementClick? (element: SVGElement, item: SvgicItem | null): void | false
@@ -514,6 +515,7 @@ interface SvgicPlugin {
 |------|-------------|----------------|
 | `onInit` | After SVG is loaded | — |
 | `onDestroy` | On `client.destroy()` | — |
+| `onDataChange` | On `setData()`, on init with `options.data`, and right after `onInit` for a plugin registered via `use()` when data is already loaded | — |
 | `onElementHover` | Hover over element | Cancels default behavior (hover style, popup) |
 | `onElementLeave` | Cursor leaves element | Cancels default behavior |
 | `onElementClick` | Click on element | Cancels default behavior |
@@ -535,6 +537,24 @@ const client = new Svgic('#container', {
   plugins: [myPlugin],
 })
 ```
+
+### `onDataChange`
+
+Plugins that draw from data — labels, logos, badges — need to redraw when data
+arrives or changes. `onDataChange` removes the need to expose a manual `rebuild()`
+and to remember calling it after every `setData()`:
+
+```ts
+const labelsPlugin: SvgicPlugin = {
+  name: 'labels',
+  onInit(client) { root = client.getElement() },
+  onDataChange(data, client) { render(data, client) },
+}
+```
+
+The hook fires regardless of registration order: a plugin passed to `use()` after
+the data was already set receives it immediately after its own `onInit`.
+After `setSrc()` the data is cleared, so the hook does not fire until new data arrives.
 
 ---
 

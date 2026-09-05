@@ -809,6 +809,7 @@ client.use(highlightPlugin)
 |------|-------------|-----------------|
 | `onInit(client)` | after SVG is loaded | — |
 | `onDestroy(client)` | when `destroy()` is called | — |
+| `onDataChange(data, client)` | on `setData()` and on init with `options.data` | — |
 | `onElementHover(el, item)` | hover | cancels `hover` event |
 | `onElementLeave(el, item)` | leave | cancels `leave` event |
 | `onElementClick(el, item)` | click | cancels `click` event |
