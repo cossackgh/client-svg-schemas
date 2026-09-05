@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] — 2026-09-05
+
+### Fixed
+
+- **ContentPlugin — content on a shape with its own `transform`**: `getBBox()` and
+  `isPointInFill()` report coordinates *before* an element applies its own transform, and the
+  plugin compensated by replaying that transform on the generated content. The placement was
+  right, but the rotation came with it: a shape drawn with `transform="scale(-1)"` — how editors
+  commonly express a half turn — rendered its label upside down, while its untransformed
+  neighbours were fine, and a scaled shape would have rendered its label at the wrong size.
+  The placement is now mapped through the element matrix instead, so content is built directly
+  in the layer space and stays upright at the schema font size. A quarter turn swaps the free
+  runs used for the fit check, an image restates its aspect ratio in the space the mask is
+  sampled in, and clipping no longer strips the transform it now needs
+
 ## [0.2.0] — 2026-09-05
 
 ### Added
