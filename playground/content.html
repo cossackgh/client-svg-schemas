@@ -80,6 +80,7 @@
         <span class="controls-label">content:</span>
         <button class="mode-btn active" data-mode="name">name</button>
         <button class="mode-btn" data-mode="multiline">multiline</button>
+        <button class="mode-btn" data-mode="logo">logo</button>
         <button class="mode-btn" data-mode="card">card</button>
       </div>
       <div class="control-group">
@@ -102,6 +103,12 @@
           rotated label, a tiny room where nothing but the id fits, and a group wrapper
           instead of a flat shape. <code>sh-small</code> has no data at all and falls back
           to the second candidate.
+        </p>
+        <p>
+          In <code>logo</code> mode the shops carry SVG logos of three different
+          proportions and no declared ratio: the plugin probes the files, redraws with
+          the real boxes, and drops to the name wherever the logo would come out under
+          <code>minHeight</code>.
         </p>
         <div class="grid-row">
           <span>grid</span>

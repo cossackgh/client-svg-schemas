@@ -179,6 +179,34 @@ describe('content geometry — findRect', () => {
     expect(rect.x).toBeCloseTo(2)
   })
 
+  it('centers a width-bound aspect box horizontally', () => {
+    // Every container at least 4 wide hosts the same 4x4 square, so without a
+    // tie-break the box would stick to whichever edge the sweep reaches first.
+    const rect = findRect(maskFrom([
+      '########',
+      '########',
+      '########',
+      '########',
+    ]), 1)!
+
+    expect(rect).toEqual({ x: 2, y: 0, width: 4, height: 4 })
+  })
+
+  it('centers a height-bound aspect box vertically', () => {
+    const rect = findRect(maskFrom([
+      '####',
+      '####',
+      '####',
+      '####',
+      '####',
+      '####',
+      '####',
+      '####',
+    ]), 1)!
+
+    expect(rect).toEqual({ x: 0, y: 2, width: 4, height: 4 })
+  })
+
   it('returns null for an empty mask', () => {
     expect(findRect(maskFrom(['...', '...']))).toBeNull()
   })

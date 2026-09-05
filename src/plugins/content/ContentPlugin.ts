@@ -4,9 +4,19 @@ import type {
   ContentPluginOptions,
   ContentSlot,
   CustomCandidate,
+  ImageCandidate,
   TextCandidate,
 } from './types'
-import { findRect, findSpot, insetRect, sampleShape, type ShapeRect } from './geometry'
+import {
+  findRect,
+  findSpot,
+  insetRect,
+  sampleShape,
+  SHAPE_SELECTOR,
+  type ShapeMask,
+  type ShapeRect,
+} from './geometry'
+import { getCachedRatio, probeRatio } from './imageRatio'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
 
@@ -47,6 +57,11 @@ export interface ContentPluginInstance extends SvgicPlugin {
 /** One element waiting for a candidate that fits */
 interface Entry {
   slot: ContentSlot
+  /**
+   * Sampled shape, kept so an image can ask for a rectangle of its own aspect
+   * ratio instead of reusing the largest one by area.
+   */
+  mask: ShapeMask | null
   /** Index of the next candidate to try */
   next: number
 }
@@ -73,6 +88,31 @@ const measure = (node: SVGGraphicsElement): ShapeRect | null => {
     return box.width || box.height ? box : null
   } catch {
     return null
+  }
+}
+
+/** Shrinks a rectangle towards its center by a factor */
+const scaleRect = (rect: ShapeRect, factor: number): ShapeRect => {
+  if (factor >= 1) return rect
+
+  return {
+    x: rect.x + (rect.width * (1 - factor)) / 2,
+    y: rect.y + (rect.height * (1 - factor)) / 2,
+    width: rect.width * factor,
+    height: rect.height * factor,
+  }
+}
+
+/** Largest box of the given ratio that fits inside a rectangle, centered */
+const fitAspect = (rect: ShapeRect, ratio: number): ShapeRect => {
+  const width = Math.min(rect.width, rect.height * ratio)
+  const height = width / ratio
+
+  return {
+    x: rect.x + (rect.width - width) / 2,
+    y: rect.y + (rect.height - height) / 2,
+    width,
+    height,
   }
 }
 
@@ -127,6 +167,9 @@ export function ContentPlugin(options: ContentPluginOptions): ContentPluginInsta
   let group: SVGGElement | null = null
   let defs: SVGDefsElement | null = null
   let clipCounter = 0
+  /** Guards the rebuild that follows image probes against a build that has moved on */
+  let generation = 0
+  let pendingProbes: Promise<unknown>[] = []
 
   const clear = (): void => {
     group?.remove()
@@ -141,7 +184,11 @@ export function ContentPlugin(options: ContentPluginOptions): ContentPluginInsta
     return (height || 1000) / fontScale
   }
 
-  const makeSlot = (element: SVGGraphicsElement, id: string, fontSize: number): ContentSlot | null => {
+  const makeSlot = (
+    element: SVGGraphicsElement,
+    id: string,
+    fontSize: number,
+  ): { slot: ContentSlot; mask: ShapeMask | null } | null => {
     const mask = sampleShape(element, grid)
     let rect = mask ? findRect(mask) : null
     let spot = mask ? findSpot(mask) : null
@@ -163,12 +210,15 @@ export function ContentPlugin(options: ContentPluginOptions): ContentPluginInsta
     }
 
     return {
-      id,
-      item: items.get(id) ?? null,
-      element,
-      rect: insetRect(rect, padding),
-      spot,
-      fontSize,
+      mask,
+      slot: {
+        id,
+        item: items.get(id) ?? null,
+        element,
+        rect: insetRect(rect, padding),
+        spot,
+        fontSize,
+      },
     }
   }
 
@@ -228,6 +278,61 @@ export function ContentPlugin(options: ContentPluginOptions): ContentPluginInsta
     return { node, rotated }
   }
 
+  /**
+   * Draws an image into the largest box of its own aspect ratio.
+   *
+   * With a known ratio the box is exact, so `preserveAspectRatio` never has to
+   * letterbox anything and the minimum-size check is meaningful. Without one the
+   * image gets the whole slot — safe, because `meet` keeps it inside — and a
+   * probe is queued, after which the layer is rebuilt with real numbers.
+   */
+  const buildImage = (candidate: ImageCandidate, entry: Entry): SVGImageElement | null => {
+    const href = candidate.href(entry.slot)
+
+    if (!href) return null
+
+    const declared = candidate.ratio?.(entry.slot)
+    const ratio =
+      typeof declared === 'number' && declared > 0
+        ? declared
+        : getCachedRatio(href) ?? null
+
+    if (ratio == null && (candidate.probe ?? true)) {
+      pendingProbes.push(probeRatio(href))
+    }
+
+    const area = scaleRect(entry.slot.rect, candidate.scale ?? 1)
+    let box = area
+
+    if (ratio != null) {
+      const aspectRect = entry.mask ? findRect(entry.mask, ratio) : null
+
+      box = scaleRect(
+        aspectRect ? insetRect(aspectRect, padding) : fitAspect(area, ratio),
+        candidate.scale ?? 1,
+      )
+
+      // Too small to read as a logo — the next candidate does more good here.
+      if (box.height < (candidate.minHeight ?? 0) || box.width < (candidate.minWidth ?? 0)) {
+        return null
+      }
+    }
+
+    const node = document.createElementNS(SVG_NS, 'image')
+
+    node.setAttribute('x', String(box.x))
+    node.setAttribute('y', String(box.y))
+    node.setAttribute('width', String(box.width))
+    node.setAttribute('height', String(box.height))
+    node.setAttribute('preserveAspectRatio', 'xMidYMid meet')
+    node.setAttribute('href', href)
+
+    if (candidate.opacity != null) node.setAttribute('opacity', String(candidate.opacity))
+    if (candidate.className) node.setAttribute('class', candidate.className)
+
+    return node
+  }
+
   const acceptText = (placed: Placed): boolean => {
     if (!placed.box) return true
 
@@ -285,22 +390,36 @@ export function ContentPlugin(options: ContentPluginOptions): ContentPluginInsta
 
     const ownTransform = element.getAttribute('transform')
     const elementId = element.getAttribute('id')
+    const isShape = typeof element.matches === 'function' && element.matches(SHAPE_SELECTOR)
 
-    if (!ownTransform && elementId && root.getElementById(elementId) === element) {
+    if (isShape && !ownTransform && elementId && root.getElementById(elementId) === element) {
       // Cheapest form: reference the shape instead of copying it.
       const use = document.createElementNS(SVG_NS, 'use')
 
       use.setAttribute('href', `#${elementId}`)
       path.appendChild(use)
-    } else {
-      // The element carries its own transform (which <use> would apply a second
-      // time on top of the host group), or has no usable id — clone the geometry
-      // and strip the transform, since the host group already carries it.
+    } else if (isShape) {
+      // The shape carries its own transform (which <use> would apply a second
+      // time on top of the host group), or has no usable id — clone it and strip
+      // the transform, since the host group already carries it.
       const clone = element.cloneNode(true) as SVGGraphicsElement
 
       clone.removeAttribute('transform')
       clone.removeAttribute('id')
       path.appendChild(clone)
+    } else {
+      // A <g> wrapper. A clipPath ignores groups and any <use> pointing at one —
+      // the result would be an empty clip that hides the content entirely — so the
+      // shapes inside are flattened into the clip. Each clone keeps its own
+      // transform; transforms on intermediate groups are not composed.
+      for (const shape of Array.from(element.querySelectorAll(SHAPE_SELECTOR))) {
+        const clone = shape.cloneNode(true) as SVGGraphicsElement
+
+        clone.removeAttribute('id')
+        path.appendChild(clone)
+      }
+
+      if (!path.childNodes.length) return null
     }
 
     defs.appendChild(path)
@@ -328,6 +447,8 @@ export function ContentPlugin(options: ContentPluginOptions): ContentPluginInsta
           node = built.node
           rotated = built.rotated
         }
+      } else if (candidate.type === 'image') {
+        node = buildImage(candidate, entry)
       } else {
         node = (candidate.render(entry.slot) as SVGGraphicsElement) ?? null
       }
@@ -358,6 +479,10 @@ export function ContentPlugin(options: ContentPluginOptions): ContentPluginInsta
 
   const build = (): void => {
     if (!client) return
+
+    const currentGeneration = ++generation
+
+    pendingProbes = []
 
     const root = client.getElement()
     const layer = client.getLayer(options.sourceLayer)
@@ -397,9 +522,9 @@ export function ContentPlugin(options: ContentPluginOptions): ContentPluginInsta
 
       if (!id) continue
 
-      const slot = makeSlot(element, id, fontSize)
+      const sampled = makeSlot(element, id, fontSize)
 
-      if (slot) round.push({ slot, next: 0 })
+      if (sampled) round.push({ slot: sampled.slot, mask: sampled.mask, next: 0 })
     }
 
     // The chain runs level by level across all elements rather than element by
@@ -428,7 +553,10 @@ export function ContentPlugin(options: ContentPluginOptions): ContentPluginInsta
         const accepted =
           item.candidate.type === 'text'
             ? acceptText(item)
-            : acceptCustom(item, item.candidate)
+            : item.candidate.type === 'image'
+              // The box was computed to fit, so there is nothing left to check.
+              ? true
+              : acceptCustom(item, item.candidate)
 
         if (accepted) {
           placedCount++
@@ -443,6 +571,15 @@ export function ContentPlugin(options: ContentPluginOptions): ContentPluginInsta
 
     // Nothing was placed — do not leave an empty group behind.
     if (!placedCount) clear()
+
+    // Images whose ratio was unknown are drawn into the whole slot; once their
+    // real proportions are in, the layer is rebuilt with the proper boxes. The
+    // ratios are cached by then, so this settles after one extra pass.
+    if (pendingProbes.length) {
+      Promise.allSettled(pendingProbes).then(() => {
+        if (client && currentGeneration === generation) build()
+      })
+    }
   }
 
   return {

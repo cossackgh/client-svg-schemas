@@ -84,7 +84,45 @@ export interface CustomCandidate extends CandidateBase {
   minScale?: number
 }
 
-export type ContentCandidate = TextCandidate | CustomCandidate
+/**
+ * An image: a raster file or an SVG file, referenced by URL.
+ *
+ * Drawn as `<image>`, so an external SVG renders in its own isolated context —
+ * it cannot be recoloured from the schema, and scripts inside it never run.
+ */
+export interface ImageCandidate extends CandidateBase {
+  type: 'image'
+  /** Image URL. `null`, `undefined` or an empty string skips the candidate */
+  href: (slot: ContentSlot) => string | null | undefined
+  /**
+   * Width/height ratio of the image, when the application already knows it.
+   *
+   * Worth providing: the ratio decides whether the image is worth drawing at all,
+   * and without it the plugin has to load the file to find out.
+   */
+  ratio?: (slot: ContentSlot) => number | null | undefined
+  /**
+   * Load the image to learn its ratio when `ratio` is not given. The first render
+   * uses the whole slot, and the affected elements are redrawn once the size is known.
+   * @default true
+   */
+  probe?: boolean
+  /**
+   * Smallest height, in SVG units, at which the image still counts as placed.
+   * Below it the element goes to the next candidate — a logo two pixels tall is
+   * not a logo, and a name in its place is more use.
+   */
+  minHeight?: number
+  /** Same for width */
+  minWidth?: number
+  /** Fraction of the available box the image may occupy. Default: `1` */
+  scale?: number
+  opacity?: number
+  /** Extra class on the generated `<image>` */
+  className?: string
+}
+
+export type ContentCandidate = TextCandidate | ImageCandidate | CustomCandidate
 
 export interface ContentPluginOptions {
   /** Layer id whose direct children get content */
