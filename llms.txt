@@ -17,7 +17,7 @@ npm install @svgic/core
 
 ## Key Concepts
 
-- **Layers** — `<g id="...">` elements in the SVG file. Layer role (`interactive` | `decorative`) is set in config, not in SVG.
+- **Layers** — `<g id="...">` elements in the SVG file. The role (`interactive` for events and data binding, `data` for a read-only layer a plugin reads, or any custom string) is set in config, not in SVG. Layers not listed in config render as static SVG and are invisible to the core.
 - **Data** — an array of `SvgicItem[]`, bound to elements by matching `id`.
 - **Initialization is async** — `await client.ready` before calling `setData()` and plugin APIs.
 - **Plugins** — extend behavior via hooks: `onInit`, `onElementClick`, `onElementHover`, etc.
@@ -32,8 +32,8 @@ import { Svgic } from '@svgic/core'
 const client = new Svgic('#container', {
   src: '/map.svg',
   layers: {
-    rooms:      { role: 'interactive' },
-    background: { role: 'decorative' },
+    rooms: { role: 'interactive' },
+    // background, labels — not listed, render as static SVG
   },
   data: [
     { id: 'room-101', title: 'Conference Room' },
@@ -95,6 +95,8 @@ await client.ready
 
 // Methods
 client.setData(data: SvgicItem[])
+await client.setSrc(src: string)          // swap the SVG, keeps on() subscriptions
+client.getLayer(id: string)              // parsed layer, for plugins
 client.on('click' | 'hover' | 'leave', (id, item) => void)
 client.setHighlight(state: string, ids: string[])
 client.clearHighlight(state?: string)
@@ -110,6 +112,7 @@ client.destroy()
 ```ts
 import { ZoomPlugin } from '@svgic/core/plugins/zoom'
 import { DebugPlugin } from '@svgic/core/plugins/debug'
+import { ContentPlugin } from '@svgic/core/plugins/content'
 
 // ZoomPlugin — zoom/pan via wheel, drag, touch
 const zoom = ZoomPlugin({ wheelMode: 'ctrl', focusOnClick: true })
@@ -117,8 +120,35 @@ zoom.zoomTo(2)
 zoom.focusElement('room-101')
 zoom.reset()
 
+// ContentPlugin — text, images and composite content placed inside the shapes
+// of a layer, positioned from their geometry. Candidates are tried in order and
+// the first that produces content AND fits wins, so content degrades from a logo
+// to a name to an id as the shapes get smaller.
+const content = ContentPlugin({
+  sourceLayer: 'rooms',
+  content: [
+    { type: 'image', href: ({ item }) => item?.logo as string, minHeight: 14 },
+    { type: 'text', text: ({ item }) => item?.title as string },
+    { type: 'text', text: ({ id }) => id, opacity: 0.5 },
+  ],
+})
+
 // DebugPlugin — shows element ids on hover (dev only)
 const debug = DebugPlugin({ showOn: 'both' })
+```
+
+## Plugin Hooks
+
+```ts
+interface SvgicPlugin {
+  name: string
+  onInit?(client): void
+  onDestroy?(client): void
+  onDataChange?(data, client): void   // every setData(), and on init with options.data
+  onElementHover?(element, item): void | false   // false cancels the default
+  onElementLeave?(element, item): void | false
+  onElementClick?(element, item): void | false
+}
 ```
 
 ---
@@ -138,7 +168,9 @@ interface SvgicItem {
 interface SvgicOptions {
   src: string                          // URL or SVG string
   data?: SvgicItem[]
-  layers?: Record<string, { role: 'interactive' | 'decorative' }>
+  layers?: Record<string, { role: 'interactive' | 'data' | string }>
+  idAttribute?: string                 // SVG attribute holding the id, default 'id'
+  idMatch?: 'exact' | 'suffix' | ((svgId: string) => string)
   plugins?: SvgicPlugin[]
   popup?: boolean | PopupConfig        // see docs/api.md
   style?: SvgicStyleConfig             // see docs/api.md

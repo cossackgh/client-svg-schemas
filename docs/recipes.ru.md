@@ -9,6 +9,7 @@
 - [Zoom + фокус на элементе + кнопка сброса](#zoom--фокус-на-элементе--кнопка-сброса)
 - [Попап с кнопкой внутри](#попап-с-кнопкой-внутри)
 - [Детальная панель вместо попапа](#детальная-панель-вместо-попапа)
+- [Названия и логотипы магазинов на плане ТЦ](#названия-и-логотипы-магазинов-на-плане-тц)
 - [Кастомный плагин](#кастомный-плагин)
 - [Vue: реактивные данные и подсветка](#vue-реактивные-данные-и-подсветка)
 
@@ -243,6 +244,113 @@ const client = new Svgic('#map', {
     },
   },
 })
+```
+
+---
+
+## Названия и логотипы магазинов на плане ТЦ
+
+Каждое помещение показывает логотип арендатора там, где он помещается, название — где не помещается логотип, и номер помещения — где не помещается и название. Позиции считаются из геометрии каждой фигуры, поэтому перерисовка плана не требует ручной расстановки подписей.
+
+```ts
+import { Svgic } from '@svgic/core'
+import { ContentPlugin } from '@svgic/core/plugins/content'
+
+interface Unit {
+  id: string
+  title: string
+  logo?: string
+  /** Отношение ширины к высоте файла логотипа, если бэкенд его знает */
+  logoRatio?: number
+}
+
+const units: Unit[] = [
+  { id: 'sh-101', title: 'Спортмастер', logo: '/logos/sportmaster.svg', logoRatio: 4.2 },
+  { id: 'sh-102', title: 'Кофе и выпечка' },
+  { id: 'k-143',  title: 'Цветы' },
+]
+
+const content = ContentPlugin({
+  sourceLayer: 'units',
+  content: [
+    // Логотип, но только там, где он выйдет достаточно крупным, чтобы его читали
+    {
+      type: 'image',
+      href: ({ item }) => item?.logo as string,
+      ratio: ({ item }) => item?.logoRatio as number,
+      minHeight: 14,
+    },
+    // Название, с поворотом на -90° в узком и вытянутом помещении
+    { type: 'text', text: ({ item }) => item?.title as string, fill: '#37474f', fontWeight: 600 },
+    // Последняя попытка, чтобы помещение не осталось пустым
+    { type: 'text', text: ({ id }) => id, fill: '#78909c', opacity: 0.6 },
+  ],
+})
+
+const client = new Svgic('#plan', {
+  src: '/floor-1.svg',
+  layers: { units: { role: 'interactive' } },
+  data: units,
+  plugins: [content],
+})
+
+await client.ready
+
+// Контент следует за данными — пересобирать вручную нечего
+client.setData(await fetchUnits(floor))
+```
+
+Кандидаты пробуются по порядку, побеждает первый, который дал контент **и поместился**, — так план деградирует по мере уменьшения помещений. Помещение, исчерпавшее цепочку, остаётся пустым: полное название пользователь всё равно получит во всплывашке.
+
+### Названия, которые не влезают в одну строку
+
+Передавайте массив строк. Автопереноса нет: разобьёт лучше тот, кто знает бренд.
+
+```ts
+{
+  type: 'text',
+  text: ({ item }) => (item?.title as string)?.split(' '),
+  lineHeight: 1.2,
+}
+```
+
+### Карточка вместо подписи
+
+Всё, что приложение рисует само, приходит как `custom`. Плагин не интерпретирует результат: меряет, вписывает в слот и обрезает по форме.
+
+```ts
+{
+  type: 'custom',
+  minScale: 0.45,
+  render: ({ item, rect, fontSize }) => {
+    const group = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+
+    label.textContent = item?.title as string
+    label.setAttribute('x', String(rect.x + rect.width / 2))
+    label.setAttribute('y', String(rect.y + rect.height / 2))
+    label.setAttribute('text-anchor', 'middle')
+    label.setAttribute('dominant-baseline', 'central')
+    label.setAttribute('font-size', String(fontSize))
+    group.appendChild(label)
+
+    return group
+  },
+}
+```
+
+### Только там, где так сказали данные
+
+`when()` не пускает кандидата в помещения, которым он не полагается, — например, промо-бейдж только там, где есть акция.
+
+```ts
+{
+  type: 'image',
+  when: ({ item }) => Boolean(item?.promo),
+  href: () => '/badges/sale.svg',
+  ratio: () => 1,
+  scale: 0.4,
+}
 ```
 
 ---

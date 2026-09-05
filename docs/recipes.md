@@ -9,6 +9,7 @@ Practical examples for common usage scenarios.
 - [Zoom + Element Focus + Reset Button](#zoom--element-focus--reset-button)
 - [Popup with a Button Inside](#popup-with-a-button-inside)
 - [Detail Panel Instead of Popup](#detail-panel-instead-of-popup)
+- [Shop Names and Logos on a Mall Plan](#shop-names-and-logos-on-a-mall-plan)
 - [Custom Plugin](#custom-plugin)
 - [Vue: Reactive Data and Highlighting](#vue-reactive-data-and-highlighting)
 
@@ -243,6 +244,113 @@ const client = new Svgic('#map', {
     },
   },
 })
+```
+
+---
+
+## Shop Names and Logos on a Mall Plan
+
+Every unit shows the tenant logo where there is room for it, the tenant name where there is not, and the unit number where there is not even room for that. Positions come from the geometry of each shape, so redrawing the plan never means moving labels by hand.
+
+```ts
+import { Svgic } from '@svgic/core'
+import { ContentPlugin } from '@svgic/core/plugins/content'
+
+interface Unit {
+  id: string
+  title: string
+  logo?: string
+  /** Width/height of the logo file, when the backend knows it */
+  logoRatio?: number
+}
+
+const units: Unit[] = [
+  { id: 'sh-101', title: 'Sportmaster', logo: '/logos/sportmaster.svg', logoRatio: 4.2 },
+  { id: 'sh-102', title: 'Coffee & Bakery' },
+  { id: 'k-143',  title: 'Flowers' },
+]
+
+const content = ContentPlugin({
+  sourceLayer: 'units',
+  content: [
+    // A logo, but only where it comes out large enough to read
+    {
+      type: 'image',
+      href: ({ item }) => item?.logo as string,
+      ratio: ({ item }) => item?.logoRatio as number,
+      minHeight: 14,
+    },
+    // The name, turned by -90° in a unit that is tall and narrow
+    { type: 'text', text: ({ item }) => item?.title as string, fill: '#37474f', fontWeight: 600 },
+    // Last resort, so a unit is never left blank
+    { type: 'text', text: ({ id }) => id, fill: '#78909c', opacity: 0.6 },
+  ],
+})
+
+const client = new Svgic('#plan', {
+  src: '/floor-1.svg',
+  layers: { units: { role: 'interactive' } },
+  data: units,
+  plugins: [content],
+})
+
+await client.ready
+
+// Content follows the data — nothing to rebuild by hand
+client.setData(await fetchUnits(floor))
+```
+
+Candidates are tried in order and the first one that produces content **and fits** wins, so the plan degrades gracefully as the units get smaller. A unit that exhausts the chain is left blank — the full name is still in the popup.
+
+### Names that are too long for one line
+
+Pass an array of lines. There is no automatic wrapping: whoever knows the brand breaks it better.
+
+```ts
+{
+  type: 'text',
+  text: ({ item }) => (item?.title as string)?.split(' '),
+  lineHeight: 1.2,
+}
+```
+
+### A card instead of a label
+
+Anything the application draws itself goes in as `custom`. The plugin does not interpret it — it measures the result, scales it into the slot and clips it to the shape.
+
+```ts
+{
+  type: 'custom',
+  minScale: 0.45,
+  render: ({ item, rect, fontSize }) => {
+    const group = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+
+    label.textContent = item?.title as string
+    label.setAttribute('x', String(rect.x + rect.width / 2))
+    label.setAttribute('y', String(rect.y + rect.height / 2))
+    label.setAttribute('text-anchor', 'middle')
+    label.setAttribute('dominant-baseline', 'central')
+    label.setAttribute('font-size', String(fontSize))
+    group.appendChild(label)
+
+    return group
+  },
+}
+```
+
+### Only where the data says so
+
+`when()` keeps a candidate out of units it does not belong in — a promo badge only on units that have a promotion, for instance.
+
+```ts
+{
+  type: 'image',
+  when: ({ item }) => Boolean(item?.promo),
+  href: () => '/badges/sale.svg',
+  ratio: () => 1,
+  scale: 0.4,
+}
 ```
 
 ---

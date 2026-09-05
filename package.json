@@ -41,7 +41,7 @@
     "dev": "vite serve playground --config vite.playground.config.ts",
     "build": "vite build",
     "test": "vitest",
-    "typecheck": "vue-tsc --noEmit"
+    "typecheck": "vue-tsc --noEmit && vue-tsc --noEmit -p playground/tsconfig.json"
   },
   "keywords": [
     "svg",
