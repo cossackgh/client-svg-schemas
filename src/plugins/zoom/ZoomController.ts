@@ -144,6 +144,8 @@ export class ZoomController {
       target.removeEventListener(type, fn)
     }
     this.listeners = []
+
+    if (this.opts.touch) this.svg.style.touchAction = ''
   }
 
   // ─── Listener setup ───────────────────────────────────────────────────────
@@ -171,6 +173,10 @@ export class ZoomController {
     }
 
     if (this.opts.touch) {
+      // Browser gestures are handed over to the plugin here rather than by
+      // cancelling touchstart, which would also cancel the tap-to-click.
+      svg.style.touchAction = 'none'
+
       const onTouchStart = (e: Event) => this.handleTouchStart(e as TouchEvent)
       const onTouchMove  = (e: Event) => this.handleTouchMove(e as TouchEvent)
       const onTouchEnd   = (e: Event) => this.handleTouchEnd(e as TouchEvent)
@@ -247,7 +253,12 @@ export class ZoomController {
   // ─── Touch ───────────────────────────────────────────────────────────────
 
   private handleTouchStart(e: TouchEvent): void {
-    e.preventDefault()
+    // A single finger down must NOT be cancelled: preventDefault() on touchstart
+    // suppresses the compatibility mouse events the browser synthesises after a
+    // tap, click among them, and the element would never report being tapped.
+    // Panning is stopped from touchmove instead, and `touch-action: none` keeps
+    // the browser from scrolling the page in the meantime.
+    if (e.touches.length > 1) e.preventDefault()
 
     if (e.touches.length === 1) {
       const t = e.touches[0]
@@ -256,6 +267,8 @@ export class ZoomController {
       const dx = t.clientX - this.lastTapPos.x
       const dy = t.clientY - this.lastTapPos.y
       if (now - this.lastTapTime < 300 && Math.abs(dx) + Math.abs(dy) < 20) {
+        // A double tap is our gesture, so the browser's own must be cancelled
+        e.preventDefault()
         this.handleDoubleTap(t)
         this.lastTapTime = 0
         return

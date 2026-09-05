@@ -258,6 +258,49 @@ describe('ZoomController — drag (mouse pan)', () => {
 // ─── ZoomController — touch ──────────────────────────────────────────────────
 
 describe('ZoomController — touch', () => {
+  it('leaves a single-finger touchstart uncancelled, so the tap still clicks', () => {
+    ctrl = new ZoomController(svg, { animate: false })
+
+    const event = new TouchEvent('touchstart', {
+      touches: [makeTouch(0, 200, 150, svg)],
+      changedTouches: [makeTouch(0, 200, 150, svg)],
+      bubbles: true,
+      cancelable: true,
+    })
+
+    svg.dispatchEvent(event)
+
+    // Cancelling here would suppress the compatibility click the browser
+    // synthesises after a tap, and nothing on the schema could be selected.
+    expect(event.defaultPrevented).toBe(false)
+  })
+
+  it('cancels a second finger, which is a pinch rather than a tap', () => {
+    ctrl = new ZoomController(svg, { animate: false })
+
+    const event = new TouchEvent('touchstart', {
+      touches: [makeTouch(0, 200, 200, svg), makeTouch(1, 400, 200, svg)],
+      changedTouches: [makeTouch(0, 200, 200, svg)],
+      bubbles: true,
+      cancelable: true,
+    })
+
+    svg.dispatchEvent(event)
+
+    expect(event.defaultPrevented).toBe(true)
+  })
+
+  it('takes over browser gestures through touch-action instead', () => {
+    ctrl = new ZoomController(svg, { animate: false })
+
+    expect(svg.style.touchAction).toBe('none')
+
+    ctrl.destroy()
+
+    expect(svg.style.touchAction).toBe('')
+  })
+
+
   it('pinch-zoom scales proportionally to distance', () => {
     ctrl = new ZoomController(svg, { animate: false })
 
