@@ -24,6 +24,10 @@
     <!-- Wide and roomy -->
     <rect id="sh-wide" x="140" y="340" width="420" height="140" fill="#f3e5f5" stroke="#ce93d8" stroke-width="2"/>
 
+    <!-- Half turn expressed the way editors do it: negative coordinates plus scale(-1).
+         Content must be mapped through that transform, not drawn under it. -->
+    <rect id="sh-flipped" x="-860" y="-490" width="120" height="70" transform="scale(-1)" fill="#fff8e1" stroke="#ffe082" stroke-width="2"/>
+
     <!-- Shapes wrapped in a group instead of laid flat in the layer -->
     <g id="sh-group">
       <rect x="600" y="340" width="260" height="60" fill="#e0f7fa" stroke="#80deea" stroke-width="2"/>

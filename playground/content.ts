@@ -12,6 +12,7 @@ const shops: SvgicItem[] = [
   { id: 'sh-hole', title: 'Electronics Hypermarket', logo: '/logos/tall.svg' },
   { id: 'sh-wide', title: 'Food Court', logo: '/logos/wide.svg' },
   { id: 'sh-group', title: 'Pharmacy', logo: '/logos/square.svg' },
+  { id: 'sh-flipped', title: 'Mirrored', logo: '/logos/wide.svg' },
   // sh-small has no data on purpose — it falls back to the id
 ]
 

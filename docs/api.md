@@ -866,8 +866,10 @@ plugin itself falls back to the bounding box in that case, so it degrades instea
 
 - **Grid precision.** The placement point is a cell center, so it can sit up to half a cell
   away from the ideal one. Raise `grid` for tighter placement at the cost of speed.
-- **Own transforms on shapes.** A `<g>` wrapper is sampled through its geometry children;
-  children carrying their own `transform` are not accounted for.
+- **Own transforms on shapes.** A transform on the shape itself is handled: the placement is
+  mapped through it, so a mirrored or quarter-turned shape still gets upright content at the
+  right size. A rotation that is not a multiple of 90° leaves the fit check approximate.
+  Inside a `<g>` wrapper, transforms on the children themselves are still not accounted for.
 - **No collision resolution.** Labels of neighbouring shapes are placed independently and
   can visually crowd each other on a dense plan.
 - **Zoom.** Content is placed once, in schema units, and scales with the schema. There is

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { Svgic } from '../src/core/Svgic'
 import { ContentPlugin } from '../src/plugins/content'
 import { clearRatioCache } from '../src/plugins/content/imageRatio'
+import type { ContentCandidate } from '../src/plugins/content'
 import type { SvgicItem } from '../src/types'
 
 vi.mock('../src/core/loader', () => ({
@@ -251,6 +252,102 @@ describe('ContentPlugin — group wrappers', () => {
     await client.ready
 
     expect(texts(svg)).toEqual(['r1'])
+    client.destroy()
+  })
+})
+
+describe('ContentPlugin — own transform on a shape', () => {
+  /** Stubs geometry for a shape whose own transform is a half turn */
+  const mountMirrored = async (
+    matrix: { a: number; b: number; c: number; d: number; e: number; f: number },
+    content: ContentCandidate[] = [{ type: 'text', text: ({ id }) => id, fontSize: 10 }],
+  ) => {
+    const svg = makeSvgEl('<g id="rooms"><rect id="r1" transform="scale(-1)"/></g>')
+
+    vi.mocked(loadSvg).mockResolvedValue(svg)
+
+    const client = new Svgic(container, {
+      src: '',
+      layers: { rooms: { role: 'interactive' } },
+      plugins: [
+        ContentPlugin({ sourceLayer: 'rooms', content }),
+      ],
+    })
+
+    const element = svg.getElementById('r1') as unknown as SVGGraphicsElement
+
+    Object.defineProperty(svg, 'createSVGPoint', { value: () => ({ x: 0, y: 0 }), configurable: true })
+    Object.defineProperty(element, 'getBBox', {
+      // Coordinates as the element sees them, before its own transform
+      value: () => ({ x: -200, y: -100, width: 200, height: 100 }),
+      configurable: true,
+    })
+    Object.defineProperty(element, 'isPointInFill', { value: () => true, configurable: true })
+    Object.defineProperty(element, 'ownerSVGElement', { value: svg, configurable: true })
+    Object.defineProperty(element, 'transform', {
+      value: { baseVal: { numberOfItems: 1, consolidate: () => ({ matrix }) } },
+      configurable: true,
+    })
+
+    await client.ready
+
+    return { client, svg }
+  }
+
+  it('maps the placement through the transform instead of replaying it', async () => {
+    // scale(-1) is how editors commonly express a half turn. Replaying it on the
+    // content would place the label correctly and render it upside down.
+    const { client, svg } = await mountMirrored({ a: -1, b: 0, c: 0, d: -1, e: 0, f: 0 })
+
+    const host = svg.querySelector('.svgic-content > g') as SVGGElement
+    const text = svg.querySelector('.svgic-content text')!
+
+    expect(host.hasAttribute('transform')).toBe(false)
+    expect(text.hasAttribute('transform')).toBe(false)
+    // The shape sits at -200..0 before its transform, so it lands on 0..200 after it
+    expect(Number(text.getAttribute('x'))).toBeGreaterThan(95)
+    expect(Number(text.getAttribute('x'))).toBeLessThan(105)
+    expect(Number(text.getAttribute('y'))).toBeGreaterThan(45)
+    expect(Number(text.getAttribute('y'))).toBeLessThan(55)
+    client.destroy()
+  })
+
+  it('clips a transformed shape by referencing it, so the clip carries the transform', async () => {
+    const { client, svg } = await mountMirrored({ a: -1, b: 0, c: 0, d: -1, e: 0, f: 0 })
+
+    const clipPath = svg.querySelector('clipPath')!
+
+    expect(clipPath.querySelector('use')!.getAttribute('href')).toBe('#r1')
+    client.destroy()
+  })
+
+  it('swaps the free runs on a quarter turn', async () => {
+    // rotate(90): the horizontal run of the shape becomes the vertical one on screen,
+    // so a label that fits across the shape must now be checked against the height.
+    const { client, svg } = await mountMirrored({ a: 0, b: 1, c: -1, d: 0, e: 0, f: 0 })
+
+    const text = svg.querySelector('.svgic-content text')!
+
+    // Local center (-100, -50) maps to (50, -100)
+    expect(Number(text.getAttribute('x'))).toBeGreaterThan(45)
+    expect(Number(text.getAttribute('x'))).toBeLessThan(55)
+    expect(Number(text.getAttribute('y'))).toBeLessThan(-95)
+    client.destroy()
+  })
+
+  it('maps the image box too, since it is measured on the untransformed mask', async () => {
+    const { client, svg } = await mountMirrored({ a: -1, b: 0, c: 0, d: -1, e: 0, f: 0 }, [
+      { type: 'image', href: () => '/logo.png', ratio: () => 2 },
+    ])
+
+    const image = svg.querySelector('.svgic-content image')!
+    const x = Number(image.getAttribute('x'))
+    const width = Number(image.getAttribute('width'))
+
+    // The shape lands on 0..200 after its transform; an unmapped box would be negative
+    expect(x).toBeGreaterThan(0)
+    expect(x + width).toBeLessThanOrEqual(200)
+    expect(width / Number(image.getAttribute('height'))).toBeCloseTo(2)
     client.destroy()
   })
 })
