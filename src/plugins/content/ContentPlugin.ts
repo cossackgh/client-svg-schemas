@@ -15,6 +15,7 @@ import {
   SHAPE_SELECTOR,
   type ShapeMask,
   type ShapeRect,
+  type ShapeSpot,
 } from './geometry'
 import { getCachedRatio, probeRatio } from './imageRatio'
 
@@ -62,6 +63,12 @@ interface Entry {
    * ratio instead of reusing the largest one by area.
    */
   mask: ShapeMask | null
+  /**
+   * The transform of the element, if it has one. The mask is in the space the
+   * element had before it, so anything measured on the mask has to be mapped
+   * through this to reach the layer.
+   */
+  matrix: Matrix2D | null
   /** Index of the next candidate to try */
   next: number
 }
@@ -89,6 +96,94 @@ const measure = (node: SVGGraphicsElement): ShapeRect | null => {
   } catch {
     return null
   }
+}
+
+/** The affine parts of a transform, in the order SVG lists them */
+interface Matrix2D {
+  a: number
+  b: number
+  c: number
+  d: number
+  e: number
+  f: number
+}
+
+/**
+ * The element's own transform, collapsed into a single matrix, or `null`.
+ *
+ * `getBBox()` and `isPointInFill()` both report coordinates *before* the element
+ * applies its own transform, so the numbers they produce have to be mapped through
+ * it. Replaying the transform on the content instead would put it in the right
+ * place but hand it the rotation as well: a shape drawn with `scale(-1)` — a common
+ * way for editors to express a half turn — would render its label upside down, and
+ * a scaled shape would render it at the wrong size.
+ */
+const ownMatrix = (element: SVGGraphicsElement): Matrix2D | null => {
+  const list = element.transform?.baseVal
+
+  if (!list || !list.numberOfItems || typeof list.consolidate !== 'function') return null
+
+  return list.consolidate()?.matrix ?? null
+}
+
+const mapPoint = (x: number, y: number, m: Matrix2D): { x: number; y: number } => ({
+  x: m.a * x + m.c * y + m.e,
+  y: m.b * x + m.d * y + m.f,
+})
+
+const mapRect = (rect: ShapeRect, m: Matrix2D): ShapeRect => {
+  const corners = [
+    mapPoint(rect.x, rect.y, m),
+    mapPoint(rect.x + rect.width, rect.y, m),
+    mapPoint(rect.x, rect.y + rect.height, m),
+    mapPoint(rect.x + rect.width, rect.y + rect.height, m),
+  ]
+  const xs = corners.map(point => point.x)
+  const ys = corners.map(point => point.y)
+  const x = Math.min(...xs)
+  const y = Math.min(...ys)
+
+  return { x, y, width: Math.max(...xs) - x, height: Math.max(...ys) - y }
+}
+
+/**
+ * Maps a placement point and the free runs through it.
+ *
+ * The runs are axis-aligned lengths, so each is carried by the scale along its own
+ * axis, and a quarter turn swaps which axis is which. A rotation that is not a
+ * multiple of 90 degrees leaves them approximate: the shape is no longer
+ * axis-aligned in the layer, and an exact answer would mean sampling in the mapped
+ * space.
+ */
+const mapSpot = (spot: ShapeSpot, m: Matrix2D): ShapeSpot => {
+  const scaleX = Math.hypot(m.a, m.b)
+  const scaleY = Math.hypot(m.c, m.d)
+  const quarterTurn = Math.abs(m.a) < Math.abs(m.b)
+
+  return {
+    ...mapPoint(spot.x, spot.y, m),
+    runX: quarterTurn ? spot.runY * scaleY : spot.runX * scaleX,
+    runY: quarterTurn ? spot.runX * scaleX : spot.runY * scaleY,
+  }
+}
+
+/**
+ * Restates a layer-space aspect ratio in the space the mask is sampled in.
+ *
+ * The mask predates the element transform, so asking it for a 4:1 box under, say,
+ * a quarter turn would produce a box that comes out 1:4 on screen.
+ */
+const toLocalAspect = (ratio: number, m: Matrix2D | null): number => {
+  if (!m) return ratio
+
+  const scaleX = Math.hypot(m.a, m.b)
+  const scaleY = Math.hypot(m.c, m.d)
+
+  if (!scaleX || !scaleY) return ratio
+
+  return Math.abs(m.a) < Math.abs(m.b)
+    ? scaleY / (ratio * scaleX)
+    : (ratio * scaleY) / scaleX
 }
 
 /** Shrinks a rectangle towards its center by a factor */
@@ -188,7 +283,7 @@ export function ContentPlugin(options: ContentPluginOptions): ContentPluginInsta
     element: SVGGraphicsElement,
     id: string,
     fontSize: number,
-  ): { slot: ContentSlot; mask: ShapeMask | null } | null => {
+  ): { slot: ContentSlot; mask: ShapeMask | null; matrix: Matrix2D | null } | null => {
     const mask = sampleShape(element, grid)
     let rect = mask ? findRect(mask) : null
     let spot = mask ? findSpot(mask) : null
@@ -209,8 +304,18 @@ export function ContentPlugin(options: ContentPluginOptions): ContentPluginInsta
       }
     }
 
+    // Everything above is in the space the element had before its own transform;
+    // the content sits next to the layer, so it has to be mapped over.
+    const matrix = ownMatrix(element)
+
+    if (matrix) {
+      rect = mapRect(rect, matrix)
+      spot = mapSpot(spot, matrix)
+    }
+
     return {
       mask,
+      matrix,
       slot: {
         id,
         item: items.get(id) ?? null,
@@ -305,7 +410,11 @@ export function ContentPlugin(options: ContentPluginOptions): ContentPluginInsta
     let box = area
 
     if (ratio != null) {
-      const aspectRect = entry.mask ? findRect(entry.mask, ratio) : null
+      const localRect = entry.mask
+        ? findRect(entry.mask, toLocalAspect(ratio, entry.matrix))
+        : null
+      const aspectRect =
+        localRect && entry.matrix ? mapRect(localRect, entry.matrix) : localRect
 
       box = scaleRect(
         aspectRect ? insetRect(aspectRect, padding) : fitAspect(area, ratio),
@@ -388,34 +497,42 @@ export function ContentPlugin(options: ContentPluginOptions): ContentPluginInsta
 
     path.id = id
 
-    const ownTransform = element.getAttribute('transform')
     const elementId = element.getAttribute('id')
     const isShape = typeof element.matches === 'function' && element.matches(SHAPE_SELECTOR)
 
-    if (isShape && !ownTransform && elementId && root.getElementById(elementId) === element) {
-      // Cheapest form: reference the shape instead of copying it.
+    if (isShape && elementId && root.getElementById(elementId) === element) {
+      // Cheapest form: reference the shape instead of copying it. <use> renders it
+      // with its own transform, which is the very space the content is placed in.
       const use = document.createElementNS(SVG_NS, 'use')
 
       use.setAttribute('href', `#${elementId}`)
       path.appendChild(use)
     } else if (isShape) {
-      // The shape carries its own transform (which <use> would apply a second
-      // time on top of the host group), or has no usable id — clone it and strip
-      // the transform, since the host group already carries it.
+      // No usable id to point at — clone the geometry, transform included.
       const clone = element.cloneNode(true) as SVGGraphicsElement
 
-      clone.removeAttribute('transform')
       clone.removeAttribute('id')
       path.appendChild(clone)
     } else {
       // A <g> wrapper. A clipPath ignores groups and any <use> pointing at one —
       // the result would be an empty clip that hides the content entirely — so the
-      // shapes inside are flattened into the clip. Each clone keeps its own
-      // transform; transforms on intermediate groups are not composed.
+      // shapes inside are flattened into the clip, with the transform of the wrapper
+      // composed onto every clone. Transforms on intermediate groups are not composed.
+      const wrapperTransform = element.getAttribute('transform')
+
       for (const shape of Array.from(element.querySelectorAll(SHAPE_SELECTOR))) {
         const clone = shape.cloneNode(true) as SVGGraphicsElement
+        const shapeTransform = clone.getAttribute('transform')
 
         clone.removeAttribute('id')
+
+        if (wrapperTransform) {
+          clone.setAttribute(
+            'transform',
+            shapeTransform ? `${wrapperTransform} ${shapeTransform}` : wrapperTransform,
+          )
+        }
+
         path.appendChild(clone)
       }
 
@@ -456,11 +573,6 @@ export function ContentPlugin(options: ContentPluginOptions): ContentPluginInsta
       if (!node) continue
 
       const host = document.createElementNS(SVG_NS, 'g')
-      const ownTransform = entry.slot.element.getAttribute('transform')
-
-      // getBBox() and isPointInFill() report coordinates before the element applies
-      // its own transform, so the host has to repeat it for the numbers to line up.
-      if (ownTransform) host.setAttribute('transform', ownTransform)
 
       if (clip) {
         const clipId = clipPathFor(entry.slot.element, root)
@@ -524,7 +636,9 @@ export function ContentPlugin(options: ContentPluginOptions): ContentPluginInsta
 
       const sampled = makeSlot(element, id, fontSize)
 
-      if (sampled) round.push({ slot: sampled.slot, mask: sampled.mask, next: 0 })
+      if (sampled) {
+        round.push({ slot: sampled.slot, mask: sampled.mask, matrix: sampled.matrix, next: 0 })
+      }
     }
 
     // The chain runs level by level across all elements rather than element by
