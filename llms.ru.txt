@@ -17,7 +17,7 @@ npm install @svgic/core
 
 ## Ключевые концепции
 
-- **Слои** — `<g id="...">` в SVG-файле. Роль слоя (`interactive` | `decorative`) задаётся в конфиге, не в SVG.
+- **Слои** — `<g id="...">` в SVG-файле. Роль (`interactive` — события и связывание с данными, `data` — слой только на чтение для плагина, либо любая своя строка) задаётся в конфиге, не в SVG. Слои, не перечисленные в конфиге, рисуются как статичный SVG и ядру не видны.
 - **Данные** — массив `SvgicItem[]`, привязывается к элементам по совпадению `id`.
 - **Инициализация асинхронная** — `await client.ready` перед вызовом `setData()` и API плагинов.
 - **Плагины** — расширяют поведение через хуки `onInit`, `onElementClick`, `onElementHover` и т.д.
@@ -32,8 +32,8 @@ import { Svgic } from '@svgic/core'
 const client = new Svgic('#container', {
   src: '/map.svg',
   layers: {
-    rooms:      { role: 'interactive' },
-    background: { role: 'decorative' },
+    rooms: { role: 'interactive' },
+    // background, labels — не перечислены, рисуются как статичный SVG
   },
   data: [
     { id: 'room-101', title: 'Переговорная' },
@@ -95,6 +95,8 @@ await client.ready
 
 // Методы
 client.setData(data: SvgicItem[])
+await client.setSrc(src: string)          // заменить SVG, подписки on() сохраняются
+client.getLayer(id: string)              // разобранный слой, для плагинов
 client.on('click' | 'hover' | 'leave', (id, item) => void)
 client.setHighlight(state: string, ids: string[])
 client.clearHighlight(state?: string)
@@ -110,6 +112,7 @@ client.destroy()
 ```ts
 import { ZoomPlugin } from '@svgic/core/plugins/zoom'
 import { DebugPlugin } from '@svgic/core/plugins/debug'
+import { ContentPlugin } from '@svgic/core/plugins/content'
 
 // ZoomPlugin — zoom/pan колесом, перетаскиванием, touch
 const zoom = ZoomPlugin({ wheelMode: 'ctrl', focusOnClick: true })
@@ -117,8 +120,35 @@ zoom.zoomTo(2)
 zoom.focusElement('room-101')
 zoom.reset()
 
+// ContentPlugin — текст, картинки и составной контент внутри фигур слоя,
+// с позициями из их геометрии. Кандидаты пробуются по порядку, побеждает первый,
+// который дал контент И поместился: логотип уступает названию, название — id,
+// по мере того как фигуры мельчают.
+const content = ContentPlugin({
+  sourceLayer: 'rooms',
+  content: [
+    { type: 'image', href: ({ item }) => item?.logo as string, minHeight: 14 },
+    { type: 'text', text: ({ item }) => item?.title as string },
+    { type: 'text', text: ({ id }) => id, opacity: 0.5 },
+  ],
+})
+
 // DebugPlugin — показывает id элементов при наведении (только dev)
 const debug = DebugPlugin({ showOn: 'both' })
+```
+
+## Хуки плагинов
+
+```ts
+interface SvgicPlugin {
+  name: string
+  onInit?(client): void
+  onDestroy?(client): void
+  onDataChange?(data, client): void   // на каждый setData() и на инициализации с options.data
+  onElementHover?(element, item): void | false   // false отменяет дефолт
+  onElementLeave?(element, item): void | false
+  onElementClick?(element, item): void | false
+}
 ```
 
 ---
@@ -138,7 +168,9 @@ interface SvgicItem {
 interface SvgicOptions {
   src: string                          // URL или SVG-строка
   data?: SvgicItem[]
-  layers?: Record<string, { role: 'interactive' | 'decorative' }>
+  layers?: Record<string, { role: 'interactive' | 'data' | string }>
+  idAttribute?: string                 // атрибут SVG с id, по умолчанию 'id'
+  idMatch?: 'exact' | 'suffix' | ((svgId: string) => string)
   plugins?: SvgicPlugin[]
   popup?: boolean | PopupConfig        // см. docs/api.md
   style?: SvgicStyleConfig             // см. docs/api.md
