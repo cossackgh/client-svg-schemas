@@ -574,7 +574,7 @@ import { ZoomPlugin } from '@svgic/core/plugins/zoom'
 interface ZoomPluginOptions {
   minScale?         : number             // default: 0.5
   maxScale?         : number             // default: 10
-  wheelMode?        : 'always' | 'ctrl' // default: 'ctrl'
+  wheelMode?        : 'always' | 'ctrl' | 'alt' // default: 'ctrl'
   pan?              : boolean            // default: true
   touch?            : boolean            // default: true
   doubleTapScale?   : number            // default: 2
@@ -590,7 +590,7 @@ interface ZoomPluginOptions {
 |------|----------|
 | `minScale` | Минимальный масштаб |
 | `maxScale` | Максимальный масштаб |
-| `wheelMode` | `'always'` — зум всегда; `'ctrl'` — только с Ctrl (для страниц со скроллом) |
+| `wheelMode` | `'always'` — зум всегда; `'ctrl'` — только с Ctrl, на macOS также с Cmd (для страниц со скроллом); `'alt'` — только с Alt |
 | `pan` | Разрешить pan перетаскиванием мыши |
 | `touch` | Разрешить touch-жесты |
 | `doubleTapScale` | Масштаб при двойном тапе/клике |

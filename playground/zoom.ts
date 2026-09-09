@@ -23,7 +23,7 @@ const focusBtns   = document.querySelectorAll<HTMLButtonElement>('[data-focus]')
 
 // --- state ---
 
-let wheelMode: 'ctrl' | 'always' = 'ctrl'
+let wheelMode: 'ctrl' | 'always' | 'alt' = 'ctrl'
 let focusOnClick = false
 let zoom: ZoomPluginInstance
 let client: Svgic
@@ -125,7 +125,7 @@ document.getElementById('btn-focus-203')!.addEventListener('click', () => {
 
 wheelBtns.forEach(btn => {
   btn.addEventListener('click', () => {
-    wheelMode = btn.dataset.wheel as 'ctrl' | 'always'
+    wheelMode = btn.dataset.wheel as 'ctrl' | 'always' | 'alt'
     wheelBtns.forEach(b => b.classList.toggle('active', b === btn))
     client.destroy()
     createClient()

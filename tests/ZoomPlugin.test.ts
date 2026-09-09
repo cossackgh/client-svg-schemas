@@ -35,8 +35,15 @@ function vbAttr(svg: SVGSVGElement): number[] {
   return svg.getAttribute('viewBox')!.split(' ').map(Number)
 }
 
-function fireWheel(svg: SVGSVGElement, deltaY: number, ctrlKey = false): void {
-  svg.dispatchEvent(new WheelEvent('wheel', { deltaY, ctrlKey, bubbles: true, cancelable: true }))
+interface WheelMods { ctrlKey?: boolean; metaKey?: boolean; altKey?: boolean }
+
+/** Dispatches a wheel event; `mods` accepts a bare boolean as a shorthand for ctrlKey */
+function fireWheel(svg: SVGSVGElement, deltaY: number, mods: boolean | WheelMods = false): WheelEvent {
+  const { ctrlKey = false, metaKey = false, altKey = false } =
+    typeof mods === 'boolean' ? { ctrlKey: mods } as WheelMods : mods
+  const e = new WheelEvent('wheel', { deltaY, ctrlKey, metaKey, altKey, bubbles: true, cancelable: true })
+  svg.dispatchEvent(e)
+  return e
 }
 
 function makeTouch(id: number, x: number, y: number, target: EventTarget): Touch {
@@ -193,10 +200,56 @@ describe('ZoomController — wheel', () => {
     expect(ctrl.getState().scale).toBeGreaterThan(1)
   })
 
+  it('wheelMode:ctrl + Cmd held → zoom (macOS)', () => {
+    ctrl = new ZoomController(svg, { wheelMode: 'ctrl', animate: false })
+    fireWheel(svg, -100, { metaKey: true })
+    expect(ctrl.getState().scale).toBeGreaterThan(1)
+  })
+
   it('wheelMode:ctrl without Ctrl → ignored', () => {
     ctrl = new ZoomController(svg, { wheelMode: 'ctrl', animate: false })
     fireWheel(svg, -100, false)
     expect(ctrl.getState().scale).toBe(1)
+  })
+
+  it('wheelMode:ctrl + Alt only → ignored', () => {
+    ctrl = new ZoomController(svg, { wheelMode: 'ctrl', animate: false })
+    fireWheel(svg, -100, { altKey: true })
+    expect(ctrl.getState().scale).toBe(1)
+  })
+
+  it('wheelMode:alt + Alt held → zoom', () => {
+    ctrl = new ZoomController(svg, { wheelMode: 'alt', animate: false })
+    fireWheel(svg, -100, { altKey: true })
+    expect(ctrl.getState().scale).toBeGreaterThan(1)
+  })
+
+  it('wheelMode:alt without Alt → ignored', () => {
+    ctrl = new ZoomController(svg, { wheelMode: 'alt', animate: false })
+    fireWheel(svg, -100, false)
+    expect(ctrl.getState().scale).toBe(1)
+  })
+
+  it('wheelMode:alt + Ctrl only → ignored', () => {
+    ctrl = new ZoomController(svg, { wheelMode: 'alt', animate: false })
+    fireWheel(svg, -100, { ctrlKey: true })
+    expect(ctrl.getState().scale).toBe(1)
+  })
+
+  it('wheelMode:ctrl without modifier → preventDefault not called (page keeps scrolling)', () => {
+    ctrl = new ZoomController(svg, { wheelMode: 'ctrl', animate: false })
+    expect(fireWheel(svg, -100, false).defaultPrevented).toBe(false)
+  })
+
+  it('wheelMode:ctrl with modifier → preventDefault called', () => {
+    ctrl = new ZoomController(svg, { wheelMode: 'ctrl', animate: false })
+    expect(fireWheel(svg, -100, { ctrlKey: true }).defaultPrevented).toBe(true)
+    expect(fireWheel(svg, -100, { metaKey: true }).defaultPrevented).toBe(true)
+  })
+
+  it('wheelMode:alt without modifier → preventDefault not called', () => {
+    ctrl = new ZoomController(svg, { wheelMode: 'alt', animate: false })
+    expect(fireWheel(svg, -100, { ctrlKey: true }).defaultPrevented).toBe(false)
   })
 
   it('wheelMode:always without Ctrl → zoom', () => {

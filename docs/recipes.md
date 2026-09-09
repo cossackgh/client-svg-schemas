@@ -135,7 +135,7 @@ import { Svgic } from '@svgic/core'
 import { ZoomPlugin } from '@svgic/core/plugins/zoom'
 
 const zoom = ZoomPlugin({
-  wheelMode: 'ctrl',    // zoom with wheel only when Ctrl is held
+  wheelMode: 'ctrl',    // zoom with wheel only when Ctrl (or Cmd on macOS) is held
   minScale: 0.5,
   maxScale: 6,
   focusOnClick: true,   // auto-focus on click
