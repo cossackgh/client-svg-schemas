@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] — 2026-09-09
+
+### Added
+
+- **ZoomPlugin — `wheelMode: 'alt'`**: a third wheel mode that zooms only while Alt is held,
+  for pages where Ctrl is inconvenient. Not the default on purpose: Alt + wheel is claimed by
+  Firefox on Windows and Linux for back/forward history and by several Linux window managers
+  for volume or window opacity, and in those cases it is intercepted before the browser, so the
+  page never sees it
+
+### Changed
+
+- **ZoomPlugin — `wheelMode: 'ctrl'` now accepts Cmd as well**: on macOS Cmd + wheel is the
+  habitual map-zoom gesture, while Ctrl + wheel is the system screen-zoom shortcut
+  (Accessibility → Zoom) — with that feature enabled macOS takes the event and neither the
+  browser nor the page sees it, so the whole screen zoomed instead of the schema. The wheel
+  handler now checks `ctrlKey || metaKey`, matching Mapbox, embedded Google Maps, Figma and
+  Miro. The default stays `'ctrl'` and `'always'` is untouched, so the change is additive:
+  consumers passing `wheelMode: 'ctrl'` see no difference
+
 ## [0.2.2] — 2026-09-06
 
 ### Fixed
