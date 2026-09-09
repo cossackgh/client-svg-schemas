@@ -658,7 +658,7 @@ Bundled with the library, no external dependencies.
 import { ZoomPlugin } from '@svgic/core/plugins/zoom'
 
 const zoom = ZoomPlugin({
-  wheelMode: 'ctrl',  // zoom with wheel only when Ctrl is held
+  wheelMode: 'ctrl',  // zoom with wheel only when Ctrl (or Cmd on macOS) is held
   minScale: 0.5,
   maxScale: 8,
 })
@@ -673,7 +673,7 @@ const client = new Svgic('#container', {
 
 | Device | Interaction |
 |---|---|
-| Mouse — wheel | Zoom to cursor point |
+| Mouse — wheel | Zoom to cursor point (with the `wheelMode` modifier held) |
 | Mouse — drag | Pan |
 | Touch — two fingers | Pinch-to-zoom |
 | Touch — one finger | Pan |
@@ -683,7 +683,7 @@ const client = new Svgic('#container', {
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `wheelMode` | `'ctrl' \| 'always'` | `'ctrl'` | `ctrl` — zoom only with Ctrl held; `always` — always zoom |
+| `wheelMode` | `'ctrl' \| 'always' \| 'alt'` | `'ctrl'` | `ctrl` — zoom only with Ctrl held, or Cmd on macOS; `always` — always zoom; `alt` — zoom only with Alt held |
 | `minScale` | `number` | `0.5` | Minimum scale |
 | `maxScale` | `number` | `10` | Maximum scale |
 | `pan` | `boolean` | `true` | Allow mouse pan |

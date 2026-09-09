@@ -656,7 +656,7 @@ function Map() {
 import { ZoomPlugin } from '@svgic/core/plugins/zoom'
 
 const zoom = ZoomPlugin({
-  wheelMode: 'ctrl',  // zoom колесом только при зажатом Ctrl
+  wheelMode: 'ctrl',  // zoom колесом только при зажатом Ctrl (на macOS — Cmd)
   minScale: 0.5,
   maxScale: 8,
 })
@@ -671,7 +671,7 @@ const client = new Svgic('#container', {
 
 | Устройство | Взаимодействие |
 |---|---|
-| Мышь — колесо | Zoom к точке курсора |
+| Мышь — колесо | Zoom к точке курсора (с модификатором из `wheelMode`) |
 | Мышь — перетаскивание | Pan |
 | Touch — два пальца | Pinch-to-zoom |
 | Touch — один палец | Pan |
@@ -681,7 +681,7 @@ const client = new Svgic('#container', {
 
 | Опция | Тип | По умолчанию | Описание |
 |---|---|---|---|
-| `wheelMode` | `'ctrl' \| 'always'` | `'ctrl'` | `ctrl` — zoom только при зажатом Ctrl; `always` — всегда |
+| `wheelMode` | `'ctrl' \| 'always' \| 'alt'` | `'ctrl'` | `ctrl` — zoom только при зажатом Ctrl, на macOS также Cmd; `always` — всегда; `alt` — только при зажатом Alt |
 | `minScale` | `number` | `0.5` | Минимальный масштаб |
 | `maxScale` | `number` | `10` | Максимальный масштаб |
 | `pan` | `boolean` | `true` | Разрешить pan мышью |

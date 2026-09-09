@@ -193,8 +193,31 @@ export class ZoomController {
 
   // ─── Wheel ────────────────────────────────────────────────────────────────
 
+  /**
+   * Whether the event carries the modifier the current wheelMode asks for.
+   *
+   * In 'ctrl' mode Cmd (metaKey) counts as well: on macOS Cmd + wheel is the
+   * habitual map-zoom gesture, and Ctrl + wheel is the system screen-zoom
+   * shortcut, which the OS swallows before the page ever sees it.
+   *
+   * Keep the ctrlKey check: browsers report a trackpad pinch as a wheel event
+   * with ctrlKey: true, so it is what makes pinch-to-zoom work without any
+   * separate gesture handling.
+   */
+  private hasWheelModifier(e: WheelEvent): boolean {
+    switch (this.opts.wheelMode) {
+      case 'always': return true
+      case 'alt':    return e.altKey
+      case 'ctrl':
+      default:       return e.ctrlKey || e.metaKey
+    }
+  }
+
   private handleWheel(e: WheelEvent): void {
-    if (this.opts.wheelMode === 'ctrl' && !e.ctrlKey) return
+    // preventDefault() must stay AFTER the modifier check: without the modifier
+    // the event is left to the browser, so the page keeps scrolling normally
+    // even while the cursor sits on the schema.
+    if (!this.hasWheelModifier(e)) return
     e.preventDefault()
 
     const factor = e.deltaY > 0 ? 0.9 : 1.1

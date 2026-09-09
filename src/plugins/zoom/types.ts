@@ -6,10 +6,13 @@ export interface ZoomPluginOptions {
   /**
    * Mouse wheel zoom mode.
    * - 'always'  — always (for fullscreen maps)
-   * - 'ctrl'    — only when Ctrl is held (for scrollable pages)
+   * - 'ctrl'    — only when Ctrl is held, or Cmd on macOS (for scrollable pages)
+   * - 'alt'     — only when Alt is held (alternative when Ctrl is inconvenient;
+   *               note that Alt + wheel is claimed by Firefox on Windows/Linux
+   *               and by some Linux window managers)
    * Default: 'ctrl'
    */
-  wheelMode?: 'always' | 'ctrl'
+  wheelMode?: 'always' | 'ctrl' | 'alt'
   /** Allow pan by mouse drag. Default: true */
   pan?: boolean
   /** Allow touch gestures (pinch-zoom, pan, double tap). Default: true */
