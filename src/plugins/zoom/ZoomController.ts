@@ -32,7 +32,12 @@ export class ZoomController {
   private state: ZoomState
 
   /** Event listeners for later removal */
-  private listeners: Array<{ target: EventTarget; type: string; fn: EventListener }> = []
+  private listeners: Array<{
+    target: EventTarget
+    type: string
+    fn: EventListener
+    options?: AddEventListenerOptions
+  }> = []
 
   /** Animation frame (RAF) */
   private animFrame: number | null = null
@@ -47,6 +52,12 @@ export class ZoomController {
   private lastPinchMid = { x: 0, y: 0 }
   private lastTapTime = 0
   private lastTapPos = { x: 0, y: 0 }
+  /** The current touch gesture panned or pinched the schema */
+  private touchMoved = false
+
+  // --- click after drag ---
+  /** Set when a pan/pinch ends; the click the browser sends next is swallowed */
+  private suppressClick = false
 
   constructor(svg: SVGSVGElement, opts: ZoomPluginOptions) {
     this.svg = svg
@@ -140,8 +151,8 @@ export class ZoomController {
       cancelAnimationFrame(this.animFrame)
       this.animFrame = null
     }
-    for (const { target, type, fn } of this.listeners) {
-      target.removeEventListener(type, fn)
+    for (const { target, type, fn, options } of this.listeners) {
+      target.removeEventListener(type, fn, options)
     }
     this.listeners = []
 
@@ -189,6 +200,41 @@ export class ZoomController {
         { target: svg, type: 'touchend',   fn: onTouchEnd   as EventListener },
       )
     }
+
+    if (this.opts.pan || this.opts.touch) {
+      // The browser still sends a click to the element under the pointer when
+      // a drag ends, which would select the element the pan started on. It is
+      // swallowed on window in the capture phase, ahead of element listeners
+      // and of the document listener that closes a click-triggered popup.
+      const onClickCapture = (e: Event) => this.handleClickCapture(e as MouseEvent)
+      // Any new press starts a new gesture, so a pending suppression that no
+      // click consumed must not outlive it. Listening on window rather than on
+      // the svg keeps a press elsewhere (another schema, the page) from leaving
+      // the flag armed for an unrelated click.
+      const onPress = () => { this.suppressClick = false }
+      const capture: AddEventListenerOptions = { capture: true }
+      const capturePassive: AddEventListenerOptions = { capture: true, passive: true }
+      window.addEventListener('click', onClickCapture, capture)
+      window.addEventListener('mousedown', onPress, capture)
+      window.addEventListener('touchstart', onPress, capturePassive)
+      this.listeners.push(
+        { target: window, type: 'click',      fn: onClickCapture as EventListener, options: capture },
+        { target: window, type: 'mousedown',  fn: onPress,                         options: capture },
+        { target: window, type: 'touchstart', fn: onPress,                         options: capturePassive },
+      )
+    }
+  }
+
+  // ─── Click after drag ─────────────────────────────────────────────────────
+
+  private handleClickCapture(e: MouseEvent): void {
+    if (!this.suppressClick) return
+    // Keyboard activation (Enter/Space on a focused control) reports detail 0:
+    // it is not the tail of a drag and must go through.
+    if (e.detail === 0) return
+    this.suppressClick = false
+    e.stopPropagation()
+    e.preventDefault()
   }
 
   // ─── Wheel ────────────────────────────────────────────────────────────────
@@ -269,6 +315,7 @@ export class ZoomController {
   }
 
   private handleMouseUp(_e: MouseEvent): void {
+    if (this.isDragging && this.hasDragged) this.suppressClick = true
     this.isDragging = false
     this.svg.style.cursor = this.opts.pan ? 'grab' : ''
   }
@@ -282,6 +329,9 @@ export class ZoomController {
     // Panning is stopped from touchmove instead, and `touch-action: none` keeps
     // the browser from scrolling the page in the meantime.
     if (e.touches.length > 1) e.preventDefault()
+
+    // First finger down starts a new gesture
+    if (e.touches.length === 1) this.touchMoved = false
 
     if (e.touches.length === 1) {
       const t = e.touches[0]
@@ -325,6 +375,7 @@ export class ZoomController {
 
       if (!this.hasDragged && Math.abs(dx) + Math.abs(dy) > 5) {
         this.hasDragged = true
+        this.touchMoved = true
       }
       if (!this.hasDragged) return
 
@@ -345,6 +396,7 @@ export class ZoomController {
       const mid  = this.touchMid(e.touches[0], e.touches[1])
 
       if (this.lastPinchDist === 0) return
+      this.touchMoved = true
       const pinchFactor = dist / this.lastPinchDist
       const newScale = this.clampScale(this.state.scale * pinchFactor)
       const svgMid = this.clientToSvg(mid.x, mid.y)
@@ -377,6 +429,7 @@ export class ZoomController {
       this.lastPinchDist = 0
     }
     if (e.touches.length === 0) {
+      if (this.touchMoved) this.suppressClick = true
       this.isDragging = false
     }
   }
