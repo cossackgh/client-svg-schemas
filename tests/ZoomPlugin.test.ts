@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { ZoomController } from '../src/plugins/zoom/ZoomController'
 import { ZoomPlugin } from '../src/plugins/zoom/ZoomPlugin'
+import { Svgic } from '../src/core/Svgic'
 import type { ISvgic, SvgicItem } from '../src/types'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -44,6 +45,20 @@ function fireWheel(svg: SVGSVGElement, deltaY: number, mods: boolean | WheelMods
   const e = new WheelEvent('wheel', { deltaY, ctrlKey, metaKey, altKey, bubbles: true, cancelable: true })
   svg.dispatchEvent(e)
   return e
+}
+
+/** Dispatches a click; detail 1 is a pointer click, detail 0 a keyboard activation */
+function fireClick(target: EventTarget, detail = 1): MouseEvent {
+  const e = new MouseEvent('click', { detail, bubbles: true, cancelable: true })
+  target.dispatchEvent(e)
+  return e
+}
+
+/** Presses the left button on `target`, moves by (dx, dy) and releases on window */
+function mouseDrag(target: EventTarget, dx: number, dy = 0): void {
+  target.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300, bubbles: true }))
+  window.dispatchEvent(new MouseEvent('mousemove', { clientX: 400 + dx, clientY: 300 + dy, bubbles: true }))
+  window.dispatchEvent(new MouseEvent('mouseup', { clientX: 400 + dx, clientY: 300 + dy, bubbles: true }))
 }
 
 function makeTouch(id: number, x: number, y: number, target: EventTarget): Touch {
@@ -305,6 +320,107 @@ describe('ZoomController — drag (mouse pan)', () => {
     ctrl = new ZoomController(svg, { pan: false, animate: false })
     svg.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300, bubbles: true }))
     expect(svg.style.cursor).not.toBe('grabbing')
+  })
+})
+
+// ─── ZoomController — click after drag ───────────────────────────────────────
+
+describe('ZoomController — click after drag', () => {
+  let room: Element
+  let onRoomClick: ReturnType<typeof vi.fn>
+
+  beforeEach(() => {
+    room = svg.querySelector('#room-1')!
+    onRoomClick = vi.fn()
+    room.addEventListener('click', onRoomClick)
+  })
+
+  it('mouse pan started on an element → the following click does not reach it', () => {
+    ctrl = new ZoomController(svg, { animate: false })
+    mouseDrag(room, 50, 10)
+    const click = fireClick(room)
+    expect(onRoomClick).not.toHaveBeenCalled()
+    expect(click.defaultPrevented).toBe(true)
+  })
+
+  it('press without movement (< 3px) → click goes through', () => {
+    ctrl = new ZoomController(svg, { animate: false })
+    mouseDrag(room, 1)
+    fireClick(room)
+    expect(onRoomClick).toHaveBeenCalledTimes(1)
+  })
+
+  it('only the click that ends the drag is swallowed, the next one goes through', () => {
+    ctrl = new ZoomController(svg, { animate: false })
+    mouseDrag(room, 50)
+    fireClick(room)
+    mouseDrag(room, 0)
+    fireClick(room)
+    expect(onRoomClick).toHaveBeenCalledTimes(1)
+  })
+
+  it('pan released outside the schema → click on the page does not reach document', () => {
+    // A click-triggered popup closes from a document listener: the drag must not close it
+    ctrl = new ZoomController(svg, { animate: false })
+    const onDocClick = vi.fn()
+    document.addEventListener('click', onDocClick)
+    mouseDrag(room, 50)
+    fireClick(document.body)
+    document.removeEventListener('click', onDocClick)
+    expect(onDocClick).not.toHaveBeenCalled()
+  })
+
+  it('a press elsewhere disarms a suppression no click consumed', () => {
+    ctrl = new ZoomController(svg, { animate: false })
+    mouseDrag(room, 50)
+    // The browser sent no click after the drag; the user then clicks the page
+    const onBodyClick = vi.fn()
+    document.body.addEventListener('click', onBodyClick)
+    document.body.dispatchEvent(new MouseEvent('mousedown', { button: 0, bubbles: true }))
+    fireClick(document.body)
+    document.body.removeEventListener('click', onBodyClick)
+    expect(onBodyClick).toHaveBeenCalledTimes(1)
+  })
+
+  it('keyboard click (detail 0) after a drag goes through', () => {
+    ctrl = new ZoomController(svg, { animate: false })
+    mouseDrag(room, 50)
+    fireClick(room, 0)
+    expect(onRoomClick).toHaveBeenCalledTimes(1)
+  })
+
+  it('touch pan → the following click does not reach the element', () => {
+    ctrl = new ZoomController(svg, { animate: false })
+    fireTouchStart(svg, makeTouch(0, 200, 150, room))
+    fireTouchMove(svg, makeTouch(0, 260, 150, room))
+    fireTouchEnd(svg)
+    fireClick(room)
+    expect(onRoomClick).not.toHaveBeenCalled()
+  })
+
+  it('touch tap without movement → click goes through', () => {
+    ctrl = new ZoomController(svg, { animate: false })
+    fireTouchStart(svg, makeTouch(0, 200, 150, room))
+    fireTouchEnd(svg)
+    fireClick(room)
+    expect(onRoomClick).toHaveBeenCalledTimes(1)
+  })
+
+  it('pinch → the following click does not reach the element', () => {
+    ctrl = new ZoomController(svg, { animate: false })
+    fireTouchStart(svg, makeTouch(0, 300, 300, room), makeTouch(1, 500, 300, room))
+    fireTouchMove(svg, makeTouch(0, 250, 300, room), makeTouch(1, 550, 300, room))
+    fireTouchEnd(svg)
+    fireClick(room)
+    expect(onRoomClick).not.toHaveBeenCalled()
+  })
+
+  it('after destroy clicks are no longer intercepted', () => {
+    ctrl = new ZoomController(svg, { animate: false })
+    mouseDrag(room, 50)
+    ctrl.destroy()
+    fireClick(room)
+    expect(onRoomClick).toHaveBeenCalledTimes(1)
   })
 })
 
@@ -710,5 +826,54 @@ describe('ZoomPlugin — focusOnClick', () => {
     // scale=2 >= 2*0.9=1.8 → focusElement should NOT have been called
     expect(focusSpy).not.toHaveBeenCalled()
     plugin.onDestroy!(client)
+  })
+})
+
+// ─── ZoomPlugin — click after pan (real Svgic) ───────────────────────────────
+
+describe('ZoomPlugin — click after pan (Svgic)', () => {
+  const SRC =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">' +
+    '<g id="rooms"><rect id="room-1" x="100" y="100" width="200" height="150"/></g>' +
+    '</svg>'
+
+  let container: HTMLElement
+  let client: Svgic
+  let onClick: ReturnType<typeof vi.fn>
+
+  beforeEach(async () => {
+    container = document.createElement('div')
+    document.body.appendChild(container)
+    client = new Svgic(container, {
+      src: SRC,
+      layers: { rooms: { role: 'interactive' } },
+      data: [{ id: 'room-1' }],
+      plugins: [ZoomPlugin({ animate: false })],
+    })
+    await client.ready
+    mockBCR(client.getElement()!)
+    onClick = vi.fn()
+    client.on('click', onClick)
+  })
+
+  afterEach(() => {
+    client.destroy()
+    container.remove()
+  })
+
+  // jsdom does not resolve `#id` on nodes parsed from XML, hence the attribute selector
+  it("panning the schema from an element does not fire on('click') for it", () => {
+    const room = client.getElement()!.querySelector('[id="room-1"]')!
+    mouseDrag(room, 50, 10)
+    fireClick(room)
+    expect(onClick).not.toHaveBeenCalled()
+  })
+
+  it("a plain click still fires on('click')", () => {
+    const room = client.getElement()!.querySelector('[id="room-1"]')!
+    mouseDrag(room, 0)
+    fireClick(room)
+    expect(onClick).toHaveBeenCalledTimes(1)
+    expect(onClick.mock.calls[0][0]).toBe('room-1')
   })
 })
