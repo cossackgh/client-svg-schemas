@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] — 2026-10-31
+
+### Changed
+
+- **ZoomPlugin — cursor**: with `pan` enabled the schema used to show the `grab` hand at all
+  times. Its hotspot sits in the middle of the hand, which made small elements hard to hit, and
+  `grabbing` appeared on every press, a plain click included. The cursor at rest is now the
+  regular arrow (`default`); `grabbing` appears only once a pan has actually started and covers
+  the whole schema, elements with their own `cursor` from the style config included. The rest
+  cursor is a plain CSS rule on the `.svgic-zoom` class, so a page that prefers the hand can
+  restore it with `.svgic-zoom { cursor: grab }`. `destroy()` now also restores `user-select`
+
 ## [0.3.1] — 2026-10-02
 
 ### Fixed
