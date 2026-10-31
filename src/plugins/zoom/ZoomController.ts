@@ -14,6 +14,22 @@ const DEFAULTS: Required<ZoomPluginOptions> = {
   focusScale: 2,
 }
 
+/** Marks the <svg> managed by the plugin: an arrow cursor at rest */
+const ROOT_CLASS = 'svgic-zoom'
+/** Set on the <svg> while a mouse pan is in progress */
+const DRAGGING_CLASS = 'svgic-zoom-dragging'
+
+/**
+ * The rest cursor is a plain rule rather than an inline style, so the host page
+ * can override it with ordinary CSS. The dragging rule covers every descendant
+ * and is `!important`, so it wins over the per-element `cursor` from the style
+ * config (`style.default.cursor`), which would otherwise hide that the whole
+ * schema is being moved.
+ */
+const CURSOR_CSS =
+  `.${ROOT_CLASS} { cursor: default; }\n` +
+  `.${DRAGGING_CLASS}, .${DRAGGING_CLASS} * { cursor: grabbing !important; }`
+
 interface ViewBox {
   x: number
   y: number
@@ -41,6 +57,9 @@ export class ZoomController {
 
   /** Animation frame (RAF) */
   private animFrame: number | null = null
+
+  /** Injected cursor rules, removed on destroy */
+  private cursorStyleEl: HTMLStyleElement | null = null
 
   // --- drag ---
   private isDragging = false
@@ -71,7 +90,8 @@ export class ZoomController {
     // Disable native browser drag and text selection on SVG
     svg.style.userSelect = 'none'
     if (this.opts.pan) {
-      svg.style.cursor = 'grab'
+      this.injectCursorStyles()
+      svg.classList.add(ROOT_CLASS)
     }
     this.attach()
   }
@@ -157,6 +177,18 @@ export class ZoomController {
     this.listeners = []
 
     if (this.opts.touch) this.svg.style.touchAction = ''
+    this.svg.style.userSelect = ''
+    this.svg.classList.remove(ROOT_CLASS, DRAGGING_CLASS)
+    this.cursorStyleEl?.remove()
+    this.cursorStyleEl = null
+  }
+
+  private injectCursorStyles(): void {
+    const style = document.createElement('style')
+    style.dataset['svgicZoom'] = ''
+    style.textContent = CURSOR_CSS
+    document.head.appendChild(style)
+    this.cursorStyleEl = style
   }
 
   // ─── Listener setup ───────────────────────────────────────────────────────
@@ -285,7 +317,6 @@ export class ZoomController {
       vbX: this.state.x,
       vbY: this.state.y,
     }
-    this.svg.style.cursor = 'grabbing'
   }
 
   private handleMouseMove(e: MouseEvent): void {
@@ -296,6 +327,8 @@ export class ZoomController {
 
     if (!this.hasDragged && Math.abs(dx) + Math.abs(dy) > 3) {
       this.hasDragged = true
+      // Only now is it a pan: a plain click must not flash the grabbing cursor
+      this.svg.classList.add(DRAGGING_CLASS)
     }
     if (!this.hasDragged) return
 
@@ -317,7 +350,7 @@ export class ZoomController {
   private handleMouseUp(_e: MouseEvent): void {
     if (this.isDragging && this.hasDragged) this.suppressClick = true
     this.isDragging = false
-    this.svg.style.cursor = this.opts.pan ? 'grab' : ''
+    this.svg.classList.remove(DRAGGING_CLASS)
   }
 
   // ─── Touch ───────────────────────────────────────────────────────────────

@@ -47,6 +47,11 @@ function fireWheel(svg: SVGSVGElement, deltaY: number, mods: boolean | WheelMods
   return e
 }
 
+/** The <style> with the cursor rules injected by ZoomController, if any */
+function zoomStyleEl(): HTMLStyleElement | null {
+  return document.head.querySelector('style[data-svgic-zoom]')
+}
+
 /** Dispatches a click; detail 1 is a pointer click, detail 0 a keyboard activation */
 function fireClick(target: EventTarget, detail = 1): MouseEvent {
   const e = new MouseEvent('click', { detail, bubbles: true, cancelable: true })
@@ -120,14 +125,19 @@ describe('ZoomController — init', () => {
     expect(state.y).toBe(0)
   })
 
-  it('sets cursor: grab when pan: true', () => {
+  it('pan: true — arrow cursor at rest, from a stylesheet rule rather than an inline style', () => {
     ctrl = new ZoomController(svg, { pan: true })
-    expect(svg.style.cursor).toBe('grab')
+    // An inline style would keep the host page from overriding the cursor with plain CSS
+    expect(svg.style.cursor).toBe('')
+    expect(svg.classList.contains('svgic-zoom')).toBe(true)
+    expect(zoomStyleEl()?.textContent).toContain('.svgic-zoom { cursor: default; }')
   })
 
-  it('does not set cursor when pan: false', () => {
+  it('pan: false — leaves the cursor alone', () => {
     ctrl = new ZoomController(svg, { pan: false })
     expect(svg.style.cursor).toBe('')
+    expect(svg.classList.contains('svgic-zoom')).toBe(false)
+    expect(zoomStyleEl()).toBeNull()
   })
 
   it('sets userSelect: none', () => {
@@ -308,18 +318,35 @@ describe('ZoomController — drag (mouse pan)', () => {
     expect(ctrl.getState().x).toBeCloseTo(200)
   })
 
-  it('mouseup ends drag, cursor returns to grab', () => {
+  it('grabbing cursor appears once the pan passes the threshold and goes on mouseup', () => {
     ctrl = new ZoomController(svg, { animate: false })
     svg.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300, bubbles: true }))
-    expect(svg.style.cursor).toBe('grabbing')
+    expect(svg.classList.contains('svgic-zoom-dragging')).toBe(false)
+    window.dispatchEvent(new MouseEvent('mousemove', { clientX: 450, clientY: 300, bubbles: true }))
+    expect(svg.classList.contains('svgic-zoom-dragging')).toBe(true)
     window.dispatchEvent(new MouseEvent('mouseup', {}))
-    expect(svg.style.cursor).toBe('grab')
+    expect(svg.classList.contains('svgic-zoom-dragging')).toBe(false)
   })
 
-  it('pan: false — mousedown does not change cursor', () => {
+  it('a press without movement (< 3px) never shows the grabbing cursor', () => {
+    ctrl = new ZoomController(svg, { animate: false })
+    svg.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300, bubbles: true }))
+    window.dispatchEvent(new MouseEvent('mousemove', { clientX: 401, clientY: 300, bubbles: true }))
+    expect(svg.classList.contains('svgic-zoom-dragging')).toBe(false)
+  })
+
+  it('grabbing covers every descendant and outranks the per-element cursor of the style config', () => {
+    ctrl = new ZoomController(svg, { animate: false })
+    expect(zoomStyleEl()?.textContent).toContain(
+      '.svgic-zoom-dragging, .svgic-zoom-dragging * { cursor: grabbing !important; }',
+    )
+  })
+
+  it('pan: false — dragging never shows the grabbing cursor', () => {
     ctrl = new ZoomController(svg, { pan: false, animate: false })
     svg.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300, bubbles: true }))
-    expect(svg.style.cursor).not.toBe('grabbing')
+    window.dispatchEvent(new MouseEvent('mousemove', { clientX: 450, clientY: 300, bubbles: true }))
+    expect(svg.classList.contains('svgic-zoom-dragging')).toBe(false)
   })
 })
 
@@ -686,6 +713,17 @@ describe('ZoomController — animateTo', () => {
 // ─── ZoomController — destroy ────────────────────────────────────────────────
 
 describe('ZoomController — destroy', () => {
+  it('destroy removes the cursor classes and rules and restores user-select', () => {
+    ctrl = new ZoomController(svg, { animate: false })
+    svg.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300, bubbles: true }))
+    window.dispatchEvent(new MouseEvent('mousemove', { clientX: 450, clientY: 300, bubbles: true }))
+    ctrl.destroy()
+    expect(svg.classList.contains('svgic-zoom')).toBe(false)
+    expect(svg.classList.contains('svgic-zoom-dragging')).toBe(false)
+    expect(zoomStyleEl()).toBeNull()
+    expect(svg.style.userSelect).toBe('')
+  })
+
   it('after destroy wheel events are ignored', () => {
     ctrl = new ZoomController(svg, { wheelMode: 'always', animate: false })
     ctrl.destroy()

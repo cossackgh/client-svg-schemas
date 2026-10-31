@@ -13,7 +13,12 @@ export interface ZoomPluginOptions {
    * Default: 'ctrl'
    */
   wheelMode?: 'always' | 'ctrl' | 'alt'
-  /** Allow pan by mouse drag. Default: true */
+  /**
+   * Allow pan by mouse drag. Default: true
+   *
+   * The cursor over the schema is the regular arrow (`default`); while a drag
+   * is in progress it is `grabbing` over the whole schema, elements included.
+   */
   pan?: boolean
   /** Allow touch gestures (pinch-zoom, pan, double tap). Default: true */
   touch?: boolean
